@@ -11,19 +11,16 @@ long_description = '\n\n'.join([
 install_requires = [
     'Django',
     'django-celery',
+    'django-compressor',
     'django-extensions',
     'django-nose',
     'gunicorn',
-    'lizard-map',
-    'lizard-ui',
     'python-memcached',
     'raven',
     'south',
     'werkzeug',
     # Maptree and wms are included for demo purposes; almost every site needs
     # them anyway.
-    'lizard-maptree',
-    'lizard-wms',
     ],
 
 tests_require = [
@@ -34,15 +31,15 @@ tests_require = [
 
 setup(name='lizard-efcis',
       version=version,
-      description="TODO",
+      description="Lizard application for Ecological and Physico-Chemical data.",
       long_description=long_description,
       # Get strings from http://www.python.org/pypi?%3Aaction=list_classifiers
       classifiers=['Programming Language :: Python',
                    'Framework :: Django',
                    ],
       keywords=[],
-      author='TODO',
-      author_email='TODO@nelen-schuurmans.nl',
+      author='Alexandr Seleznev',
+      author_email='alexandr.seleznev@nelen-schuurmans.nl',
       url='',
       license='GPL',
       packages=['lizard_efcis'],

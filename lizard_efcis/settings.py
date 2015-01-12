@@ -115,7 +115,7 @@ DATABASES = {
         'NAME': 'lizard_efcis',
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'USER': 'lizard_efcis',
-        'PASSWORD': 'osc_wumlx0',
+        'PASSWORD': '(0&hfg6gro',
         'HOST': 'p-web-db-00-d03.external-nens.local',
         'PORT': '5432',
         }
@@ -164,7 +164,7 @@ STATICFILES_DIRS = [
 ]
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = 'py+=16e+-j@h=i$#2zez+4k#!^2(q_w#c!=&7938k3njk_w+gq'
+SECRET_KEY = '9zn@tu%f9k)ro5c^$2!)slr*7ftiy@-kebrs3@!-0hc@ynzc*!'
 
 ROOT_URLCONF = 'lizard_efcis.urls'
 
@@ -185,21 +185,13 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    # Lizard security.
-    'tls.TLSRequestMiddleware',
-    'lizard_security.middleware.SecurityMiddleware',
     )
 
 INSTALLED_APPS = (
     'lizard_efcis',
     # lizard_maptree and lizard_wms are included for demo purposes. Almost
     # every site needs them, but you're free to remove them if unneeded.
-    'lizard_maptree',
-    'lizard_wms',
-    'lizard_map',
-    'lizard_ui',
-    'lizard_security',
-    'south',
+    #'south',
     'compressor',
     'raven.contrib.django.raven_compat',
     'django_extensions',
@@ -207,7 +199,6 @@ INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.gis',
-    'django.contrib.markup',
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.staticfiles',
