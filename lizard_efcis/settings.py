@@ -216,6 +216,14 @@ UI_GAUGES_SITE_ID = ''  # Staging has a separate one.
 # Add your production name here. Django 1.6+
 ALLOWED_HOSTS = ['lizard-efcis.lizard.net']
 
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ]
+}
+
 try:
     from lizard_efcis.localproductionsettings import *
     # For local production overrides (DB passwords, for instance)
