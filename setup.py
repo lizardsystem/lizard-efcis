@@ -19,6 +19,7 @@ install_requires = [
     'raven',
     'south',
     'werkzeug',
+    'djangorestframework',
     # Maptree and wms are included for demo purposes; almost every site needs
     # them anyway.
     ],
