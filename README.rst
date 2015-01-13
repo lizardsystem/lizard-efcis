@@ -57,7 +57,9 @@ Then run bootstrap and buildout, as usual::
     $ bin/buildout
 
 Set up a database (and yes, set up an admin user when asked)::
-
+    
+    $ bin/django dbshell
+      => CREATE extention hstore;
     $ bin/django syncdb
     $ bin/django migrate
 

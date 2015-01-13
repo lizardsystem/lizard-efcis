@@ -202,6 +202,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.staticfiles',
+    'django_hstore',
     'rest_framework',
     'gunicorn',
 )

@@ -14,6 +14,7 @@ install_requires = [
     'django-compressor',
     'django-extensions',
     'django-nose',
+    'django-hstore',
     'gunicorn',
     'python-memcached',
     'raven',
