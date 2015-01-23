@@ -1,6 +1,7 @@
 import os
 import csv
 import glob
+import datetime
 
 from django.conf import settings
 
@@ -34,6 +35,17 @@ class DomainImport(object):
         self.import_eenheid('eenheid.csv')
         self.import_parameter('parameter.csv')
         self.import_wns('wns.csv')
+
+    def _datestr_to_date(self, datestr):
+        dt = None
+        try:
+            dt = datetime.datetime.strptime(
+                datestr, settings.IMPORT_DATE_FORMAT).date()
+        except ValueError as err:
+            logger.warn(err.message)
+        except TypeError as err:
+            logger.warn(err.message)
+        return dt
 
     def _get_status(self, status):
         statuses = models.Status.objects.filter(
@@ -103,8 +115,8 @@ class DomainImport(object):
                     status_krw = models.StatusKRW(code=row[0])
                     created = created + 1
                 status_krw.omschrijving = row[1]
-                status_krw.datum_begin = row[2]
-                status_krw.datum_eind = row[3]
+                status_krw.datum_begin = self._datestr_to_date(row[2])
+                status_krw.datum_eind = self._datestr_to_date(row[3])
                 status_krw.datum_status = row[4]
                 status_krw.save()
         logger.info(
@@ -131,8 +143,8 @@ class DomainImport(object):
                     created = created + 1
                 watertype.omschrijving = row[1]
                 watertype.groep = row[2]
-                watertype.datum_begin = row[3]
-                watertype.datum_eind = row[4]
+                watertype.datum_begin = self._datastr_to_date(row[3])
+                watertype.datum_eind = self._datastr_to_date(row[4])
                 watertype.datum_status = row[5]
                 watertype.save()
         logger.info(
@@ -207,7 +219,7 @@ class DomainImport(object):
                     created = created + 1
                 comp.comp_oms = row[1]
                 comp.compartimentgroep = row[2]
-                comp.datum_status = row[3]
+                comp.datum_status = self._datastr_to_date(row[3])
                 comp.status = self._get_status(row[4])
                 comp.save()
         logger.info(
@@ -234,7 +246,7 @@ class DomainImport(object):
                     created = created + 1
                 hd.hoed_oms = row[1]
                 hd.hoedanigheidgroep = row[2]
-                hd.datum_status = row[3]
+                hd.datum_status = self._datastr_to_date(row[3])
                 hg.status = self._get_status(row[4])
                 hd.save()
         logger.info(
@@ -264,7 +276,7 @@ class DomainImport(object):
                 eenheid.dimensie = row[2]
                 eenheid.omrekenfactor = row[3]
                 eenheid.eenheidgroep = row[4]
-                eenheid.datum_status = row[5]
+                eenheid.datum_status = self._datastr_to_date(row[5])
                 eenheid.status = self._get_status(row[6])
                 eenheid.save()
         logger.info(
@@ -295,7 +307,7 @@ class DomainImport(object):
                 par.parametergroep0 = row[3]
                 par.parametergroep1 = row[4]
                 par.parametergroep2 = row[5]
-                par.datum_status = row[6]
+                par.datum_status = self._datastr_to_date(row[6])
                 par.status = self._get_status(row[7])
                 par.save()
         logger.info(
@@ -326,7 +338,7 @@ class DomainImport(object):
                 wns.eenheid = self._get_eenheid(row[3])
                 wns.hoedanigheid = self._get_hoedanigheid(row[4])
                 wns.compartiment = self._get_compartiment(row[5])
-                wns.datum_status = row[6]
+                wns.datum_status = self._datastr_to_date(row[6])
                 wns.status = self._get_status(row[7])
                 wns.save()
         logger.info(
