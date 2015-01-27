@@ -20,7 +20,7 @@ def get_filtered_opnames(queryset, request):
     location = request.QUERY_PARAMS.get('locatie')
     if location not in [None, '']:
         queryset = queryset.filter(locatie__loc_id__iexact=location)
-    
+
     return queryset
 
 
@@ -29,7 +29,7 @@ def api_root(request, format=None):
     return Response({
         'opnames': reverse(
             'opname-list',
-            request-request,
+            request=request,
             format=format),
     })
 
