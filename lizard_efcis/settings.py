@@ -226,9 +226,9 @@ REST_FRAMEWORK = {
 }
 
 
-# Date format for data import
+# Settings for data import
 IMPORT_DATE_FORMAT = '%d-%m-%Y'
-
+DATA_IMPORT_DIR = os.path.join(BUILDOUT_DIR, 'data')
 try:
     from lizard_efcis.localproductionsettings import *
     # For local production overrides (DB passwords, for instance)

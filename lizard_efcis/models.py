@@ -22,7 +22,7 @@ class Status(models.Model):
     naam = models.CharField(unique=True, max_length=50)
 
     def __unicode__(self):
-        return '{}'.format(self.name)
+        return '{}'.format(self.naam)
 
 
 class Meetnet(models.Model):
@@ -91,7 +91,7 @@ class Waterlichaam(models.Model):
 
 class Locatie(models.Model):
     
-    loc_id = models.CharField(max_length=50, help_text="Locatiecode")
+    loc_id = models.CharField(max_length=50, help_text="Locatiecode", unique=True)
     loc_oms = models.TextField(
         null=True,
         blank=True,
@@ -115,6 +115,12 @@ class Locatie(models.Model):
     meetnet = models.ForeignKey(Meetnet, null=True, blank=True)
 
     objects = models.GeoManager()
+
+    def __unicode__(self):
+        return '{}'.format(self.loc_oms)
+
+    def __str__(self):
+        return self.loc_oms
     
 
 class Parameter(models.Model):
@@ -207,7 +213,7 @@ class Activiteit(models.Model):
         (T2, T2)
     )
         
-    activiteit = models.CharField(max_length=50)
+    activiteit = models.CharField(max_length=50, unique=True)
     act_type = models.CharField(
         max_length = 10,
         choices= TYPE_CHOICES,
@@ -248,19 +254,19 @@ class Activiteit(models.Model):
 
 class WNS(models.Model):
     
-    wns_code = models.CharField(max_length=30)
+    wns_code = models.CharField(max_length=30, unique=True)
     wns_oms = models.CharField(
         max_length=255,
         null=True,
         blank=True)
     parameter = models.ForeignKey(Parameter, null=True, blank=True)
-    eenheid = models.CharField(max_length=20, null=True, blank=True)
-    hoedanigheid = models.CharField(
-        max_length=20,
+    eenheid = models.ForeignKey(Eenheid, null=True, blank=True)
+    hoedanigheid = models.ForeignKey(
+        Hoedanigheid,
         null=True,
         blank=True)
-    compartiment = models.CharField(
-        max_length=10,
+    compartiment = models.ForeignKey(
+        Compartiment,
         null=True,
         blank=True)
     datum_status = models.DateField(null=True, blank=True)
@@ -268,6 +274,9 @@ class WNS(models.Model):
 
     def __unicode__(self):
         return '{}'.format(self.wns_code)
+
+    def __str__(self):
+        return self.wns_code
 
 
 class Opname(models.Model):

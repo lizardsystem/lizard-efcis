@@ -17,8 +17,10 @@ admin.autodiscover()
 router = routers.DefaultRouter()
 
 urlpatterns = patterns(
-    '',
-    url(r'^$', include(router.urls)),
+    'lizard_efcis.views',
+    url(r'^$', 'api_root'),
+    url(r'^opnames/$', 'opname_list', name='opname-list'),
+    #url(r'^$', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^admin/', include(admin.site.urls)),
 

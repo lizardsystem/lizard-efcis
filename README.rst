@@ -73,3 +73,10 @@ WMS layer::
 Start the server::
 
     $ bin/django runserver
+
+Usage
+-----------------------------------------
+
+Opnames source:
+
+    /api/opnames?locatie=NL14-20001&page=1&page_size=1000
