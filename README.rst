@@ -74,9 +74,22 @@ Start the server::
 
     $ bin/django runserver
 
-Usage
+SOURCES
 -----------------------------------------
 
-Opnames source:
+Opname-list source:
 
     /api/opnames?locatie=NL14-20001&page=1&page_size=1000
+
+
+Import
+----------------------------------------------
+
+Import doamain data::
+
+    $ bin/django import_domain_data
+
+Import ibever data::
+
+    $ bin/django import_ibever
+
