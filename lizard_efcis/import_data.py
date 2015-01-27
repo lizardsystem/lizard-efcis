@@ -464,7 +464,6 @@ class DataImport(object):
             reader = csv.reader(f, delimiter=';')
             # read headers
             headers = reader.next()
-            import pdb; pdb.set_trace()
             for row in reader:
                 try:
                     opname = models.Opname()
