@@ -41,7 +41,7 @@ class DataImport(object):
     def _datestr_to_date(self, datestr):
         dt = None
         try:
-            dt = datetime.datetime.strptime(
+            dt = datetime.strptime(
                 datestr, settings.IMPORT_DATE_FORMAT).date()
         except ValueError as err:
             logger.warn(err.message)
@@ -453,8 +453,11 @@ class DataImport(object):
 
 
     def import_hist_opname_ibever(self, filename, activiteit):
-        logger.info("Import ibever, dateformat='%d-%m-%Y' timeformat='%H:%M:%S'")
-        dtformat = '%d-%m-%Y %H:%M:%S'
+        logger.info("Import ibever, "
+                    "dateformat='%d-%m-%Y' timeformat='%H:%M:%S'")
+        dformat = '%d-%m-%Y'
+        tformat = '%H:%M:%S'
+        dtformat = '{0} {1}'.format(dformat, tformat)
         filepath = os.path.join(self.data_dir, filename)
         if not os.path.isfile(filepath):
             logger.warn(

@@ -21,8 +21,8 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 logger = logging.getLogger(__name__)
 
 
-def strToDatetime(dtstr):
-    dtformat = "%d-%m-%YT%H:%M:%S"
+def str_to_datetime(dtstr):
+    dtformat = "%d-%m-%Y"
     dt = None
     try:
         dt = datetime.strptime(dtstr, dtformat)
@@ -35,16 +35,17 @@ def strToDatetime(dtstr):
 def get_filtered_opnames(queryset, request):
 
     location = request.QUERY_PARAMS.get('locatie')
-    startdatetime = strToDatetime(
-        request.QUERY_PARAMS.get('startdatetime'))
-    enddatetime = strToDatetime(
-        request.QUERY_PARAMS.get('enddatetime'))
-    if None not in [startdatetime, enddatetime]:
+    startdatetime = str_to_datetime(
+        request.QUERY_PARAMS.get('start_date'))
+    enddatetime = str_to_datetime(
+        request.QUERY_PARAMS.get('end_date'))
+    if startdatetime and enddatetime:
         queryset = queryset.filter(
             moment__gt=startdatetime,
             moment__lt=enddatetime)
-    if location not in [None, '']:
-        queryset = queryset.filter(locatie__loc_id__iexact=location)
+    if location:
+        queryset = queryset.filter(
+            locatie__loc_id__iexact=location)
 
     return queryset
 
