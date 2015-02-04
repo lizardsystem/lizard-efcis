@@ -3,6 +3,9 @@
 from __future__ import unicode_literals
 from __future__ import print_function
 
+import logging
+from datetime import datetime
+
 from django.utils.translation import ugettext as _
 
 from rest_framework.decorators import api_view
@@ -15,11 +18,34 @@ from lizard_efcis import serializers
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 
 
+logger = logging.getLogger(__name__)
+
+
+def str_to_datetime(dtstr):
+    dtformat = "%d-%m-%Y"
+    dt = None
+    try:
+        dt = datetime.strptime(dtstr, dtformat)
+    except:
+        logger.warn("Error on formating datimestr to datetime"
+                    "{0} not match to {1}.".format(dtstr, dtformat))
+    return dt
+
+
 def get_filtered_opnames(queryset, request):
 
     location = request.QUERY_PARAMS.get('locatie')
-    if location not in [None, '']:
-        queryset = queryset.filter(locatie__loc_id__iexact=location)
+    startdatetime = str_to_datetime(
+        request.QUERY_PARAMS.get('start_date'))
+    enddatetime = str_to_datetime(
+        request.QUERY_PARAMS.get('end_date'))
+    if startdatetime and enddatetime:
+        queryset = queryset.filter(
+            moment__gt=startdatetime,
+            moment__lt=enddatetime)
+    if location:
+        queryset = queryset.filter(
+            locatie__loc_id__iexact=location)
 
     return queryset
 

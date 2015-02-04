@@ -79,7 +79,7 @@ SOURCES
 
 Opname-list source:
 
-    /api/opnames?locatie=NL14-20001&page=1&page_size=1000
+    /api/opnames?locatie=NL14-20001&page=1&page_size=1000&start_date=1-1-2014&end_date=31-1-2014
 
 
 Import
