@@ -1,7 +1,7 @@
 import os
 import csv
 import glob
-import datetime
+from datetime import datetime
 
 from django.conf import settings
 
@@ -144,7 +144,7 @@ class DataImport(object):
         if wnses.exists():
             return wnses[0]
         else:
-            logger.warn("WNS {} does not exist.".logger(wnsoms))
+            logger.warn("WNS {} does not exist.".format(wnsoms))
             return None
     
     def create_status(self):
@@ -446,12 +446,15 @@ class DataImport(object):
                     location.save()
                     created = created + 1
                 except:
-                    logger.warn("Locatie not created {}.".format(row[headers.index('mpn_mpnident')]))
+                    logger.warn("Location not created {}.".format(row[headers.index('mpn_mpnident')]))
             logger.info(
                 'End Location import: created={}.'.format(created))
 
+
+
     def import_hist_opname_ibever(self, filename, activiteit):
-        logger.info("Import ibever.")
+        logger.info("Import ibever, dateformat='%d-%m-%Y' timeformat='%H:%M:%S'")
+        dtformat = '%d-%m-%Y %H:%M:%S'
         filepath = os.path.join(self.data_dir, filename)
         if not os.path.isfile(filepath):
             logger.warn(
@@ -466,22 +469,29 @@ class DataImport(object):
             headers = reader.next()
             for row in reader:
                 try:
+                    
                     opname = models.Opname()
-                    opname.moment = datetime.datetime.now()
-
-                    waarde_n = self._remove_leading_quotes(row[headers.index('mwa_mwawrden')]).replace(',','.')
-                    waarde_a = self._remove_leading_quotes(row[headers.index('mwa_mwawrdea')]).replace(',','.')
-                    locatie = self._remove_leading_quotes(row[headers.index('mpn_mpnident')])
+                    opname.moment = datetime.strptime('{0} {1}'.format(
+                        row[headers.index('mwa_mwadtmb')].strip(),
+                        row[headers.index('mwa_mwatijdb')].strip()), dtformat)
+                    waarde_n = self._remove_leading_quotes(
+                        row[headers.index('mwa_mwawrden')]).replace(',','.')
+                    waarde_a = self._remove_leading_quotes(
+                        row[headers.index('mwa_mwawrdea')]).replace(',','.')
+                    locatie = self._remove_leading_quotes(
+                        row[headers.index('mpn_mpnident')])
 
                     opname.waarde_n = self._str_to_float(waarde_n)
                     opname.waarde_a = self._str_to_float(waarde_a)
                     opname.activiteit = activiteit
-                    opname.wns = self._get_wns(self._remove_leading_quotes(row[headers.index('wns_osmomsch')]))
+                    opname.wns = self._get_wns(
+                        self._remove_leading_quotes(row[headers.index('wns_osmomsch')]))
                     opname.locatie = self._get_locatie(locatie)
-                    opname.detect = self._get_detect(self._remove_leading_quotes(row[headers.index('mrsinovs_domafkrt')]))
+                    opname.detect = self._get_detect(
+                        self._remove_leading_quotes(row[headers.index('mrsinovs_domafkrt')]))
                     opname.save()
                     created = created + 1
-                except:
-                    logger.warn("Could not create opname object." )
+                except ValueError as err:
+                    logger.warn("Could not create opname object. Message:{}".format(err.message))
         logger.info(
-            'End iBever import: created={1}.'.format(created))
+            'End iBever import: created={}.'.format(created))
