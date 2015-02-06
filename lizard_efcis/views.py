@@ -89,3 +89,20 @@ def opname_list(request):
         return Response(serializer.data)
     else:
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+@api_view(['GET'])
+def opname_detail(request, pk):
+
+    try:
+        opname = models.Opname.objects.get(pk=pk)
+    except models.Opname.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = serializers.OpnameDetailSerializer(
+            opname, context={'request': request})
+        return Response(serializer.data)
+    else:
+        return Response(
+            status=status.HTTP_405_METHOD_NOT_ALLOWED)

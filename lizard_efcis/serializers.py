@@ -5,7 +5,7 @@ from rest_framework import pagination
 from lizard_efcis import models
 
 
-class OpnameSerializer(serializers.ModelSerializer):
+class OpnameSerializer(serializers.HyperlinkedModelSerializer):
     
     loc_id = serializers.PrimaryKeyRelatedField(
         read_only=True,
@@ -26,8 +26,24 @@ class OpnameSerializer(serializers.ModelSerializer):
         model = models.Opname
         fields = ('wns_oms', 'activiteit', 'loc_id',
                   'loc_oms', 'waarde_n', 'waarde_a',
-                  'moment', 'detectiegrens')
+                  'moment', 'detectiegrens', 'url')
 
+
+class OpnameDetailSerializer(OpnameSerializer):
+    par_code = serializers.PrimaryKeyRelatedField(
+        read_only=True,
+        source='wns.parameter.par_code')
+    par_oms = serializers.PrimaryKeyRelatedField(
+        read_only=True,
+        source='wns.parameter.par_oms')
+
+    class Meta:
+        model = models.Opname
+        fields = ('wns_oms', 'activiteit', 'loc_id',
+                  'loc_oms', 'waarde_n', 'waarde_a',
+                  'moment', 'detectiegrens', 'par_code',
+                  'par_oms', 'url')
+    
 
 class PaginatedOpnameSerializer(pagination.BasePaginationSerializer):
 
