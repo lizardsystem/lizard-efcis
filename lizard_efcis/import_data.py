@@ -253,9 +253,8 @@ class DataImport(object):
         updated = 0
         created = 0
         detect_list = [
-            ['<', 'onder detectiegrans'],
-            ['>', 'boven detectiegrans'],
-            ['-', '']
+            ['<', 'onder detectiegrens'],
+            ['>', 'boven detectiegrens']
         ]
         for row in detect_list:
             try:
