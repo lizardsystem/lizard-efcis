@@ -39,6 +39,10 @@ def get_filtered_opnames(queryset, request):
         request.QUERY_PARAMS.get('start_date'))
     enddatetime = str_to_datetime(
         request.QUERY_PARAMS.get('end_date'))
+    par_code = request.QUERY_PARAMS.get('par_code')
+    if par_code:
+        queryset = queryset.filter(
+            wns__parameter__par_code__iexact=par_code)
     if startdatetime and enddatetime:
         queryset = queryset.filter(
             moment__gt=startdatetime,
