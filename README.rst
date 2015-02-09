@@ -78,10 +78,21 @@ SOURCES
 -----------------------------------------
 
 Opname-list source:
+    root url:
+        
+    /api
 
+    opnames source:
+    
     /api/opnames?locatie=NL14-20001&page=1&page_size=1000&start_date=1-1-2014&end_date=31-1-2014
 
-
+    QUERY_PARAMS opname:
+    locatie => location id, case-insensitive
+    page => pagenumber
+    page_size => items per page
+    start_date => date from
+    end_date => date to
+    par_code => parameter code, case-insensitive
 Import
 ----------------------------------------------
 
