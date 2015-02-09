@@ -287,4 +287,7 @@ class Opname(models.Model):
     activiteit = models.ForeignKey(Activiteit)
     wns = models.ForeignKey(WNS)
     locatie = models.ForeignKey(Locatie)
-    detect = models.ForeignKey(Detectiegrens)
+    detect = models.ForeignKey(
+        Detectiegrens,
+        null=True,
+        blank=True)
