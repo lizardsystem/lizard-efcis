@@ -22,6 +22,7 @@ class OpnameSerializer(serializers.HyperlinkedModelSerializer):
     detectiegrens = serializers.PrimaryKeyRelatedField(
         read_only=True,
         source='detect.teken')
+    moment = serializers.DateTimeField(format='%d-%m-%Y')
     class Meta:
         model = models.Opname
         fields = ('wns_oms', 'activiteit', 'loc_id',
