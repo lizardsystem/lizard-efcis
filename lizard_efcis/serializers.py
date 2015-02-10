@@ -43,7 +43,7 @@ class OpnameDetailSerializer(OpnameSerializer):
         fields = ('wns_oms', 'activiteit', 'loc_id',
                   'loc_oms', 'waarde_n', 'waarde_a',
                   'moment', 'detectiegrens', 'par_code',
-                  'par_oms', 'url')
+                  'par_oms')
     
 
 class PaginatedOpnameSerializer(pagination.BasePaginationSerializer):
