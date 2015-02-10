@@ -41,8 +41,10 @@ class DataImport(object):
     def _datestr_to_date(self, datestr):
         dt = None
         try:
-            dt = datetime.strptime(
-                datestr, settings.IMPORT_DATE_FORMAT).date()
+            if datestr:
+                dt = datetime.strptime(
+                    datestr,
+                    settings.IMPORT_DATE_FORMAT).date()
         except ValueError as err:
             logger.debug(err.message)
         except TypeError as err:
@@ -52,7 +54,8 @@ class DataImport(object):
     def _str_to_float(self, floatstr):
         fl = None
         try:
-            fl = float(floatstr)
+            if floatstr:
+                fl = float(floatstr)
         except ValueError as err:
             logger.debug(err.message)
         except:
@@ -135,7 +138,7 @@ class DataImport(object):
         if detectiegrenzen.exists():
             return detectiegrenzen[0]
         else:
-            logger.warn("Detectiegrens {} does not exist.".format(teken))
+            #logger.warn("Detectiegrens {} does not exist.".format(teken))
             return None
 
     def _get_wns(self, wnsoms) :
@@ -445,7 +448,8 @@ class DataImport(object):
                     location.save()
                     created = created + 1
                 except:
-                    logger.warn("Location not created {}.".format(row[headers.index('mpn_mpnident')]))
+                    #logger.debug("Location not created {}.".format(row[headers.index('mpn_mpnident')]))
+                    continue
             logger.info(
                 'End Location import: created={}.'.format(created))
 
@@ -494,6 +498,7 @@ class DataImport(object):
                     opname.save()
                     created = created + 1
                 except ValueError as err:
-                    logger.warn("Could not create opname object. Message:{}".format(err.message))
+                    #logger.warn("Could not create opname object. Message:{}".format(err.message))
+                    continue
         logger.info(
             'End iBever import: created={}.'.format(created))
