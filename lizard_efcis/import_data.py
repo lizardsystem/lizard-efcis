@@ -44,9 +44,9 @@ class DataImport(object):
             dt = datetime.strptime(
                 datestr, settings.IMPORT_DATE_FORMAT).date()
         except ValueError as err:
-            logger.warn(err.message)
+            logger.debug(err.message)
         except TypeError as err:
-            logger.warn(err.message)
+            logger.debug(err.message)
         return dt
 
     def _str_to_float(self, floatstr):
@@ -54,9 +54,9 @@ class DataImport(object):
         try:
             fl = float(floatstr)
         except ValueError as err:
-            logger.warn(err.message)
+            logger.debug(err.message)
         except:
-            logger.warn("THE rest")
+            logger.debug("THE rest")
         return fl
 
     def _remove_leading_quotes(self, quotedstr):
@@ -155,7 +155,7 @@ class DataImport(object):
                 models.Status(naam=status).save()
                 created = created + 1
             except:
-                logger.warn(
+                logger.debug(
                     "Failed status or already exsists, status '{}'.".format(status))
 
         logger.info('End status creating: created={}.'.format(created))
