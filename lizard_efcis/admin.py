@@ -7,5 +7,11 @@ from django.contrib import admin
 
 from lizard_efcis import models
 
+class MappingFieldInlineAdmin(admin.TabularInline):
+    model = models.MappingField
+    #list_display = ['mapping']
 
-# admin.site.register(models.TODO)
+class ImportMappingAdmin(admin.ModelAdmin):
+    inlines = [MappingFieldInlineAdmin]
+
+admin.site.register(models.ImportMapping, ImportMappingAdmin)

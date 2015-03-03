@@ -96,11 +96,16 @@ Opname-list source:
 Import
 ----------------------------------------------
 
+Create mappings for dataimports::
+
+    $ bin/django create_mapping
+
 Import doamain data::
 
+    $ bin/django import_domain_data
     $ bin/django import_domain_data
 
 Import ibever data::
 
-    $ bin/django import_ibever
-
+    $ bin/django import_ibever --mapping='iBever-locaties'
+    $ bin/django import_ibever --mapping='iBever-opnames'

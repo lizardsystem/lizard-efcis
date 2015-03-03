@@ -2,10 +2,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 from __future__ import print_function
+import datetime
 
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.gis.db import models
 from django_hstore import hstore
+from django.core.files.storage import FileSystemStorage
+from django.conf import settings
+
+fs = FileSystemStorage(location=settings.MEDIA_ROOT)
 
 
 class Status(models.Model):
@@ -279,11 +284,27 @@ class WNS(models.Model):
         return self.wns_code
 
 
+class ParameterGroep(models.Model):
+
+    code = models.CharField(primary_key=True, max_length=255)
+    parent = models.ForeignKey(
+        'lizard_efcis.ParameterGroep',
+        null=True,
+        blank=True)
+    
+    def __unicode__(self):
+        return self.code
+
+
 class Opname(models.Model):
 
-    moment = models.DateTimeField()
+    datum = models.DateField()
+    tijd = models.TimeField(null=True, blank=True)
     waarde_n = models.FloatField(null=True, blank=True)
-    waarde_a = models.FloatField(null=True, blank=True)
+    waarde_a = models.CharField(
+        max_length=30,
+        null=True,
+        blank=True)
     activiteit = models.ForeignKey(Activiteit)
     wns = models.ForeignKey(WNS)
     locatie = models.ForeignKey(Locatie)
@@ -291,3 +312,101 @@ class Opname(models.Model):
         Detectiegrens,
         null=True,
         blank=True)
+
+    class Mata:
+        unique_together = ((
+            'datum',
+            'tijd',
+            'wns',
+            'locatie')
+        )
+    
+    @property
+    def moment(self):
+        if self.tijd:
+            return datetime.datetime(
+                self.datum.year,
+                self.datum.month,
+                self.datum.day,
+                self.tijd.hour,
+                self.tijd.minute,
+                self.tijd.second)
+        else:
+            return datetime.datetime(
+                self.datum.year,
+                self.datum.month,
+                self.datum.day)
+
+
+class ImportMapping(models.Model):
+    
+    tabellen = [
+        ('Opname', 'Opname'),
+        ('Locatie', 'Locatie'),
+        ('ParameterGroep', 'ParameterGroep')
+    ]
+    code = models.CharField(max_length=50, unique=True)
+    omschrijving = models.TextField(null=True, blank=True)        
+    tabel_naam = models.CharField(
+        max_length=255,
+        choices=tabellen,
+        help_text="Import tabel")
+    scheiding_teken = models.CharField(
+        max_length=3,
+        default=";",
+        help_text="Veld scheidingsteken.")
+    
+    class Meta:
+        ordering = ['tabel_naam']
+
+    def __unicode__(self):
+        return self.code
+
+
+class MappingField(models.Model):
+    
+    FOREIGNKEY_MODELS = [
+        'WNS',
+        'Locatie',
+        'Detectiegrens',
+        'ParameterGroep'
+    ]
+    type_choices = [
+        ('CharField', 'CharField'),
+        ('float', 'float'),
+        ('date', 'date'),
+        ('time', 'time'),
+        (FOREIGNKEY_MODELS[0], FOREIGNKEY_MODELS[0]),
+        (FOREIGNKEY_MODELS[1], FOREIGNKEY_MODELS[1]),
+        (FOREIGNKEY_MODELS[2], FOREIGNKEY_MODELS[2]),
+        (FOREIGNKEY_MODELS[3], FOREIGNKEY_MODELS[3])
+    ]
+    
+    db_field = models.CharField(max_length=255)
+    file_field = models.CharField(max_length=255)
+    db_datatype = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        choices=type_choices,
+        help_text='DataType of Foreign-Tabelnaam b.v. float, Locatie')
+    foreignkey_field = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        help_text='{0} {1}'.format(
+            'Veldnaam van de Foreign tabel, meestal id of code.',
+            'Wordt gebruik in combinatie met foreign_key,'))
+    mapping = models.ForeignKey(ImportMapping)
+    data_format = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+        help_text="b.v. %d-%m-%Y voor de datum.")
+    
+    def __unicode__(self):
+        return '{0}-{1}'.format(self.db_field, self.file_field)
+
+    class Meta:
+        ordering = ['db_field']
+

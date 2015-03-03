@@ -8,20 +8,27 @@ from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 
 from lizard_efcis.import_data import DataImport
-from lizard_efcis.models import Activiteit
+from lizard_efcis.models import Activiteit, ImportMapping
 
 class Command(BaseCommand):
-    help = '''Import Location, Opname from ibever csv-file'''
+    help = '''Import data volgens de mapping.'''
     
     option_list = BaseCommand.option_list + (
-        make_option('--f',
+        make_option('--mapping',
                     default=None,
-                    help='not implemented'),
+                    help='mapping code'),
     )                
         
     def handle(self, *args, **options):
-        self.stdout.write('End import')
-        
+        self.stdout.write('Start import')
+        mapping_code = options.get('mapping', None)
+        if not mapping_code:
+            self.stdout.write('Geef een mapping code.')
+            return
+        if not ImportMapping.objects.filter(code=mapping_code).exists():
+            self.stdout.write(
+                'De mapping code {} is niet gevonden.'.format(mapping_code))
+            return
         data_import = DataImport()
         data_import.data_dir = os.path.join(
             settings.DATA_IMPORT_DIR, 'ibever')
@@ -32,7 +39,7 @@ class Command(BaseCommand):
         else:
             activiteit = Activiteit(activiteit='import ibever')
             activiteit.save()
-        data_import.import_locaties_from_ibever('ibever.csv')
-        data_import.import_hist_opname_ibever('ibever.csv', activiteit)
         
-        self.stdout.write('End import')
+        data_import.import_csv('ibever.csv', mapping_code, activiteit, ignore_dublicate_key=False)
+        
+        self.stdout.write('Einde import')

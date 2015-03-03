@@ -1,10 +1,12 @@
 import os
 import csv
 import glob
+import time
 from datetime import datetime
 
+from django.db import IntegrityError
 from django.conf import settings
-
+from django.db import models as django_models
 from lizard_efcis import models
 
 import logging
@@ -25,6 +27,7 @@ class DataImport(object):
     def __init__(self):
         self.data_dir = os.path.join(
             settings.DATA_IMPORT_DIR, 'domain')
+        inserted_id = []
 
     def import_domain_data(self):
         self.create_status()
@@ -55,7 +58,7 @@ class DataImport(object):
         fl = None
         try:
             if floatstr:
-                fl = float(floatstr)
+                fl = float(floatstr.replace(',','.'))
         except ValueError as err:
             logger.debug(err.message)
         except:
@@ -67,14 +70,7 @@ class DataImport(object):
         if not isinstance(quotedstr, str):
             return quotedstr
 
-        newstr = quotedstr.strip()
-        if newstr[:1] == '"':
-            newstr = newstr.replace('"', '', 1)
-        
-        if newstr[len(newstr)-1:] == '"':
-            newstr = ''.join(reversed(newstr))
-            newstr = newstr.replace('"', '', 1)
-            newstr = ''.join(reversed(newstr))
+        newstr = quotedstr.strip('"')
         
         return newstr
             
@@ -149,7 +145,18 @@ class DataImport(object):
         else:
             logger.warn("WNS {} does not exist.".format(wnsoms))
             return None
-    
+
+    def _get_foreignkey_inst(
+            self, val_raw, datatype, foreignkey_field):
+        class_inst = django_models.get_model('lizard_efcis', datatype)
+        inst = None
+        try:
+            inst = class_inst.objects.get(
+            **{foreignkey_field: val_raw})
+        except Exception as ex:
+            logger.error('{0}, Value: "{1}"'.format(ex.message, val_raw))
+        return inst
+        
     def create_status(self):
         logger.info("Create status.")
         created = 0
@@ -427,78 +434,159 @@ class DataImport(object):
         logger.info(
             'End WNS import: updated={0}, created={1}.'.format(updated, created))
 
-    def import_locaties_from_ibever(self, filename):
-        logger.info("import locaties from iBever.")
-        filepath = os.path.join(self.data_dir, filename)
-        if not os.path.isfile(filepath):
-            logger.warn(
-                "Interrupted import hist opname iBever '{}'.".format(filepath))
-            return
-        updated = 0
-        created = 0
-        with open(filepath, 'rb') as f:
-            reader = csv.reader(f, delimiter=';')
-            # read headers
-            headers = reader.next()
-            for row in reader:
+    def set_data(self, inst, mapping, row, headers):
+        """Set values to model instance. """
+        for mapping_field in mapping:
+            value = None
+            datatype = mapping_field.db_datatype
+            val_raw = row[headers.index(mapping_field.file_field)].strip(' "')
+            if datatype == 'date':
                 try:
-                    location = models.Locatie()
-                    location.loc_id = self._remove_leading_quotes(row[headers.index('mpn_mpnident')])
-                    location.loc_oms = self._remove_leading_quotes(row[headers.index('mpn_mpnomsch')])
-                    location.save()
-                    created = created + 1
+                    value = datetime.strptime(val_raw, mapping_field.data_format)
                 except:
-                    #logger.debug("Location not created {}.".format(row[headers.index('mpn_mpnident')]))
                     continue
-            logger.info(
-                'End Location import: created={}.'.format(created))
+            elif datatype == 'time':
+                try:
+                    value = datetime.strptime(val_raw, mapping_field.data_format)
+                except:
+                    continue
+            elif datatype == 'float':
+                value = self._str_to_float(val_raw)
+            elif datatype in models.MappingField.FOREIGNKEY_MODELS:
+                # omit spaces
+                val_space_omitted = val_raw
+                if val_space_omitted:
+                    val_space_omitted = val_space_omitted.replace(' ', '')
+                value = self._get_foreignkey_inst(
+                    val_space_omitted,
+                    datatype,
+                    mapping_field.foreignkey_field)
+                if value is None:
+                    continue
+            else:
+                value = val_raw
+                
+            setattr(inst, mapping_field.db_field, value)
 
 
-
-    def import_hist_opname_ibever(self, filename, activiteit):
-        logger.info("Import ibever, "
-                    "dateformat='%d-%m-%Y' timeformat='%H:%M:%S'")
-        dformat = '%d-%m-%Y'
-        tformat = '%H:%M:%S'
-        dtformat = '{0} {1}'.format(dformat, tformat)
+    def validate_csv(self, filename, mapping_code, ignore_dublicate_key=True):
+        roles = {
+            '001': 'Het bestand bestaat niet. "{}"',
+            '002': 'Bestand is leeg. "{}"',
+            '003': 'Scheidingsteken moet 1-character string zijn. mapping_code: "{0}, scheiding_teken: "{1}"',
+            '004': 'Scheidingsteken is onjuist of het header bevat alleen 1-veld. scheiding_teken: "{0}", header: "{1}"',
+            '005': 'Mapping bestaat niet. "{}"',
+            '006': 'Mapping bevat het veld.',
+            '007': 'Mappingsveld komt niet voor in csv-header. "{}"',
+            '008': 'Data Integritei: melding: {}',
+            '009': ''}
+        result = []
+        logger.info("Validatie {}.".format(filename))
+        #001
+        code = "001"
         filepath = os.path.join(self.data_dir, filename)
         if not os.path.isfile(filepath):
             logger.warn(
-                "Interrupted import hist opname iBever '{}'.".format(filepath))
-            return
+                "Interrup validatie, is not a file '{}'.".format(
+                    filepath))
+            result.append({code: roles[code].format(filepath)})
+        #005
+        code = "005"
+        mappings = models.ImportMapping.objects.filter(code=mapping_code)
+        mapping = None
+        if mappings.exists():
+            mapping = mappings[0]
+        else:
+            result.append({code: roles[code].format(mapping_code)})
+            
+        if result:
+            return result
 
+        #006
+        code = "006"
+        mapping_fields = mapping.mappingfield_set.all()
+        if mapping_fields.count() <= 0:
+            result.append({code: roles[code]})
+        #003
+        code = "003"
+        if not mapping.scheiding_teken or len(mapping.scheiding_teken) > 1:
+            result.append({code: roles[code].format(mapping_code, mapping.scheiding_teken)})
+        
+        if result:
+            return result
+        
+        #002, 004
+        with open(filepath, 'rb') as f:
+            reader = csv.reader(f, delimiter=str(mapping.scheiding_teken))
+            headers = reader.next()
+            code = "002"
+            if not headers:
+                result.append({code: roles[code].format(filepath)})
+            code = "004"
+            if headers and len(headers) <= 1:
+                result.append({code: roles[code].format(mapping.scheiding_teken, headers[0])})
+                
+        if result:
+            return result
+
+        #007, 008
+        code = "007"
+        with open(filepath, 'rb') as f:
+            reader = csv.reader(f, delimiter=str(mapping.scheiding_teken))
+            headers = reader.next()
+            for mapping_field in mapping_fields:
+                if mapping_field.file_field not in headers:
+                    result.append({code: roles[code].format(mapping_field.file_field)})
+            for row in reader:
+                code = "008"
+                val_raw = row[headers.index(mapping_field.file_field)].strip(' "')
+                # omit spaces
+                val_raw = val_raw.replace(' ', '')
+                inst = self._get_foreignkey_inst(
+                    val_raw,
+                    mapping_field.db_datatype,
+                    mapping_field.foreignkey_field)
+                if inst is None:
+                    result.append({code: "{0} '{1}' niet aanwezig in domain-tabel.".format(
+                        mapping_field.db_datatype, val_raw)})
+                try:
+                    inst = django_models.get_model('lizard_efcis', mapping.tabel_naam)()
+                    self.set_data(inst, mapping_fields, row, headers)
+                    inst.validate_unique()
+                except Exception as ex:
+                    if not ignore_dublicate_key:
+                        result.append({code: ex.message()})
+        
+    def import_csv(self, filename, mapping_code, activiteit=None, ignore_dublicate_key=True):
+        logger.info("Import {}.".format(mapping_code))
+        mapping = models.ImportMapping.objects.get(code=mapping_code)
+        mapping_fields = mapping.mappingfield_set.all()
+        filepath = os.path.join(self.data_dir, filename)
+        if not os.path.isfile(filepath):
+            logger.warn(
+                "Interrup import {0}, is not a file '{1}'.".format(
+                    mapping_code, filepath))
+            return
         updated = 0
         created = 0
         with open(filepath, 'rb') as f:
-            reader = csv.reader(f, delimiter=';')
+            reader = csv.reader(f, delimiter=str(mapping.scheiding_teken))
             # read headers
             headers = reader.next()
             for row in reader:
+                inst = django_models.get_model('lizard_efcis', mapping.tabel_naam)()
+                self.set_data(inst, mapping_fields, row, headers)
+                if activiteit and hasattr(inst.__class__, 'activiteit'):
+                    inst.activiteit = activiteit
                 try:
-                    
-                    opname = models.Opname()
-                    opname.moment = datetime.strptime('{0} {1}'.format(
-                        row[headers.index('mwa_mwadtmb')].strip(),
-                        row[headers.index('mwa_mwatijdb')].strip()), dtformat)
-                    waarde_n = self._remove_leading_quotes(
-                        row[headers.index('mwa_mwawrden')]).replace(',','.')
-                    waarde_a = self._remove_leading_quotes(
-                        row[headers.index('mwa_mwawrdea')]).replace(',','.')
-                    locatie = self._remove_leading_quotes(
-                        row[headers.index('mpn_mpnident')])
-
-                    opname.waarde_n = self._str_to_float(waarde_n)
-                    opname.waarde_a = self._str_to_float(waarde_a)
-                    opname.activiteit = activiteit
-                    opname.wns = self._get_wns(
-                        self._remove_leading_quotes(row[headers.index('wns_osmomsch')]))
-                    opname.locatie = self._get_locatie(locatie)
-                    opname.detect = self._get_detect(
-                        self._remove_leading_quotes(row[headers.index('mrsinovs_domafkrt')]))
-                    opname.save()
-                    created = created + 1
-                except ValueError as err:
-                    #logger.warn("Could not create opname object. Message:{}".format(err.message))
-                    continue
+                    saved = inst.save()
+                    if saved:
+                        created = created + 1
+                except IntegrityError as ex:
+                    if ignore_dublicate_key:
+                        continue
+                    else:
+                        logger.error(ex.message)
+                        break
         logger.info(
-            'End iBever import: created={}.'.format(created))
+            'End import: created={}.'.format(created))
