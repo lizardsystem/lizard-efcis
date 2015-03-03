@@ -23,7 +23,7 @@ class DataImport(object):
 
     Expect decimals compared with a point.
     '''
-    
+
     def __init__(self):
         self.data_dir = os.path.join(
             settings.DATA_IMPORT_DIR, 'domain')
@@ -66,14 +66,14 @@ class DataImport(object):
         return fl
 
     def _remove_leading_quotes(self, quotedstr):
-        
+
         if not isinstance(quotedstr, str):
             return quotedstr
 
         newstr = quotedstr.strip('"')
-        
+
         return newstr
-            
+
 
     def _get_status(self, status):
         statuses = models.Status.objects.filter(
@@ -156,7 +156,7 @@ class DataImport(object):
         except Exception as ex:
             logger.error('{0}, Value: "{1}"'.format(ex.message, val_raw))
         return inst
-        
+
     def create_status(self):
         logger.info("Create status.")
         created = 0
@@ -169,7 +169,7 @@ class DataImport(object):
                     "Failed status or already exsists, status '{}'.".format(status))
 
         logger.info('End status creating: created={}.'.format(created))
-        
+
     def import_status_krw(self, filename):
         logger.info("Import status_krw.")
         filepath = os.path.join(self.data_dir, filename)
@@ -277,7 +277,7 @@ class DataImport(object):
             detect.save()
         logger.info(
             'End detectie creating: updated={0}, created={1}.'.format(updated, created))
-    
+
     def import_compartiment(self, filename):
         logger.debug("Import compartiment.")
         filepath = os.path.join(self.data_dir, filename)
@@ -357,7 +357,7 @@ class DataImport(object):
                 except models.Eenheid.DoesNotExist:
                     eenheid = models.Eenheid(eenheid=row[0])
                     created = created + 1
-                
+
                 eenheid.eenheid_oms = row[1]
                 eenheid.dimensie = row[2]
                 eenheid.omrekenfactor = self._str_to_float(row[3])
@@ -389,7 +389,7 @@ class DataImport(object):
                 except models.Parameter.DoesNotExist:
                     par = models.Parameter(par_code=row[0])
                     created = created + 1
-                
+
                 par.par_oms = row[1]
                 par.casnummer = row[2]
                 par.parametergroep0 = row[3]
@@ -422,7 +422,7 @@ class DataImport(object):
                 except models.WNS.DoesNotExist:
                     wns = models.WNS(wns_code=row[0])
                     created = created + 1
-                
+
                 wns.wns_oms = row[1]
                 wns.parameter = self._get_parameter(row[2])
                 wns.eenheid = self._get_eenheid(row[3])
@@ -465,11 +465,11 @@ class DataImport(object):
                     continue
             else:
                 value = val_raw
-                
+
             setattr(inst, mapping_field.db_field, value)
 
 
-    def validate_csv(self, filename, mapping_code, ignore_dublicate_key=True):
+    def validate_csv(self, filename, mapping_code, ignore_duplicate_key=True):
         roles = {
             '001': 'Het bestand bestaat niet. "{}"',
             '002': 'Bestand is leeg. "{}"',
@@ -498,7 +498,7 @@ class DataImport(object):
             mapping = mappings[0]
         else:
             result.append({code: roles[code].format(mapping_code)})
-            
+
         if result:
             return result
 
@@ -511,10 +511,10 @@ class DataImport(object):
         code = "003"
         if not mapping.scheiding_teken or len(mapping.scheiding_teken) > 1:
             result.append({code: roles[code].format(mapping_code, mapping.scheiding_teken)})
-        
+
         if result:
             return result
-        
+
         #002, 004
         with open(filepath, 'rb') as f:
             reader = csv.reader(f, delimiter=str(mapping.scheiding_teken))
@@ -525,7 +525,7 @@ class DataImport(object):
             code = "004"
             if headers and len(headers) <= 1:
                 result.append({code: roles[code].format(mapping.scheiding_teken, headers[0])})
-                
+
         if result:
             return result
 
@@ -554,10 +554,10 @@ class DataImport(object):
                     self.set_data(inst, mapping_fields, row, headers)
                     inst.validate_unique()
                 except Exception as ex:
-                    if not ignore_dublicate_key:
+                    if not ignore_duplicate_key:
                         result.append({code: ex.message()})
-        
-    def import_csv(self, filename, mapping_code, activiteit=None, ignore_dublicate_key=True):
+
+    def import_csv(self, filename, mapping_code, activiteit=None, ignore_duplicate_key=True):
         logger.info("Import {}.".format(mapping_code))
         mapping = models.ImportMapping.objects.get(code=mapping_code)
         mapping_fields = mapping.mappingfield_set.all()
@@ -583,7 +583,7 @@ class DataImport(object):
                     if saved:
                         created = created + 1
                 except IntegrityError as ex:
-                    if ignore_dublicate_key:
+                    if ignore_duplicate_key:
                         continue
                     else:
                         logger.error(ex.message)
