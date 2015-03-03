@@ -12,13 +12,13 @@ from lizard_efcis.models import Activiteit, ImportMapping
 
 class Command(BaseCommand):
     help = '''Import data volgens de mapping.'''
-    
+
     option_list = BaseCommand.option_list + (
         make_option('--mapping',
                     default=None,
                     help='mapping code'),
-    )                
-        
+    )
+
     def handle(self, *args, **options):
         self.stdout.write('Start import')
         mapping_code = options.get('mapping', None)
@@ -32,14 +32,14 @@ class Command(BaseCommand):
         data_import = DataImport()
         data_import.data_dir = os.path.join(
             settings.DATA_IMPORT_DIR, 'ibever')
-        
+
         activiteiten = Activiteit.objects.filter(activiteit='import ibever')
         if activiteiten.exists():
             activiteit = activiteiten[0]
         else:
             activiteit = Activiteit(activiteit='import ibever')
             activiteit.save()
-        
-        data_import.import_csv('ibever.csv', mapping_code, activiteit, ignore_dublicate_key=False)
-        
+
+        data_import.import_csv('ibever.csv', mapping_code, activiteit)
+
         self.stdout.write('Einde import')
