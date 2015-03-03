@@ -100,9 +100,8 @@ Create mappings for dataimports::
 
     $ bin/django create_mapping
 
-Import doamain data::
+Import domain data::
 
-    $ bin/django import_domain_data
     $ bin/django import_domain_data
 
 Import ibever data::
