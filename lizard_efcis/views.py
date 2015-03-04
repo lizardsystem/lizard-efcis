@@ -5,7 +5,9 @@ from __future__ import print_function
 
 import logging
 from datetime import datetime
+from itertools import groupby
 
+# from django.utils.functional import cached_property
 from django.utils.translation import ugettext as _
 
 from rest_framework import status
@@ -24,13 +26,11 @@ logger = logging.getLogger(__name__)
 
 def str_to_datetime(dtstr):
     dtformat = "%d-%m-%Y"
-    dt = None
     try:
-        dt = datetime.strptime(dtstr, dtformat)
+        return datetime.strptime(dtstr, dtformat)
     except:
         logger.warn("Error on formating datimestr to datetime "
                     "{0} doesn't match {1}.".format(dtstr, dtformat))
-    return dt
 
 
 def get_filtered_opnames(queryset, request):
@@ -113,5 +113,57 @@ def opname_detail(request, pk):
 class LinesAPI(APIView):
     """API to return lines for a graph."""
 
+    # TODO: use
+    # http://www.django-rest-framework.org/api-guide/generic-views/#genericapiview
+    # to get some basic pagination stuff for free.
+
+    @property
+    def filtered_opnames(self):
+        opnames = models.Opname.objects.all()
+
+        start_date = self.request.GET.get('start_date', None)
+        end_date = self.request.GET.get('end_date', None)
+        locations = self.request.GET.getlist('locatie', None)
+        parameter_codes = self.request.GET.getlist('par_code', None)
+
+        if start_date:
+            start_datetime = str_to_datetime(start_date)
+            if start_datetime:
+                opnames = opnames.filter(datum__gt=start_datetime)
+        if end_date:
+            end_datetime = str_to_datetime(end_date)
+            if end_datetime:
+                opnames = opnames.filter(datum__tt=end_datetime)
+        if locations:
+            opnames = opnames.filter(locatie__loc_id__in=locations)
+        if parameter_codes:
+            opnames = opnames.filter(
+                wns__parameter__par_code__in=parameter_codes)
+
+        return opnames
+
     def get(self, request, format=None):
-        return Response([])
+        numerical_opnames = self.filtered_opnames.filter(waarde_a='')
+        points = numerical_opnames.values(
+            'wns__wns_code', 'wns__wns_oms', 'wns__parameter__par_code',
+            'locatie__loc_id', 'locatie__loc_oms',
+            'datum', 'tijd', 'waarde_n')[:500]
+        # :500 is a temporary limit.
+
+        def _key(point):
+            return (point['wns__wns_code'], point['locatie__loc_id'])
+
+        lines = []
+        for key, group in groupby(points, _key):
+            points = list(group)
+            first = points[0]
+            data = [{'date': point['datum'],
+                     'time': point['tijd'],
+                     'value': point['waarde_n']} for point in points]
+            line = {'wns': first['wns__wns_oms'],
+                    'location': first['locatie__loc_oms'],
+                    'unit': first['wns__parameter__par_code'],
+                    'data': data}
+            lines.append(line)
+
+        return Response(lines)
