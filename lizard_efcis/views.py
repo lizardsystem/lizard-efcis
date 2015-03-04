@@ -66,49 +66,40 @@ def api_root(request, format=None):
     })
 
 
-@api_view(['GET'])
+@api_view()
 def opname_list(request):
 
     ITEMS_PER_PAGE = 30
 
-    if request.method == 'GET':
+    page = request.QUERY_PARAMS.get('page')
+    page_size = request.QUERY_PARAMS.get('page_size')
+    if page_size not in [None, '']:
+        ITEMS_PER_PAGE = page_size
+    queryset = get_filtered_opnames(
+        models.Opname.objects.all(),
+        request)
 
-        page = request.QUERY_PARAMS.get('page')
-        page_size = request.QUERY_PARAMS.get('page_size')
-        if page_size not in [None, '']:
-            ITEMS_PER_PAGE = page_size
-        queryset = get_filtered_opnames(
-            models.Opname.objects.all(),
-            request)
+    paginator = Paginator(queryset, ITEMS_PER_PAGE)
+    try:
+        opnames = paginator.page(page)
+    except PageNotAnInteger:
+        opnames = paginator.page(1)
+    except EmptyPage:
+        opnames = paginator.page(paginator.num_pages)
 
-        paginator = Paginator(queryset, ITEMS_PER_PAGE)
-        try:
-            opnames = paginator.page(page)
-        except PageNotAnInteger:
-            opnames = paginator.page(1)
-        except EmptyPage:
-            opnames = paginator.page(paginator.num_pages)
-
-        serializer = serializers.PaginatedOpnameSerializer(
-            opnames,
-            context={'request': request})
-        return Response(serializer.data)
-    else:
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    serializer = serializers.PaginatedOpnameSerializer(
+        opnames,
+        context={'request': request})
+    return Response(serializer.data)
 
 
-@api_view(['GET'])
+@api_view()
 def opname_detail(request, pk):
-
     try:
         opname = models.Opname.objects.get(pk=pk)
     except models.Opname.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
-    if request.method == 'GET':
-        serializer = serializers.OpnameDetailSerializer(
-            opname, context={'request': request})
-        return Response(serializer.data)
-    else:
-        return Response(
-            status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    serializer = serializers.OpnameDetailSerializer(
+        opname, context={'request': request})
+    return Response(serializer.data)
