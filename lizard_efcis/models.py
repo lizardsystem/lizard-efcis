@@ -6,7 +6,6 @@ import datetime
 
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.gis.db import models
-from django_hstore import hstore
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 
@@ -96,7 +95,10 @@ class Waterlichaam(models.Model):
 
 class Locatie(models.Model):
 
-    loc_id = models.CharField(max_length=50, help_text="Locatiecode", unique=True)
+    loc_id = models.CharField(
+        max_length=50,
+        help_text="Locatiecode",
+        unique=True)
     loc_oms = models.TextField(
         null=True,
         blank=True,
@@ -128,6 +130,20 @@ class Locatie(models.Model):
         return self.loc_oms
 
 
+class ParameterGroep(models.Model):
+
+    code = models.CharField(
+        unique=True,
+        max_length=255
+    )
+    parent = models.ForeignKey(
+        'lizard_efcis.ParameterGroep',
+        null=True)
+
+    def __unicode__(self):
+        return self.code
+
+
 class Parameter(models.Model):
 
     par_code = models.CharField(max_length=30)
@@ -139,6 +155,7 @@ class Parameter(models.Model):
         max_length=30, null=True, blank=True)
     datum_status = models.DateField(null=True, blank=True)
     status = models.ForeignKey(Status, null=True, blank=True)
+    parametergroep = models.ForeignKey(ParameterGroep, null=True)
 
     def __unicode__(self):
         return unicode(self.par_code)
@@ -220,8 +237,8 @@ class Activiteit(models.Model):
 
     activiteit = models.CharField(max_length=50, unique=True)
     act_type = models.CharField(
-        max_length = 10,
-        choices= TYPE_CHOICES,
+        max_length=10,
+        choices=TYPE_CHOICES,
         default=T1)
     uitvoerende = models.CharField(
         max_length=50,
@@ -282,18 +299,6 @@ class WNS(models.Model):
 
     def __str__(self):
         return self.wns_code
-
-
-class ParameterGroep(models.Model):
-
-    code = models.CharField(primary_key=True, max_length=255)
-    parent = models.ForeignKey(
-        'lizard_efcis.ParameterGroep',
-        null=True,
-        blank=True)
-
-    def __unicode__(self):
-        return self.code
 
 
 class Opname(models.Model):
