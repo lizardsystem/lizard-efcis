@@ -43,10 +43,12 @@ def get_filtered_opnames(queryset, request):
     if par_code:
         queryset = queryset.filter(
             wns__parameter__par_code__iexact=par_code)
-    if startdatetime and enddatetime:
+    if startdatetime:
         queryset = queryset.filter(
-            moment__gt=startdatetime,
-            moment__lt=enddatetime)
+            datum__gt=startdatetime)
+    if enddatetime:
+        queryset = queryset.filter(
+            datum__lt=enddatetime)
     if location:
         queryset = queryset.filter(
             locatie__loc_id__iexact=location)
