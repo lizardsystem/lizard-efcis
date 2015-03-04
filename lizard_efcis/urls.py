@@ -22,6 +22,11 @@ urlpatterns = patterns(
     url(r'^opnames/$', 'opname_list', name='opname-list'),
     url(r'^opnames/(?P<pk>[0-9]+)/$',
         'opname_detail', name='opname-detail'),
+
+    url(r'^lines/$',
+        views.LinesAPI.as_view(),
+        name='efcis-lines'),
+
     #url(r'^$', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^admin/', include(admin.site.urls)),

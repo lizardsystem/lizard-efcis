@@ -8,10 +8,11 @@ from datetime import datetime
 
 from django.utils.translation import ugettext as _
 
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.reverse import reverse
+from rest_framework.views import APIView
 
 from lizard_efcis import models
 from lizard_efcis import serializers
@@ -27,8 +28,8 @@ def str_to_datetime(dtstr):
     try:
         dt = datetime.strptime(dtstr, dtformat)
     except:
-        logger.warn("Error on formating datimestr to datetime"
-                    "{0} not match to {1}.".format(dtstr, dtformat))
+        logger.warn("Error on formating datimestr to datetime "
+                    "{0} doesn't match {1}.".format(dtstr, dtformat))
     return dt
 
 
@@ -61,6 +62,10 @@ def api_root(request, format=None):
     return Response({
         'opnames': reverse(
             'opname-list',
+            request=request,
+            format=format),
+        'lines': reverse(
+            'efcis-lines',
             request=request,
             format=format),
     })
@@ -103,3 +108,10 @@ def opname_detail(request, pk):
     serializer = serializers.OpnameDetailSerializer(
         opname, context={'request': request})
     return Response(serializer.data)
+
+
+class LinesAPI(APIView):
+    """API to return lines for a graph."""
+
+    def get(self, request, format=None):
+        return Response([])
