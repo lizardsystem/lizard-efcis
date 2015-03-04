@@ -319,7 +319,7 @@ class Opname(models.Model):
         null=True,
         blank=True)
 
-    class Mata:
+    class Meta:
         unique_together = ((
             'datum',
             'tijd',
