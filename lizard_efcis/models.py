@@ -35,7 +35,7 @@ class Meetnet(models.Model):
 
 
 class StatusKRW(models.Model):
-    
+
     code = models.CharField(max_length=5, unique=True)
     omschrijving = models.TextField(null=True, blank=True)
     datum_begin = models.DateField(null=True, blank=True)
@@ -44,7 +44,7 @@ class StatusKRW(models.Model):
         max_length=5,
         null=True,
         blank=True)
-    
+
     def __unicode__(self):
         return '{}'.format(self.code)
 
@@ -61,20 +61,20 @@ class Watertype(models.Model):
 
     code = models.CharField(max_length=5, unique=True)
     omschrijving = models.TextField(null=True, blank=True)
-    groep = models.CharField(max_length=10, choices=GROEP_CHOICES) 
+    groep = models.CharField(max_length=10, choices=GROEP_CHOICES)
     datum_begin = models.DateField(null=True, blank=True)
     datum_eind = models.DateField(null=True, blank=True)
     datum_status = models.CharField(
         max_length=5,
         null=True,
         blank=True)
-    
+
     def __unicode__(self):
         return '{}'.format(self.code)
 
 
 class Waterlichaam(models.Model):
-    
+
     wl_code = models.CharField(max_length=20)
     wl_naam = models.CharField(
         max_length=255,
@@ -89,13 +89,13 @@ class Waterlichaam(models.Model):
         max_length=100,
         null=True,
         blank=True)
-        
+
     def __unicode__(self):
         return '{}'.format(self.wl_code)
 
 
 class Locatie(models.Model):
-    
+
     loc_id = models.CharField(max_length=50, help_text="Locatiecode", unique=True)
     loc_oms = models.TextField(
         null=True,
@@ -126,20 +126,20 @@ class Locatie(models.Model):
 
     def __str__(self):
         return self.loc_oms
-    
+
 
 class Parameter(models.Model):
-    
+
     par_code = models.CharField(max_length=30)
     par_oms = models.CharField(
-        max_length=255, 
-        null=True, 
+        max_length=255,
+        null=True,
         blank=True)
     casnummer = models.CharField(
         max_length=30, null=True, blank=True)
     datum_status = models.DateField(null=True, blank=True)
     status = models.ForeignKey(Status, null=True, blank=True)
-    
+
     def __unicode__(self):
         return unicode(self.par_code)
 
@@ -162,13 +162,13 @@ class Eenheid(models.Model):
         blank=True)
     datum_status = models.DateField(null=True, blank=True)
     status = models.ForeignKey(Status, null=True, blank=True)
-    
+
     def __unicode__(self):
         return '{}'.format(self.eenheid)
 
 
 class Hoedanigheid(models.Model):
-    
+
     hoedanigheid = models.CharField(max_length=20, unique=True)
     hoed_oms = models.TextField(null=True, blank=True)
     hoedanigheidgroep = models.CharField(
@@ -177,13 +177,13 @@ class Hoedanigheid(models.Model):
         blank=True)
     datum_status = models.DateField(null=True, blank=True)
     status = models.ForeignKey(Status, null=True, blank=True)
-    
+
     def __unicode__(self):
         return '{}'.format(self.hoedanigheid)
 
 
 class Compartiment(models.Model):
-    
+
     compartiment = models.CharField(max_length=20, unique=True)
     comp_oms = models.TextField(null=True, blank=True)
     compartimentgroep = models.CharField(
@@ -192,13 +192,13 @@ class Compartiment(models.Model):
         blank=True)
     datum_status = models.DateField(null=True, blank=True)
     status = models.ForeignKey(Status, null=True, blank=True)
-    
+
     def __unicode__(self):
         return '{}'.format(self.compartiment)
 
 
 class Detectiegrens(models.Model):
-    
+
     teken = models.CharField(max_length=5, unique=True)
     omschrijving = models.TextField(null=True, blank=True)
 
@@ -207,7 +207,7 @@ class Detectiegrens(models.Model):
 
 
 class Activiteit(models.Model):
-    
+
     T0 = ""
     T1 = "Meting"
     T2 = "Toetsing"
@@ -217,7 +217,7 @@ class Activiteit(models.Model):
         (T1, T1),
         (T2, T2)
     )
-        
+
     activiteit = models.CharField(max_length=50, unique=True)
     act_type = models.CharField(
         max_length = 10,
@@ -258,7 +258,7 @@ class Activiteit(models.Model):
 
 
 class WNS(models.Model):
-    
+
     wns_code = models.CharField(max_length=30, unique=True)
     wns_oms = models.CharField(
         max_length=255,
@@ -291,7 +291,7 @@ class ParameterGroep(models.Model):
         'lizard_efcis.ParameterGroep',
         null=True,
         blank=True)
-    
+
     def __unicode__(self):
         return self.code
 
@@ -320,7 +320,8 @@ class Opname(models.Model):
             'wns',
             'locatie')
         )
-    
+        ordering = ['wns', 'locatie', 'datum', 'tijd']
+
     @property
     def moment(self):
         if self.tijd:
@@ -339,14 +340,14 @@ class Opname(models.Model):
 
 
 class ImportMapping(models.Model):
-    
+
     tabellen = [
         ('Opname', 'Opname'),
         ('Locatie', 'Locatie'),
         ('ParameterGroep', 'ParameterGroep')
     ]
     code = models.CharField(max_length=50, unique=True)
-    omschrijving = models.TextField(null=True, blank=True)        
+    omschrijving = models.TextField(null=True, blank=True)
     tabel_naam = models.CharField(
         max_length=255,
         choices=tabellen,
@@ -355,7 +356,7 @@ class ImportMapping(models.Model):
         max_length=3,
         default=";",
         help_text="Veld scheidingsteken.")
-    
+
     class Meta:
         ordering = ['tabel_naam']
 
@@ -364,7 +365,7 @@ class ImportMapping(models.Model):
 
 
 class MappingField(models.Model):
-    
+
     FOREIGNKEY_MODELS = [
         'WNS',
         'Locatie',
@@ -381,7 +382,7 @@ class MappingField(models.Model):
         (FOREIGNKEY_MODELS[2], FOREIGNKEY_MODELS[2]),
         (FOREIGNKEY_MODELS[3], FOREIGNKEY_MODELS[3])
     ]
-    
+
     db_field = models.CharField(max_length=255)
     file_field = models.CharField(max_length=255)
     db_datatype = models.CharField(
@@ -403,10 +404,9 @@ class MappingField(models.Model):
         null=True,
         blank=True,
         help_text="b.v. %d-%m-%Y voor de datum.")
-    
+
     def __unicode__(self):
         return '{0}-{1}'.format(self.db_field, self.file_field)
 
     class Meta:
         ordering = ['db_field']
-
