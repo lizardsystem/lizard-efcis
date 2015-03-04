@@ -6,10 +6,11 @@ import datetime
 
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.gis.db import models
-from django.core.files.storage import FileSystemStorage
-from django.conf import settings
+# from django.core.files.storage import FileSystemStorage
+# from django.conf import settings
 
-fs = FileSystemStorage(location=settings.MEDIA_ROOT)
+# fs = FileSystemStorage(location=settings.MEDIA_ROOT)
+# ^^^ TODO: root-level import. Settings might not be fully read. Doesn't seem to be used.
 
 
 class Status(models.Model):
