@@ -1,13 +1,14 @@
-import os
-import csv
 from datetime import datetime
+import csv
+import logging
+import os
 
-from django.db import IntegrityError
 from django.conf import settings
 from django.db import models as django_models
+from django.db import IntegrityError
+
 from lizard_efcis import models
 
-import logging
 logger = logging.getLogger(__name__)
 
 
@@ -96,7 +97,7 @@ class DataImport(object):
 
     def _get_hoedanigheid(self, hoedanigheid):
         hoedanigheden = models.Hoedanigheid.objects.filter(
-           hoedanigheid__iexact=hoedanigheid)
+            hoedanigheid__iexact=hoedanigheid)
         if hoedanigheden.exists():
             return hoedanigheden[0]
         return None
@@ -514,12 +515,14 @@ class DataImport(object):
             setattr(inst, mapping_field.db_field, value)
 
     def validate_csv(self, filename, mapping_code, ignore_duplicate_key=True):
-        """ TODO create separate function per validation. """ 
+        """TODO create separate function per validation."""
         roles = {
             '001': 'Het bestand bestaat niet. "{}"',
             '002': 'Bestand is leeg. "{}"',
-            '003': 'Scheidingsteken moet 1-character string zijn. mapping_code: "{0}, scheiding_teken: "{1}"',
-            '004': 'Scheidingsteken is onjuist of het header bevat alleen 1-veld. scheiding_teken: "{0}", header: "{1}"',
+            '003': ('Scheidingsteken moet 1-character string zijn. '
+                    'mapping_code: "{0}, scheiding_teken: "{1}"'),
+            '004': ('Scheidingsteken is onjuist of het header bevat '
+                    'alleen 1-veld. scheiding_teken: "{0}", header: "{1}"'),
             '005': 'Mapping bestaat niet. "{}"',
             '006': 'Mapping bevat het veld.',
             '007': 'Mappingsveld komt niet voor in csv-header. "{}"',
@@ -527,7 +530,7 @@ class DataImport(object):
             '009': ''}
         result = []
         logger.info("Validatie {}.".format(filename))
-        #001
+        # 001
         code = "001"
         filepath = os.path.join(self.data_dir, filename)
         if not os.path.isfile(filepath):
@@ -535,7 +538,7 @@ class DataImport(object):
                 "Interrup validatie, is not a file '{}'.".format(
                     filepath))
             result.append({code: roles[code].format(filepath)})
-        #005
+        # 005
         code = "005"
         mappings = models.ImportMapping.objects.filter(code=mapping_code)
         mapping = None
@@ -547,20 +550,21 @@ class DataImport(object):
         if result:
             return result
 
-        #006
+        # 006
         code = "006"
         mapping_fields = mapping.mappingfield_set.all()
         if mapping_fields.count() <= 0:
             result.append({code: roles[code]})
-        #003
+        # 003
         code = "003"
         if not mapping.scheiding_teken or len(mapping.scheiding_teken) > 1:
-            result.append({code: roles[code].format(mapping_code, mapping.scheiding_teken)})
+            result.append({code: roles[code].format(
+                mapping_code, mapping.scheiding_teken)})
 
         if result:
             return result
 
-        #002, 004
+        # 002, 004
         with open(filepath, 'rb') as f:
             reader = csv.reader(f, delimiter=str(mapping.scheiding_teken))
             headers = reader.next()
@@ -569,22 +573,25 @@ class DataImport(object):
                 result.append({code: roles[code].format(filepath)})
             code = "004"
             if headers and len(headers) <= 1:
-                result.append({code: roles[code].format(mapping.scheiding_teken, headers[0])})
+                result.append({code: roles[code].format(
+                    mapping.scheiding_teken, headers[0])})
 
         if result:
             return result
 
-        #007, 008
+        # 007, 008
         code = "007"
         with open(filepath, 'rb') as f:
             reader = csv.reader(f, delimiter=str(mapping.scheiding_teken))
             headers = reader.next()
             for mapping_field in mapping_fields:
                 if mapping_field.file_field not in headers:
-                    result.append({code: roles[code].format(mapping_field.file_field)})
+                    result.append({code: roles[code].format(
+                        mapping_field.file_field)})
             for row in reader:
                 code = "008"
-                val_raw = row[headers.index(mapping_field.file_field)].strip(' "')
+                val_raw = row[
+                    headers.index(mapping_field.file_field)].strip(' "')
                 # omit spaces
                 val_raw = val_raw.replace(' ', '')
                 inst = self._get_foreignkey_inst(
@@ -592,10 +599,12 @@ class DataImport(object):
                     mapping_field.db_datatype,
                     mapping_field.foreignkey_field)
                 if inst is None:
-                    result.append({code: "{0} '{1}' niet aanwezig in domain-tabel.".format(
-                        mapping_field.db_datatype, val_raw)})
+                    result.append({
+                        code: "{0} '{1}' niet aanwezig in domain-tabel.".format(
+                            mapping_field.db_datatype, val_raw)})
                 try:
-                    inst = django_models.get_model('lizard_efcis', mapping.tabel_naam)()
+                    inst = django_models.get_model('lizard_efcis',
+                                                   mapping.tabel_naam)()
                     self.set_data(inst, mapping_fields, row, headers)
                     inst.validate_unique()
                 except Exception as ex:
@@ -620,7 +629,8 @@ class DataImport(object):
             # read headers
             headers = reader.next()
             for row in reader:
-                inst = django_models.get_model('lizard_efcis', mapping.tabel_naam)()
+                inst = django_models.get_model('lizard_efcis',
+                                               mapping.tabel_naam)()
                 self.set_data(inst, mapping_fields, row, headers)
                 if activiteit and hasattr(inst.__class__, 'activiteit'):
                     inst.activiteit = activiteit

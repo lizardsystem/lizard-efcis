@@ -1,12 +1,11 @@
-
-from rest_framework import serializers
 from rest_framework import pagination
+from rest_framework import serializers
 
 from lizard_efcis import models
 
 
 class OpnameSerializer(serializers.HyperlinkedModelSerializer):
-    
+
     loc_id = serializers.PrimaryKeyRelatedField(
         read_only=True,
         source='locatie.loc_id')
@@ -23,6 +22,7 @@ class OpnameSerializer(serializers.HyperlinkedModelSerializer):
         read_only=True,
         source='detect.teken')
     moment = serializers.DateTimeField(format='%d-%m-%Y')
+
     class Meta:
         model = models.Opname
         fields = ('wns_oms', 'activiteit', 'loc_id',
@@ -44,7 +44,7 @@ class OpnameDetailSerializer(OpnameSerializer):
                   'loc_oms', 'waarde_n', 'waarde_a',
                   'moment', 'detectiegrens', 'par_code',
                   'par_oms')
-    
+
 
 class PaginatedOpnameSerializer(pagination.BasePaginationSerializer):
 

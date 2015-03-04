@@ -1,15 +1,15 @@
 # (c) Nelen & Schuurmans.  GPL licensed, see LICENSE.rst.
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 from __future__ import print_function
+from __future__ import unicode_literals
 
-import logging
 from datetime import datetime
 from itertools import groupby
+import logging
 
-# from django.utils.functional import cached_property
-from django.utils.translation import ugettext as _
-
+from django.core.paginator import EmptyPage
+from django.core.paginator import PageNotAnInteger
+from django.core.paginator import Paginator
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -18,8 +18,6 @@ from rest_framework.views import APIView
 
 from lizard_efcis import models
 from lizard_efcis import serializers
-from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-
 
 logger = logging.getLogger(__name__)
 

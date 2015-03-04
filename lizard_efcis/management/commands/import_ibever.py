@@ -1,9 +1,8 @@
+from optparse import make_option
 import os
 
-from optparse import make_option
-
-from django.core.management.base import BaseCommand
 from django.conf import settings
+from django.core.management.base import BaseCommand
 
 from lizard_efcis.import_data import DataImport
 from lizard_efcis.models import Activiteit, ImportMapping

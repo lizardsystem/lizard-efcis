@@ -107,9 +107,6 @@ ADMINS = (
 )
 MANAGERS = ADMINS
 
-# TODO: Switch this to the real production database.
-# ^^^ 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-# In case of geodatabase, prepend with: django.contrib.gis.db.backends.(postgis)
 DATABASES = {
     'default': {
         'NAME': 'lizard_efcis',
@@ -136,7 +133,6 @@ LANGUAGE_CODE = 'nl-NL'
 # For at-runtime language switching.  Note: they're shown in reverse order in
 # the interface!
 LANGUAGES = (
-#    ('en', 'English'),
     ('nl', 'Nederlands'),
 )
 # If you set this to False, Django will make some optimizations so as not to
@@ -189,11 +185,11 @@ MIDDLEWARE_CLASSES = (
 
 INSTALLED_APPS = (
     'lizard_efcis',
-    # lizard_maptree and lizard_wms are included for demo purposes. Almost
-    # every site needs them, but you're free to remove them if unneeded.
-    #'south',
     'compressor',
     'raven.contrib.django.raven_compat',
+    'django_hstore',
+    'rest_framework',
+    'gunicorn',
     'django_extensions',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -202,9 +198,6 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.staticfiles',
-    'django_hstore',
-    'rest_framework',
-    'gunicorn',
 )
 
 # TODO: Put your real url here to configure Sentry.
