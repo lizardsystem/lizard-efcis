@@ -1,16 +1,11 @@
-import os
-import csv
-import glob
-
-from optparse import make_option
-
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 
 from lizard_efcis.models import ImportMapping, MappingField
 
+
 class Command(BaseCommand):
     help = '''Aanmaken import-mappings for csv-file'''
-        
+
     def handle(self, *args, **options):
         self.create_ibever_loc_mapping()
         self.create_ibever_opname_mapping()
@@ -22,7 +17,9 @@ class Command(BaseCommand):
     def add_mapping_fields(self, imp_mapping, mapping_fields):
         try:
             for mapping_fields_dict in mapping_fields:
-                mapping_field = MappingField(mapping=imp_mapping, **mapping_fields_dict)
+                mapping_field = MappingField(
+                    mapping=imp_mapping,
+                    **mapping_fields_dict)
                 mapping_field.save()
                 imp_mapping.mappingfield_set.add(mapping_field)
         except Exception as ex:
@@ -32,7 +29,8 @@ class Command(BaseCommand):
 
     def create(self, import_mapping, mapping_fields):
         try:
-            imp_mapping = ImportMapping.objects.get(code=import_mapping['code'])
+            imp_mapping = ImportMapping.objects.get(
+                code=import_mapping['code'])
             self.stdout.write(
                 'Mapping {} bestaat al.'.format(import_mapping['code']))
         except ImportMapping.DoesNotExist:
@@ -41,7 +39,7 @@ class Command(BaseCommand):
             self.add_mapping_fields(imp_mapping, mapping_fields)
             self.stdout.write(
                 "Mapping {} aangemaakt.".format(import_mapping['code']))
-        
+
     def create_mapping_parameter_groep_n0(self):
         import_mapping = {
             'code': 'parametergroep-n0',
@@ -103,7 +101,7 @@ class Command(BaseCommand):
         self.create(import_mapping, mapping_fields)
 
     def create_ibever_loc_mapping(self):
-        
+
         import_mapping = {
             'code': 'iBever-locaties',
             'tabel_naam': 'Locatie',

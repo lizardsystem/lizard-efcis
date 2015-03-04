@@ -1,7 +1,5 @@
 import os
 import csv
-import glob
-import time
 from datetime import datetime
 
 from django.db import IntegrityError
@@ -11,6 +9,7 @@ from lizard_efcis import models
 
 import logging
 logger = logging.getLogger(__name__)
+
 
 class DataImport(object):
     help = '''
@@ -27,7 +26,6 @@ class DataImport(object):
     def __init__(self):
         self.data_dir = os.path.join(
             settings.DATA_IMPORT_DIR, 'domain')
-        inserted_id = []
 
     def import_domain_data(self):
         self.create_status()
@@ -38,6 +36,7 @@ class DataImport(object):
         self.import_compartiment('compartiment.csv')
         self.import_hoedanigheid('hoedanigheid.csv')
         self.import_eenheid('eenheid.csv')
+        self.import_parametergroep('parameter.csv')
         self.import_parameter('parameter.csv')
         self.import_wns('wns.csv')
 
@@ -58,7 +57,7 @@ class DataImport(object):
         fl = None
         try:
             if floatstr:
-                fl = float(floatstr.replace(',','.'))
+                fl = float(floatstr.replace(',', '.'))
         except ValueError as err:
             logger.debug(err.message)
         except:
@@ -73,7 +72,6 @@ class DataImport(object):
         newstr = quotedstr.strip('"')
 
         return newstr
-
 
     def _get_status(self, status):
         statuses = models.Status.objects.filter(
@@ -125,7 +123,8 @@ class DataImport(object):
         if activiteiten.exists():
             return activiteiten[0]
         else:
-            logger.warn("Activiteit {} does not exist.".format(activiteit))
+            logger.warn(
+                "Activiteit {} does not exist.".format(activiteit))
             return None
 
     def _get_detect(self, teken):
@@ -134,12 +133,11 @@ class DataImport(object):
         if detectiegrenzen.exists():
             return detectiegrenzen[0]
         else:
-            #logger.warn("Detectiegrens {} does not exist.".format(teken))
             return None
 
-    def _get_wns(self, wnsoms) :
+    def _get_wns(self, wnsoms):
         wnses = models.WNS.objects.filter(
-            wns_oms__iexact=wnsoms )
+            wns_oms__iexact=wnsoms)
         if wnses.exists():
             return wnses[0]
         else:
@@ -147,14 +145,16 @@ class DataImport(object):
             return None
 
     def _get_foreignkey_inst(
-            self, val_raw, datatype, foreignkey_field):
+            self, val_raw, datatype, foreignkey_field, log=False):
         class_inst = django_models.get_model('lizard_efcis', datatype)
         inst = None
         try:
             inst = class_inst.objects.get(
-            **{foreignkey_field: val_raw})
+                **{foreignkey_field: val_raw})
         except Exception as ex:
-            logger.error('{0}, Value: "{1}"'.format(ex.message, val_raw))
+            if log:
+                logger.error(
+                    '{0}, Value: "{1}"'.format(ex.message, val_raw))
         return inst
 
     def create_status(self):
@@ -166,16 +166,19 @@ class DataImport(object):
                 created = created + 1
             except:
                 logger.debug(
-                    "Failed status or already exsists, status '{}'.".format(status))
+                    "Failed status or already exsists, "
+                    "status '{}'.".format(status))
 
-        logger.info('End status creating: created={}.'.format(created))
+        logger.info(
+            'End status creating: created={}.'.format(created))
 
     def import_status_krw(self, filename):
         logger.info("Import status_krw.")
         filepath = os.path.join(self.data_dir, filename)
         if not os.path.isfile(filepath):
             logger.warn(
-                "Interrupted import status_krw, unknown file '{}'.".format(filepath))
+                "Interrupted import status_krw, "
+                "unknown file '{}'.".format(filepath))
             return
 
         updated = 0
@@ -196,15 +199,15 @@ class DataImport(object):
                 status_krw.datum_eind = self._datestr_to_date(row[3])
                 status_krw.datum_status = row[4]
                 status_krw.save()
-        logger.info(
-            'End status_krw import: updated={0}, created={1}.'.format(updated, created))
+        logger.info('End status_krw import: updated={0}, '
+                    'created={1}.'.format(updated, created))
 
     def import_watertype(self, filename):
         logger.info("Import watertype.")
         filepath = os.path.join(self.data_dir, filename)
         if not os.path.isfile(filepath):
-            logger.warn(
-                "Interrupted import watertype, unknown file '{}'.".format(filepath))
+            logger.warn("Interrupted import watertype, "
+                        "unknown file '{}'.".format(filepath))
             return
 
         updated = 0
@@ -226,15 +229,15 @@ class DataImport(object):
                 watertype.datum_eind = self._datestr_to_date(row[4])
                 watertype.datum_status = row[5]
                 watertype.save()
-        logger.info(
-            'End watertype import: updated={0}, created={1}.'.format(updated, created))
+        logger.info('End watertype import: updated={0}, '
+                    'created={1}.'.format(updated, created))
 
     def import_waterlichaam(self, filename):
         logger.info("Import waterlichaam.")
         filepath = os.path.join(self.data_dir, filename)
         if not os.path.isfile(filepath):
-            logger.warn(
-                "Interrupted import waterlichaam, unknown file '{}'.".format(filepath))
+            logger.warn("Interrupted import waterlichaam, "
+                        "unknown file '{}'.".format(filepath))
             return
 
         updated = 0
@@ -255,8 +258,8 @@ class DataImport(object):
                 wl.wl_oms = row[3]
                 wl.status = row[4]
                 wl.save()
-        logger.info(
-            'End waterlichaam import: updated={0}, created={1}.'.format(updated, created))
+        logger.info('End waterlichaam import: updated={0}, '
+                    'created={1}.'.format(updated, created))
 
     def create_detectie(self):
         logger.info("Create detectie.")
@@ -275,15 +278,15 @@ class DataImport(object):
                 created = created + 1
             detect.omschrijving = row[1]
             detect.save()
-        logger.info(
-            'End detectie creating: updated={0}, created={1}.'.format(updated, created))
+        logger.info('End detectie creating: updated={0}, '
+                    'created={1}.'.format(updated, created))
 
     def import_compartiment(self, filename):
         logger.debug("Import compartiment.")
         filepath = os.path.join(self.data_dir, filename)
         if not os.path.isfile(filepath):
-            logger.warn(
-                "Interrupted import compartiment, unknown file '{}'.".format(filepath))
+            logger.warn("Interrupted import compartiment, "
+                        "unknown file '{}'.".format(filepath))
             return
 
         updated = 0
@@ -304,15 +307,15 @@ class DataImport(object):
                 comp.datum_status = self._datestr_to_date(row[3])
                 comp.status = self._get_status(row[4])
                 comp.save()
-        logger.info(
-            'End compartiment import: updated={0}, created={1}.'.format(updated, created))
+        logger.info('End compartiment import: updated={0}, '
+                    'created={1}.'.format(updated, created))
 
     def import_hoedanigheid(self, filename):
         logger.info("Import hoedanigheid.")
         filepath = os.path.join(self.data_dir, filename)
         if not os.path.isfile(filepath):
-            logger.warn(
-                "Interrupted hoedanigheid, unknown file '{}'.".format(filepath))
+            logger.warn("Interrupted hoedanigheid, unknown "
+                        "file '{}'.".format(filepath))
             return
 
         updated = 0
@@ -323,7 +326,8 @@ class DataImport(object):
             reader.next()
             for row in reader:
                 try:
-                    hd = models.Hoedanigheid.objects.get(hoedanigheid=row[0])
+                    hd = models.Hoedanigheid.objects.get(
+                        hoedanigheid=row[0])
                     updated = updated + 1
                 except models.Hoedanigheid.DoesNotExist:
                     hd = models.Hoedanigheid(hoedanigheid=row[0])
@@ -333,15 +337,15 @@ class DataImport(object):
                 hd.datum_status = self._datestr_to_date(row[3])
                 hd.status = self._get_status(row[4])
                 hd.save()
-        logger.info(
-            'End heodanigheid import: updated={0}, created={1}.'.format(updated, created))
+        logger.info('End heodanigheid import: updated={0}, '
+                    'created={1}.'.format(updated, created))
 
     def import_eenheid(self, filename):
         logger.info("Import eenheid.")
         filepath = os.path.join(self.data_dir, filename)
         if not os.path.isfile(filepath):
-            logger.warn(
-                "Interrupted import eenheid, unknown file '{}'.".format(filepath))
+            logger.warn("Interrupted import eenheid, "
+                        "unknown file '{}'.".format(filepath))
             return
 
         updated = 0
@@ -365,15 +369,42 @@ class DataImport(object):
                 eenheid.datum_status = self._datestr_to_date(row[5])
                 eenheid.status = self._get_status(row[6])
                 eenheid.save()
-        logger.info(
-            'End eenheid import: updated={0}, created={1}.'.format(updated, created))
+        logger.info('End eenheid import: updated={0}, '
+                    'created={1}.'.format(updated, created))
+
+    def _get_parametergroep(self, code):
+        parametergroep = None
+        if code:
+            groeps = models.ParameterGroep.objects.filter(code=code)
+            if groeps.exists():
+                parametergroep = groeps[0]
+        return parametergroep
+
+    def import_parametergroep(self, filename):
+        logger.info("Import parametergroep.")
+        mapping_codes = [
+            'parametergroep-n0',
+            'parametergroep-n1',
+            'parametergroep-n2'
+        ]
+        for mapping_code in mapping_codes:
+            if not models.ImportMapping.objects.filter(
+                    code=mapping_code).exists():
+                logger.info(
+                    'De mapping code {} is niet gevonden. '
+                    'Gebruik eerst management command '
+                    '"create_mapping".'.format(mapping_code))
+                return
+
+            self.import_csv(filename, mapping_code)
+        logger.info("Einde import parametergroep.")
 
     def import_parameter(self, filename):
         logger.info("Import parameter.")
         filepath = os.path.join(self.data_dir, filename)
         if not os.path.isfile(filepath):
-            logger.warn(
-                "Interrupted import parameter, unknown file '{}'.".format(filepath))
+            logger.warn("Interrupted import parameter, "
+                        "unknown file '{}'.".format(filepath))
             return
 
         updated = 0
@@ -390,23 +421,33 @@ class DataImport(object):
                     par = models.Parameter(par_code=row[0])
                     created = created + 1
 
+                par_groep2 = self._get_parametergroep(row[5])
+                par_groep1 = self._get_parametergroep(row[4])
+                par_groep0 = self._get_parametergroep(row[3])
+
                 par.par_oms = row[1]
                 par.casnummer = row[2]
-                par.parametergroep0 = row[3]
-                par.parametergroep1 = row[4]
-                par.parametergroep2 = row[5]
+                if par_groep2:
+                    par.parametergroep = par_groep2
+                elif par_groep1:
+                    par.parametergroep = par_groep1
+                elif par_groep0:
+                    par.parametergroep = par_groep0
+                else:
+                    par.parametergroep = None
                 par.datum_status = self._datestr_to_date(row[6])
                 par.status = self._get_status(row[7])
+
                 par.save()
-        logger.info(
-            'End parameter import: updated={0}, created={1}.'.format(updated, created))
+        logger.info('End parameter import: updated={0}, '
+                    'created={1}.'.format(updated, created))
 
     def import_wns(self, filename):
         logger.info("Import wns.")
         filepath = os.path.join(self.data_dir, filename)
         if not os.path.isfile(filepath):
-            logger.warn(
-                "Interrupted import WNS, unknown file '{}'.".format(filepath))
+            logger.warn("Interrupted import WNS, "
+                        "unknown file '{}'.".format(filepath))
             return
 
         updated = 0
@@ -431,8 +472,8 @@ class DataImport(object):
                 wns.datum_status = self._datestr_to_date(row[6])
                 wns.status = self._get_status(row[7])
                 wns.save()
-        logger.info(
-            'End WNS import: updated={0}, created={1}.'.format(updated, created))
+        logger.info('End WNS import: updated={0}, '
+                    'created={1}.'.format(updated, created))
 
     def set_data(self, inst, mapping, row, headers):
         """Set values to model instance. """
@@ -442,12 +483,14 @@ class DataImport(object):
             val_raw = row[headers.index(mapping_field.file_field)].strip(' "')
             if datatype == 'date':
                 try:
-                    value = datetime.strptime(val_raw, mapping_field.data_format)
+                    value = datetime.strptime(
+                        val_raw, mapping_field.data_format)
                 except:
                     continue
             elif datatype == 'time':
                 try:
-                    value = datetime.strptime(val_raw, mapping_field.data_format)
+                    value = datetime.strptime(
+                        val_raw, mapping_field.data_format)
                 except:
                     continue
             elif datatype == 'float':
@@ -464,12 +507,14 @@ class DataImport(object):
                 if value is None:
                     continue
             else:
+                if val_raw == '':
+                    val_raw = None
                 value = val_raw
 
             setattr(inst, mapping_field.db_field, value)
 
-
     def validate_csv(self, filename, mapping_code, ignore_duplicate_key=True):
+        """ TODO create separate function per validation. """ 
         roles = {
             '001': 'Het bestand bestaat niet. "{}"',
             '002': 'Bestand is leeg. "{}"',
@@ -557,7 +602,8 @@ class DataImport(object):
                     if not ignore_duplicate_key:
                         result.append({code: ex.message()})
 
-    def import_csv(self, filename, mapping_code, activiteit=None, ignore_duplicate_key=True):
+    def import_csv(self, filename, mapping_code,
+                   activiteit=None, ignore_duplicate_key=True):
         logger.info("Import {}.".format(mapping_code))
         mapping = models.ImportMapping.objects.get(code=mapping_code)
         mapping_fields = mapping.mappingfield_set.all()
@@ -567,7 +613,7 @@ class DataImport(object):
                 "Interrup import {0}, is not a file '{1}'.".format(
                     mapping_code, filepath))
             return
-        updated = 0
+
         created = 0
         with open(filepath, 'rb') as f:
             reader = csv.reader(f, delimiter=str(mapping.scheiding_teken))
@@ -579,9 +625,8 @@ class DataImport(object):
                 if activiteit and hasattr(inst.__class__, 'activiteit'):
                     inst.activiteit = activiteit
                 try:
-                    saved = inst.save()
-                    if saved:
-                        created = created + 1
+                    inst.save()
+                    created = created + 1
                 except IntegrityError as ex:
                     if ignore_duplicate_key:
                         continue
