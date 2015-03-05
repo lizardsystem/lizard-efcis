@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 from __future__ import unicode_literals
-
 import datetime
 
 from django.contrib.gis.db import models
@@ -138,6 +137,26 @@ class ParameterGroep(models.Model):
 
     def __unicode__(self):
         return self.code
+
+    @property
+    def parametergroep_dict(self):
+        return {
+            'id': self.id,
+            'code': self.code,
+            'children': self.children
+        }
+
+    @property
+    def children(self):
+        """ Get recursive all children as dict. """
+        children = ParameterGroep.objects.filter(parent=self)
+        tmp_dict = []
+        for child in children:
+            tmp_dict.append(child.parametergroep_dict)
+        return tmp_dict
+
+    class Meta:
+        ordering = ['code']
 
 
 class Parameter(models.Model):

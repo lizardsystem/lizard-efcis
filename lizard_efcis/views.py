@@ -59,11 +59,15 @@ def get_filtered_opnames(queryset, request):
 def api_root(request, format=None):
     return Response({
         'opnames': reverse(
-            'opname-list',
+            'efcis-opname-list',
             request=request,
             format=format),
         'lines': reverse(
             'efcis-lines',
+            request=request,
+            format=format),
+        'parametergroeps': reverse(
+            'efcis-parametergroep-tree',
             request=request,
             format=format),
     })
@@ -108,6 +112,19 @@ def opname_detail(request, pk):
     return Response(serializer.data)
 
 
+class ParameterGroepAPI(APIView):
+
+    def get(self, request, format=None):
+        parametergroeps = models.ParameterGroep.objects.filter(
+            parent__isnull=True)
+        serializer = serializers.ParameterGroepSerializer(
+            parametergroeps,
+            many=True,
+            context={'request': request}
+        )
+        return Response(serializer.data)
+
+
 class LinesAPI(APIView):
     """API to return lines for a graph."""
 
@@ -141,7 +158,7 @@ class LinesAPI(APIView):
         return opnames
 
     def get(self, request, format=None):
-        numerical_opnames = self.filtered_opnames.filter(waarde_a='')
+        numerical_opnames = self.filtered_opnames.exclude(waarde_n=None)
         points = numerical_opnames.values(
             'wns__wns_code', 'wns__wns_oms', 'wns__parameter__par_code',
             'locatie__loc_id', 'locatie__loc_oms',

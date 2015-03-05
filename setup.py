@@ -20,7 +20,7 @@ install_requires = [
     'raven',
     'south',
     'werkzeug',
-    'djangorestframework >= 3.0',
+    'djangorestframework >= 3.0.4',
     # Maptree and wms are included for demo purposes; almost every site needs
     # them anyway.
     ],
