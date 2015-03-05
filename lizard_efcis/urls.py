@@ -26,6 +26,10 @@ urlpatterns = patterns(
         views.LinesAPI.as_view(),
         name='efcis-lines'),
 
+    url(r'^parametergroeps/$',
+        views.ParameterGroepAPI.as_view(),
+        name='parametergroep-tree'),
+
     # url(r'^$', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls',
                                namespace='rest_framework')),

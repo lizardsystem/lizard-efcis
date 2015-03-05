@@ -4,6 +4,13 @@ from rest_framework import serializers
 from lizard_efcis import models
 
 
+class ParameterGroepSerializer(serializers.HyperlinkedModelSerializer):
+
+    class Meta:
+        model = models.ParameterGroep
+        fields = ('id', 'code', 'children')
+
+
 class OpnameSerializer(serializers.HyperlinkedModelSerializer):
 
     loc_id = serializers.PrimaryKeyRelatedField(

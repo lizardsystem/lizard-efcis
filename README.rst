@@ -27,7 +27,11 @@ Opname-list source::
     end_date => date to
     par_code => parameter code, case-insensitive
 
-Import
+    parametergroeps:
+
+    /api/parametergroeps/
+
+    Import
 ----------------------------------------------
 
 Create mappings for dataimports::
