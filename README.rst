@@ -30,6 +30,10 @@ Opname-list source::
     parametergroeps:
 
     /api/parametergroeps/
+    
+    lines:
+    
+    /api/lines/
 
     Import
 ----------------------------------------------
