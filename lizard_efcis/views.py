@@ -67,7 +67,7 @@ def api_root(request, format=None):
             request=request,
             format=format),
         'parametergroeps': reverse(
-            'parametergroep-tree',
+            'efcis-parametergroep-tree',
             request=request,
             format=format),
     })
