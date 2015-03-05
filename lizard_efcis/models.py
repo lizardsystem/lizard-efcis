@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 from __future__ import unicode_literals
-
 import datetime
+
 from django.contrib.gis.db import models
 
 
@@ -148,7 +148,7 @@ class ParameterGroep(models.Model):
 
     @property
     def children(self):
-        """ Get recurcive all children as dict. """
+        """ Get recursive all children as dict. """
         children = ParameterGroep.objects.filter(parent=self)
         tmp_dict = []
         for child in children:
