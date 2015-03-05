@@ -59,7 +59,7 @@ def get_filtered_opnames(queryset, request):
 def api_root(request, format=None):
     return Response({
         'opnames': reverse(
-            'opname-list',
+            'efcis-opname-list',
             request=request,
             format=format),
         'lines': reverse(
