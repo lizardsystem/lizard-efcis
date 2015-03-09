@@ -6,3 +6,9 @@ Changelog of lizard-efcis
 ----------------
 
 - Initial project structure created with nensskel 1.34.
+
+- Added django models for importing efcis data.
+
+- Added csv imports for efcis data.
+
+- Added API for graph lines, parameter trees and measurement data.
