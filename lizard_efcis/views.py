@@ -172,8 +172,7 @@ class LinesAPI(APIView):
         for key, group in groupby(points, _key):
             points = list(group)
             first = points[0]
-            data = [{'date': point['datum'],
-                     'time': point['tijd'],
+            data = [{'datetime': '%s %s' % (point['datum'], point['tijd']),
                      'value': point['waarde_n']} for point in points]
             line = {'wns': first['wns__wns_oms'],
                     'location': first['locatie__loc_oms'],
