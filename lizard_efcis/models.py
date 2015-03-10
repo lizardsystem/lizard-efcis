@@ -150,10 +150,10 @@ class ParameterGroep(models.Model):
     def children(self):
         """ Get recursive all children as dict. """
         children = ParameterGroep.objects.filter(parent=self)
-        tmp_dict = []
+        results = []
         for child in children:
-            tmp_dict.append(child.parametergroep_dict)
-        return tmp_dict
+            results.append(child.parametergroep_dict)
+        return results
 
     class Meta:
         ordering = ['code']
