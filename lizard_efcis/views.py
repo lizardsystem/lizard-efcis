@@ -10,6 +10,7 @@ import logging
 from django.core.paginator import EmptyPage
 from django.core.paginator import PageNotAnInteger
 from django.core.paginator import Paginator
+from django.db.models import Q
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -38,10 +39,8 @@ def get_filtered_opnames(queryset, request):
         request.QUERY_PARAMS.get('start_date'))
     enddatetime = str_to_datetime(
         request.QUERY_PARAMS.get('end_date'))
-    par_code = request.QUERY_PARAMS.get('par_code')
-    if par_code:
-        queryset = queryset.filter(
-            wns__parameter__par_code__iexact=par_code)
+    par_groep_id = request.QUERY_PARAMS.get('parametergroep')
+    
     if startdatetime:
         queryset = queryset.filter(
             datum__gt=startdatetime)
@@ -51,7 +50,14 @@ def get_filtered_opnames(queryset, request):
     if location:
         queryset = queryset.filter(
             locatie__loc_id__iexact=location)
+    if par_groep_id:
+        par_groepen = models.ParameterGroep.objects.filter(
+            Q(id=par_groep_id) |
+            Q(parent=par_groep_id) |
+            Q(parent__parent=par_groep_id))
 
+        queryset = queryset.filter(
+            wns__parameter__parametergroep__in=par_groepen)
     return queryset
 
 
@@ -139,7 +145,7 @@ class LinesAPI(APIView):
         start_date = self.request.GET.get('start_date', None)
         end_date = self.request.GET.get('end_date', None)
         locations = self.request.GET.getlist('locatie', None)
-        parameter_codes = self.request.GET.getlist('par_code', None)
+        par_groep_id = request.QUERY_PARAMS.get('parametergroep')
 
         if start_date:
             start_datetime = str_to_datetime(start_date)
@@ -151,10 +157,14 @@ class LinesAPI(APIView):
                 opnames = opnames.filter(datum__tt=end_datetime)
         if locations:
             opnames = opnames.filter(locatie__loc_id__in=locations)
-        if parameter_codes:
-            opnames = opnames.filter(
-                wns__parameter__par_code__in=parameter_codes)
+        if par_groep_id:
+            par_groepen = models.ParameterGroep.objects.filter(
+                Q(id=par_groep_id) |
+                Q(parent=par_groep_id) |
+                Q(parent__parent=par_groep_id))
 
+            opnames = opnames.filter(
+                wns__parameter__parametergroep__in=par_groepen)
         return opnames
 
     def get(self, request, format=None):

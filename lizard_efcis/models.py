@@ -137,6 +137,14 @@ class ParameterGroep(models.Model):
 
     def __unicode__(self):
         return self.code
+    
+    @property
+    def children_id_list(self):
+        result = [self.id]
+        children = ParameterGroep.objects.filter(parent=self)
+        for child in children:
+            result.append(child.parametergroep_dict['id'])
+        return result
 
     @property
     def parametergroep_dict(self):
