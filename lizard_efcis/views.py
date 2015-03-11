@@ -115,6 +115,7 @@ class FilteredOpnamesAPIView(APIView):
 class OpnamesAPI(FilteredOpnamesAPIView):
 
     def get(self, request, format=None):
+        # TODO: refactor pagination stuff with djangorestframework 3.1
         ITEMS_PER_PAGE = 30
 
         page = request.query_params.get('page')
