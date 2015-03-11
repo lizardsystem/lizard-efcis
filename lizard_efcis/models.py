@@ -126,13 +126,13 @@ class Locatie(models.Model):
     objects = models.GeoManager()
 
     def save(self, *args, **kwargs):
-        if self.x1 and self.y1:
+        if self.x1 is not None and self.y1 is not None:
             self.geo_punt1 = Point(
                 utils.rd_to_wgs84(self.x1, self.y1))
         else:
             self.geo_punt1 = None
 
-        if self.x2 and self.y2:
+        if self.x2 is not None and self.y2 is not None:
             self.geo_punt2 = Point(
                 utils.rd_to_wgs84(self.x2, self.y2))
         else:
