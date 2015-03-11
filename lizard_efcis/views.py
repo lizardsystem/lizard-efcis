@@ -34,12 +34,12 @@ def str_to_datetime(dtstr):
 
 def get_filtered_opnames(queryset, request):
 
-    location = request.QUERY_PARAMS.get('locatie')
+    location = request.query_params.get('locatie')
     startdatetime = str_to_datetime(
-        request.QUERY_PARAMS.get('start_date'))
+        request.query_params.get('start_date'))
     enddatetime = str_to_datetime(
-        request.QUERY_PARAMS.get('end_date'))
-    par_groep_id = request.QUERY_PARAMS.get('parametergroep')
+        request.query_params.get('end_date'))
+    par_groep_id = request.query_params.get('parametergroep')
 
     if startdatetime:
         queryset = queryset.filter(
@@ -84,8 +84,8 @@ def opname_list(request):
 
     ITEMS_PER_PAGE = 30
 
-    page = request.QUERY_PARAMS.get('page')
-    page_size = request.QUERY_PARAMS.get('page_size')
+    page = request.query_params.get('page')
+    page_size = request.query_params.get('page_size')
     if page_size not in [None, '']:
         ITEMS_PER_PAGE = page_size
     queryset = get_filtered_opnames(
@@ -142,10 +142,10 @@ class LinesAPI(APIView):
     def filtered_opnames(self):
         opnames = models.Opname.objects.all()
 
-        start_date = self.request.GET.get('start_date', None)
-        end_date = self.request.GET.get('end_date', None)
-        locations = self.request.GET.getlist('locatie', None)
-        par_groep_id = self.request.GET.get('parametergroep')
+        start_date = self.request.query_params.get('start_date')
+        end_date = self.request.query_params.get('end_date')
+        locations = self.request.query_params.getlist('locatie')
+        par_groep_id = self.request.query_params.get('parametergroep')
 
         if start_date:
             start_datetime = str_to_datetime(start_date)
