@@ -18,9 +18,12 @@ router = routers.DefaultRouter()
 urlpatterns = patterns(
     'lizard_efcis.views',
     url(r'^$', 'api_root'),
-    url(r'^opnames/$', 'opname_list', name='efcis-opname-list'),
+    url(r'^opnames/$',
+        views.OpnamesAPI.as_view(),
+        name='efcis-opname-list'),
     url(r'^opnames/(?P<pk>[0-9]+)/$',
-        'opname_detail', name='opname-detail'),
+        'opname_detail',
+        name='opname-detail'),
 
     url(r'^lines/$',
         views.LinesAPI.as_view(),
