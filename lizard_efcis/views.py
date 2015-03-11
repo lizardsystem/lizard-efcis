@@ -98,7 +98,7 @@ class FilteredOpnamesAPIView(APIView):
         if end_date:
             end_datetime = str_to_datetime(end_date)
             if end_datetime:
-                opnames = opnames.filter(datum__tt=end_datetime)
+                opnames = opnames.filter(datum__lt=end_datetime)
         if locations:
             opnames = opnames.filter(locatie__loc_id__in=locations)
         if parametergroep_id:
