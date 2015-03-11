@@ -39,7 +39,7 @@ def get_filtered_opnames(queryset, request):
         request.query_params.get('start_date'))
     enddatetime = str_to_datetime(
         request.query_params.get('end_date'))
-    par_groep_id = request.query_params.get('parametergroep')
+    parametergroep_id = request.query_params.get('parametergroep')
 
     if startdatetime:
         queryset = queryset.filter(
@@ -50,11 +50,11 @@ def get_filtered_opnames(queryset, request):
     if location:
         queryset = queryset.filter(
             locatie__loc_id__iexact=location)
-    if par_groep_id:
+    if parametergroep_id:
         par_groepen = models.ParameterGroep.objects.filter(
-            Q(id=par_groep_id) |
-            Q(parent=par_groep_id) |
-            Q(parent__parent=par_groep_id))
+            Q(id=parametergroep_id) |
+            Q(parent=parametergroep_id) |
+            Q(parent__parent=parametergroep_id))
 
         queryset = queryset.filter(
             wns__parameter__parametergroep__in=par_groepen)
@@ -145,7 +145,7 @@ class LinesAPI(APIView):
         start_date = self.request.query_params.get('start_date')
         end_date = self.request.query_params.get('end_date')
         locations = self.request.query_params.getlist('locatie')
-        par_groep_id = self.request.query_params.get('parametergroep')
+        parametergroep_id = self.request.query_params.get('parametergroep')
 
         if start_date:
             start_datetime = str_to_datetime(start_date)
@@ -157,11 +157,11 @@ class LinesAPI(APIView):
                 opnames = opnames.filter(datum__tt=end_datetime)
         if locations:
             opnames = opnames.filter(locatie__loc_id__in=locations)
-        if par_groep_id:
+        if parametergroep_id:
             par_groepen = models.ParameterGroep.objects.filter(
-                Q(id=par_groep_id) |
-                Q(parent=par_groep_id) |
-                Q(parent__parent=par_groep_id))
+                Q(id=parametergroep_id) |
+                Q(parent=parametergroep_id) |
+                Q(parent__parent=parametergroep_id))
 
             opnames = opnames.filter(
                 wns__parameter__parametergroep__in=par_groepen)
