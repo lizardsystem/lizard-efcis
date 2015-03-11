@@ -5,6 +5,9 @@ from __future__ import unicode_literals
 import datetime
 
 from django.contrib.gis.db import models
+from django.contrib.gis.geos import Point
+
+from lizard_efcis import utils
 
 
 class Status(models.Model):
@@ -98,6 +101,10 @@ class Locatie(models.Model):
         null=True,
         blank=True,
         help_text="Locatieomschrijving")
+    x1 = models.FloatField(null=True, blank=True)
+    y1 = models.FloatField(null=True, blank=True)
+    x2 = models.FloatField(null=True, blank=True)
+    y2 = models.FloatField(null=True, blank=True)
     geo_punt1 = models.PointField(srid=4326, null=True, blank=True)
     geo_punt2 = models.PointField(srid=4326, null=True, blank=True)
     waterlichaam = models.ForeignKey(
@@ -118,6 +125,21 @@ class Locatie(models.Model):
 
     objects = models.GeoManager()
 
+    def save(self, *args, **kwargs):
+        if self.x1 and self.y1:
+            self.geo_punt1 = Point(
+                utils.rd_to_wgs84(self.x1, self.y1))
+        else:
+            self.geo_punt1 = None
+
+        if self.x2 and self.y2:
+            self.geo_punt2 = Point(
+                utils.rd_to_wgs84(self.x2, self.y2))
+        else:
+            self.geo_punt2 = None
+
+        super(Locatie, self).save(*args, **kwargs)
+
     def __unicode__(self):
         return '{}'.format(self.loc_oms)
 
@@ -137,7 +159,7 @@ class ParameterGroep(models.Model):
 
     def __unicode__(self):
         return self.code
-    
+
     @property
     def children_id_list(self):
         result = [self.id]

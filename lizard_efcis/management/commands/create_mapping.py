@@ -117,7 +117,18 @@ class Command(BaseCommand):
                 'db_field': 'loc_oms',
                 'file_field': 'mpn_mpnomsch',
                 'db_datatype': 'CharField'
+            },
+            {
+                'db_field': 'x1',
+                'file_field': 'mpn_mrfxcoor',
+                'db_datatype': 'float'
+            },
+            {
+                'db_field': 'y1',
+                'file_field': 'mpn_mrfycoor',
+                'db_datatype': 'float'
             }
+            
         ]
         self.create(import_mapping, mapping_fields)
 
