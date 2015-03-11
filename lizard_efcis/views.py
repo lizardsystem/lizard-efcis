@@ -40,7 +40,7 @@ def get_filtered_opnames(queryset, request):
     enddatetime = str_to_datetime(
         request.QUERY_PARAMS.get('end_date'))
     par_groep_id = request.QUERY_PARAMS.get('parametergroep')
-    
+
     if startdatetime:
         queryset = queryset.filter(
             datum__gt=startdatetime)
@@ -145,7 +145,7 @@ class LinesAPI(APIView):
         start_date = self.request.GET.get('start_date', None)
         end_date = self.request.GET.get('end_date', None)
         locations = self.request.GET.getlist('locatie', None)
-        par_groep_id = request.QUERY_PARAMS.get('parametergroep')
+        par_groep_id = self.request.GET.get('parametergroep')
 
         if start_date:
             start_datetime = str_to_datetime(start_date)
