@@ -40,6 +40,7 @@ class DataImport(object):
         self.import_parametergroep('parameter.csv')
         self.import_parameter('parameter.csv')
         self.import_wns('wns.csv')
+        self.import_csv('meetnet.csv', 'meetnet')
 
     def _datestr_to_date(self, datestr):
         dt = None

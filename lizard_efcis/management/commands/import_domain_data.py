@@ -24,6 +24,6 @@ class Command(BaseCommand):
         data_import = DataImport()
         data_import.data_dir = os.path.join(
             settings.DATA_IMPORT_DIR, 'domain')
-        data_import.import_domain_data()
-
+        #data_import.import_domain_data()
+        data_import.import_csv('meetnet.csv', 'meetnet')
         self.stdout.write('End import')

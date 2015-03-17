@@ -28,7 +28,15 @@ class Status(models.Model):
 
 
 class Meetnet(models.Model):
-    net_oms = models.TextField(null=True, blank=True)
+    code = models.CharField(max_length=255)
+    parent = models.ForeignKey('self', null=True)
+
+    class Meta:
+        ordering = ['id']
+        unique_together = (('code', 'parent'))
+
+    def __unicode__(self):
+        return self.code
 
 
 class StatusKRW(models.Model):
@@ -121,8 +129,15 @@ class Locatie(models.Model):
         null=True,
         blank=True,
         help_text="Status KRW Watertype")
-    meetnet = models.ForeignKey(Meetnet, null=True, blank=True)
-
+    meetnet = models.ManyToManyField(Meetnet, null=True, blank=True)
+    status_fc = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True)
+    status_bio = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True)
     objects = models.GeoManager()
 
     def save(self, *args, **kwargs):
@@ -394,7 +409,8 @@ class ImportMapping(models.Model):
     tabellen = [
         ('Opname', 'Opname'),
         ('Locatie', 'Locatie'),
-        ('ParameterGroep', 'ParameterGroep')
+        ('ParameterGroep', 'ParameterGroep'),
+        ('Meetnet', 'Meetnet')
     ]
     code = models.CharField(max_length=50, unique=True)
     omschrijving = models.TextField(null=True, blank=True)
@@ -420,7 +436,8 @@ class MappingField(models.Model):
         'WNS',
         'Locatie',
         'Detectiegrens',
-        'ParameterGroep'
+        'ParameterGroep',
+        'Meetnet'
     ]
     type_choices = [
         ('CharField', 'CharField'),
@@ -430,7 +447,8 @@ class MappingField(models.Model):
         (FOREIGNKEY_MODELS[0], FOREIGNKEY_MODELS[0]),
         (FOREIGNKEY_MODELS[1], FOREIGNKEY_MODELS[1]),
         (FOREIGNKEY_MODELS[2], FOREIGNKEY_MODELS[2]),
-        (FOREIGNKEY_MODELS[3], FOREIGNKEY_MODELS[3])
+        (FOREIGNKEY_MODELS[3], FOREIGNKEY_MODELS[3]),
+        (FOREIGNKEY_MODELS[4], FOREIGNKEY_MODELS[4])
     ]
 
     db_field = models.CharField(max_length=255)

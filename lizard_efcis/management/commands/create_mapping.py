@@ -12,6 +12,7 @@ class Command(BaseCommand):
         self.create_mapping_parameter_groep_n0()
         self.create_mapping_parameter_groep_n1()
         self.create_mapping_parameter_groep_n2()
+        self.create_mapping_meetnet()
         self.stdout.write('Einde import')
 
     def add_mapping_fields(self, imp_mapping, mapping_fields):
@@ -128,7 +129,6 @@ class Command(BaseCommand):
                 'file_field': 'mpn_mrfycoor',
                 'db_datatype': 'float'
             }
-            
         ]
         self.create(import_mapping, mapping_fields)
 
@@ -180,6 +180,98 @@ class Command(BaseCommand):
                 'file_field': 'mrsinovs_domafkrt',
                 'db_datatype': 'Detectiegrens',
                 'foreignkey_field': 'teken'
+            }
+        ]
+        self.create(import_mapping, mapping_fields)
+
+    def create_mapping_meetnet(self):
+        import_mapping = {
+            'code': 'meetnet',
+            'tabel_naam': 'Meetnet',
+            'omschrijving': 'Automatisch gegenereerde mapping.'
+        }
+
+        mapping_fields = [
+            {
+                'db_field': 'id',
+                'file_field': 'id',
+                'db_datatype': 'CharField'
+            },
+            {
+                'db_field': 'code',
+                'file_field': 'code',
+                'db_datatype': 'CharField'
+            },
+            {
+                'db_field': 'parent',
+                'file_field': 'parent_id',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            }
+        ]
+        self.create(import_mapping, mapping_fields)
+
+    def create_mapping_locations(self):
+        import_mapping = {
+            'code': 'locaties',
+            'tabel_naam': 'Locatie',
+            'omschrijving': 'Automatisch gegenereerde mapping.'
+        }
+
+        mapping_fields = [
+            {
+                'db_field': 'loc_id',
+                'file_field': 'LOC_ID',
+                'db_datatype': 'CharField'
+            },
+            {
+                'db_field': 'loc_oms',
+                'file_field': 'LOC_OMS',
+                'db_datatype': 'CharField'
+            },
+            {
+                'db_field': 'x1',
+                'file_field': 'X1_COORD',
+                'db_datatype': 'float'
+            },
+            {
+                'db_field': 'y1',
+                'file_field': 'Y1_COORD',
+                'db_datatype': 'float'
+            },
+            {
+                'db_field': 'x2',
+                'file_field': 'X2_COORD',
+                'db_datatype': 'float'
+            },
+            {
+                'db_field': 'y2',
+                'file_field': 'Y2_COORD',
+                'db_datatype': 'float'
+            },
+            {
+                'db_field': 'waterlichaam',
+                'file_field': 'WATERLICHAAM',
+                'db_datatype': 'Waterlichaam',
+                'foreignkey_field': 'code'
+            },
+            {
+                'db_field': 'watertype',
+                'file_field': 'WATERTYPE',
+                'db_datatype': 'Watertype',
+                'foreignkey_field': 'code'
+            },
+            {
+                'db_field': 'status_krw',
+                'file_field': 'STATUS_KRW',
+                'db_datatype': 'StatusKRW',
+                'foreignkey_field': 'code'
+            },
+            {
+                'db_field': 'metnet',
+                'file_field': '',
+                'db_datatype': 'StatusKRW',
+                'foreignkey_field': 'code'
             }
         ]
         self.create(import_mapping, mapping_fields)
