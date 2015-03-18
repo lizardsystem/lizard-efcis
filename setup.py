@@ -22,6 +22,7 @@ install_requires = [
     'south',
     'werkzeug',
     'djangorestframework >= 3.0.4',
+    'djangorestframework-gis >= 0.8',
     # Maptree and wms are included for demo purposes; almost every site needs
     # them anyway.
     ],

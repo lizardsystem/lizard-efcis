@@ -16,6 +16,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
+from rest_framework import generics
 
 from lizard_efcis import models
 from lizard_efcis import serializers
@@ -45,6 +46,10 @@ def api_root(request, format=None):
             format=format),
         'parametergroeps': reverse(
             'efcis-parametergroep-tree',
+            request=request,
+            format=format),
+        'locaties': reverse(
+            'efcis-locaties-list',
             request=request,
             format=format),
     })
@@ -110,6 +115,20 @@ class FilteredOpnamesAPIView(APIView):
             opnames = opnames.filter(
                 wns__parameter__parametergroep__in=par_groepen)
         return opnames
+
+
+class LocatieAPI(generics.ListCreateAPIView):
+
+    model = models.Locatie
+    serializer_class = serializers.LocatieSerializer
+    paginate_by_param = 'page_size'
+    paginate_by = 50
+    max_page_size = 500
+
+    def get_queryset(self):
+        # TODO: filtering by meetnet
+        # meetnet = self.request.query_params.get('meetnet', None)
+        return models.Locatie.objects.all()
 
 
 class OpnamesAPI(FilteredOpnamesAPIView):

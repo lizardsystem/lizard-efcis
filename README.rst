@@ -35,6 +35,10 @@ Opname-list source::
     
     /api/lines/
 
+    locaties:
+
+    api/locaties/?page=4&page_size=2
+
     Import
 ----------------------------------------------
 

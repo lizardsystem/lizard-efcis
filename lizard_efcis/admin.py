@@ -16,4 +16,6 @@ class MappingFieldInlineAdmin(admin.TabularInline):
 class ImportMappingAdmin(admin.ModelAdmin):
     inlines = [MappingFieldInlineAdmin]
 
+
 admin.site.register(models.ImportMapping, ImportMappingAdmin)
+admin.site.register(models.Locatie)

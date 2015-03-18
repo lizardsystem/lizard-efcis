@@ -1,5 +1,6 @@
 from rest_framework import pagination
 from rest_framework import serializers
+from rest_framework_gis import serializers as gis_serializers
 
 from lizard_efcis import models
 
@@ -57,3 +58,17 @@ class PaginatedOpnameSerializer(pagination.BasePaginationSerializer):
 
     class Meta:
         object_serializer_class = OpnameSerializer
+
+
+class LocatieSerializer(gis_serializers.GeoFeatureModelSerializer):
+
+    geo_punt_2 = gis_serializers.GeometryField(source='geo_punt2')
+    geo_punt_1 = gis_serializers.GeometryField(source='geo_punt1')
+
+    class Meta:
+        model = models.Locatie
+        fields = (
+            'id', 'loc_id', 'loc_oms', 'geo_punt_2',
+            'waterlichaam', 'watertype', 'status_krw'
+        )
+        geo_field = 'geo_punt_1'
