@@ -117,7 +117,7 @@ class FilteredOpnamesAPIView(APIView):
         return opnames
 
 
-class LocatieAPI(generics.ListCreateAPIView):
+class LocatieAPI(generics.ListAPIView):
 
     model = models.Locatie
     serializer_class = serializers.LocatieSerializer
