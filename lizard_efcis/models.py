@@ -448,15 +448,8 @@ class MappingField(models.Model):
         ('float', 'float'),
         ('date', 'date'),
         ('time', 'time'),
-        (FOREIGNKEY_MODELS[0], FOREIGNKEY_MODELS[0]),
-        (FOREIGNKEY_MODELS[1], FOREIGNKEY_MODELS[1]),
-        (FOREIGNKEY_MODELS[2], FOREIGNKEY_MODELS[2]),
-        (FOREIGNKEY_MODELS[3], FOREIGNKEY_MODELS[3]),
-        (FOREIGNKEY_MODELS[4], FOREIGNKEY_MODELS[4]),
-        (FOREIGNKEY_MODELS[5], FOREIGNKEY_MODELS[5]),
-        (FOREIGNKEY_MODELS[6], FOREIGNKEY_MODELS[6]),
-        (FOREIGNKEY_MODELS[7], FOREIGNKEY_MODELS[7])
-    ]
+    ] + [(foreignkey_model, foreignkey_model) for
+         foreignkey_model in FOREIGNKEY_MODELS]
 
     db_field = models.CharField(max_length=255)
     file_field = models.CharField(max_length=255)
