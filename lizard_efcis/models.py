@@ -41,7 +41,7 @@ class Meetnet(models.Model):
 
 class StatusKRW(models.Model):
 
-    code = models.CharField(max_length=5, unique=True)
+    code = models.CharField(max_length=50, unique=True)
     omschrijving = models.TextField(null=True, blank=True)
     datum_begin = models.DateField(null=True, blank=True)
     datum_eind = models.DateField(null=True, blank=True)
@@ -437,8 +437,12 @@ class MappingField(models.Model):
         'Locatie',
         'Detectiegrens',
         'ParameterGroep',
-        'Meetnet'
+        'Meetnet',
+        'StatusKRW',
+        'Waterlichaam',
+        'Watertype'
     ]
+
     type_choices = [
         ('CharField', 'CharField'),
         ('float', 'float'),
@@ -448,7 +452,10 @@ class MappingField(models.Model):
         (FOREIGNKEY_MODELS[1], FOREIGNKEY_MODELS[1]),
         (FOREIGNKEY_MODELS[2], FOREIGNKEY_MODELS[2]),
         (FOREIGNKEY_MODELS[3], FOREIGNKEY_MODELS[3]),
-        (FOREIGNKEY_MODELS[4], FOREIGNKEY_MODELS[4])
+        (FOREIGNKEY_MODELS[4], FOREIGNKEY_MODELS[4]),
+        (FOREIGNKEY_MODELS[5], FOREIGNKEY_MODELS[5]),
+        (FOREIGNKEY_MODELS[6], FOREIGNKEY_MODELS[6]),
+        (FOREIGNKEY_MODELS[7], FOREIGNKEY_MODELS[7])
     ]
 
     db_field = models.CharField(max_length=255)

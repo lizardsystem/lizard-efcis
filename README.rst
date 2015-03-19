@@ -48,5 +48,4 @@ Import domain data::
 
 Import ibever data::
 
-    $ bin/django import_ibever --mapping='iBever-locaties'
     $ bin/django import_ibever --mapping='iBever-opnames'

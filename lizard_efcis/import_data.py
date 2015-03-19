@@ -6,6 +6,7 @@ import os
 from django.conf import settings
 from django.db import models as django_models
 from django.db import IntegrityError
+from django.db.models import ManyToManyField
 
 from lizard_efcis import models
 
@@ -41,6 +42,7 @@ class DataImport(object):
         self.import_parameter('parameter.csv')
         self.import_wns('wns.csv')
         self.import_csv('meetnet.csv', 'meetnet')
+        self.import_csv('locaties_met_meetnet.csv', 'locaties')
 
     def _datestr_to_date(self, datestr):
         dt = None
@@ -513,7 +515,16 @@ class DataImport(object):
                     val_raw = None
                 value = val_raw
 
-            setattr(inst, mapping_field.db_field, value)
+            if isinstance(inst._meta.get_field(
+                    mapping_field.db_field), ManyToManyField):
+                inst.save()
+                values = list(inst._meta.get_field(
+                    mapping_field.db_field).value_from_object(inst))
+                values.append(value)
+                setattr(inst, mapping_field.db_field, values)
+            else:
+                setattr(inst, mapping_field.db_field, value)
+            inst.save()
 
     def validate_csv(self, filename, mapping_code, ignore_duplicate_key=True):
         """TODO create separate function per validation."""
@@ -601,7 +612,7 @@ class DataImport(object):
                     mapping_field.foreignkey_field)
                 if inst is None:
                     result.append({
-                        code: "{0} '{1}' niet aanwezig in domain-tabel.".format(
+                        code: "{0} '{1}' niet in domain-tabel.".format(
                             mapping_field.db_datatype, val_raw)})
                 try:
                     inst = django_models.get_model('lizard_efcis',
@@ -632,11 +643,10 @@ class DataImport(object):
             for row in reader:
                 inst = django_models.get_model('lizard_efcis',
                                                mapping.tabel_naam)()
-                self.set_data(inst, mapping_fields, row, headers)
                 if activiteit and hasattr(inst.__class__, 'activiteit'):
                     inst.activiteit = activiteit
                 try:
-                    inst.save()
+                    self.set_data(inst, mapping_fields, row, headers)
                     created = created + 1
                 except IntegrityError as ex:
                     if ignore_duplicate_key:

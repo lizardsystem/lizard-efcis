@@ -7,12 +7,12 @@ class Command(BaseCommand):
     help = '''Aanmaken import-mappings for csv-file'''
 
     def handle(self, *args, **options):
-        self.create_ibever_loc_mapping()
         self.create_ibever_opname_mapping()
         self.create_mapping_parameter_groep_n0()
         self.create_mapping_parameter_groep_n1()
         self.create_mapping_parameter_groep_n2()
         self.create_mapping_meetnet()
+        self.create_mapping_locations()
         self.stdout.write('Einde import')
 
     def add_mapping_fields(self, imp_mapping, mapping_fields):
@@ -97,37 +97,6 @@ class Command(BaseCommand):
                 'file_field': 'parametergroup1',
                 'db_datatype': 'ParameterGroep',
                 'foreignkey_field': 'code'
-            }
-        ]
-        self.create(import_mapping, mapping_fields)
-
-    def create_ibever_loc_mapping(self):
-
-        import_mapping = {
-            'code': 'iBever-locaties',
-            'tabel_naam': 'Locatie',
-            'omschrijving': 'Automatisch gegenereerde mapping.'
-        }
-        mapping_fields = [
-            {
-                'db_field': 'loc_id',
-                'file_field': 'mpn_mpnident',
-                'db_datatype': 'CharField'
-            },
-            {
-                'db_field': 'loc_oms',
-                'file_field': 'mpn_mpnomsch',
-                'db_datatype': 'CharField'
-            },
-            {
-                'db_field': 'x1',
-                'file_field': 'mpn_mrfxcoor',
-                'db_datatype': 'float'
-            },
-            {
-                'db_field': 'y1',
-                'file_field': 'mpn_mrfycoor',
-                'db_datatype': 'float'
             }
         ]
         self.create(import_mapping, mapping_fields)
@@ -268,10 +237,110 @@ class Command(BaseCommand):
                 'foreignkey_field': 'code'
             },
             {
-                'db_field': 'metnet',
-                'file_field': '',
-                'db_datatype': 'StatusKRW',
-                'foreignkey_field': 'code'
+                'db_field': 'status_fc',
+                'file_field': 'STATUS_FC',
+                'db_datatype': 'CharField',
+            },
+            {
+                'db_field': 'status_bio',
+                'file_field': 'STATUS_BIO',
+                'db_datatype': 'CharField',
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'FC_LOCATIES',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'BIO_LOCATIES',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'ROULEREND_FC',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'ROULEREND_BIO',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'OVERIG',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'GBM',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'MNLSO',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'LMGBM',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'ZWEMWATER',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'CMNO',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'CSD',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'KRR_HONS',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'LOP',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'OR',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'GROM',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'LBW',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
             }
         ]
         self.create(import_mapping, mapping_fields)
