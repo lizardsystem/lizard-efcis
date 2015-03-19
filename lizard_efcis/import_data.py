@@ -515,8 +515,9 @@ class DataImport(object):
                     val_raw = None
                 value = val_raw
 
-            if isinstance(inst._meta.get_field(
-                    mapping_field.db_field), ManyToManyField):
+            if isinstance(
+                inst._meta.get_field(mapping_field.db_field), 
+                ManyToManyField):
                 inst.save()
                 values = list(inst._meta.get_field(
                     mapping_field.db_field).value_from_object(inst))
