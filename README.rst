@@ -1,9 +1,12 @@
 lizard-efcis
 ==========================================
 
-Introduction
+The restframework app that contains the actual EFCIS data.
 
-Usage, etc.
+
+Note on 'meetnetten' hierarchy: it should be max 5 levels deep.
+
+
 
 
 Sources
@@ -30,16 +33,16 @@ Opname-list source::
     parametergroeps:
 
     /api/parametergroeps/
-    
+
     lines:
-    
+
     /api/lines/
 
     locaties:
 
     api/locaties/?page=4&page_size=2
 
-    Import
+Import
 ----------------------------------------------
 
 Create mappings for dataimports::
