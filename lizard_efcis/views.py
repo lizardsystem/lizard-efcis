@@ -52,6 +52,10 @@ def api_root(request, format=None):
             'efcis-locaties-list',
             request=request,
             format=format),
+        'meetnetten': reverse(
+            'efcis-meetnet-tree',
+            request=request,
+            format=format),
     })
 
 
@@ -80,6 +84,19 @@ class ParameterGroepAPI(APIView):
         return Response(serializer.data)
 
 
+class MeetnetAPI(APIView):
+
+    def get(self, request, format=None):
+        meetnetten = models.Meetnet.objects.filter(
+            parent__isnull=True)
+        serializer = serializers.MeetnetSerializer(
+            meetnetten,
+            many=True,
+            context={'request': request}
+        )
+        return Response(serializer.data)
+
+
 class FilteredOpnamesAPIView(APIView):
     """Base view for returning opnames, filted by GET parameters."""
 
@@ -95,6 +112,7 @@ class FilteredOpnamesAPIView(APIView):
         end_date = self.request.query_params.get('end_date')
         locations = self.request.query_params.getlist('locatie')
         parametergroep_id = self.request.query_params.get('parametergroep')
+        meetnet_id = self.request.query_params.get('meetnet')
 
         if start_date:
             start_datetime = str_to_datetime(start_date)
@@ -114,6 +132,17 @@ class FilteredOpnamesAPIView(APIView):
 
             opnames = opnames.filter(
                 wns__parameter__parametergroep__in=par_groepen)
+        if meetnet_id:
+            meetnetten = models.Meetnet.objects.filter(
+                Q(id=meetnet_id) |
+                Q(parent=meetnet_id) |
+                Q(parent__parent=meetnet_id) |
+                Q(parent__parent__parent=meetnet_id) |
+                Q(parent__parent__parent__parent=meetnet_id)
+            )
+
+            opnames = opnames.filter(
+                locatie__meetnet__in=meetnetten)
         return opnames
 
 

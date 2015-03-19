@@ -35,6 +35,20 @@ class Meetnet(models.Model):
         ordering = ['id']
         unique_together = (('code', 'parent'))
 
+    @property
+    def meetnet_dict(self):
+        return {
+            'id': self.id,
+            'code': self.code,
+            'children': self.children
+        }
+
+    @property
+    def children(self):
+        """ Get recursive all children as dict. """
+        children = Meetnet.objects.filter(parent=self)
+        return [child.meetnet_dict for child in children]
+
     def __unicode__(self):
         return self.code
 
