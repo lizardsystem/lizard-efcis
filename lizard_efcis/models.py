@@ -47,10 +47,7 @@ class Meetnet(models.Model):
     def children(self):
         """ Get recursive all children as dict. """
         children = Meetnet.objects.filter(parent=self)
-        results = []
-        for child in children:
-            results.append(child.meetnet_dict)
-        return results
+        return [child.meetnet_dict for child in children]
 
     def __unicode__(self):
         return self.code
