@@ -16,6 +16,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
+from rest_framework import generics
 
 from lizard_efcis import models
 from lizard_efcis import serializers
@@ -30,35 +31,6 @@ def str_to_datetime(dtstr):
     except:
         logger.warn("Error on formating datimestr to datetime "
                     "{0} doesn't match {1}.".format(dtstr, dtformat))
-
-
-def get_filtered_opnames(queryset, request):
-
-    location = request.QUERY_PARAMS.get('locatie')
-    startdatetime = str_to_datetime(
-        request.QUERY_PARAMS.get('start_date'))
-    enddatetime = str_to_datetime(
-        request.QUERY_PARAMS.get('end_date'))
-    par_groep_id = request.QUERY_PARAMS.get('parametergroep')
-    
-    if startdatetime:
-        queryset = queryset.filter(
-            datum__gt=startdatetime)
-    if enddatetime:
-        queryset = queryset.filter(
-            datum__lt=enddatetime)
-    if location:
-        queryset = queryset.filter(
-            locatie__loc_id__iexact=location)
-    if par_groep_id:
-        par_groepen = models.ParameterGroep.objects.filter(
-            Q(id=par_groep_id) |
-            Q(parent=par_groep_id) |
-            Q(parent__parent=par_groep_id))
-
-        queryset = queryset.filter(
-            wns__parameter__parametergroep__in=par_groepen)
-    return queryset
 
 
 @api_view()
@@ -76,34 +48,11 @@ def api_root(request, format=None):
             'efcis-parametergroep-tree',
             request=request,
             format=format),
+        'locaties': reverse(
+            'efcis-locaties-list',
+            request=request,
+            format=format),
     })
-
-
-@api_view()
-def opname_list(request):
-
-    ITEMS_PER_PAGE = 30
-
-    page = request.QUERY_PARAMS.get('page')
-    page_size = request.QUERY_PARAMS.get('page_size')
-    if page_size not in [None, '']:
-        ITEMS_PER_PAGE = page_size
-    queryset = get_filtered_opnames(
-        models.Opname.objects.all(),
-        request)
-
-    paginator = Paginator(queryset, ITEMS_PER_PAGE)
-    try:
-        opnames = paginator.page(page)
-    except PageNotAnInteger:
-        opnames = paginator.page(1)
-    except EmptyPage:
-        opnames = paginator.page(paginator.num_pages)
-
-    serializer = serializers.PaginatedOpnameSerializer(
-        opnames,
-        context={'request': request})
-    return Response(serializer.data)
 
 
 @api_view()
@@ -131,8 +80,8 @@ class ParameterGroepAPI(APIView):
         return Response(serializer.data)
 
 
-class LinesAPI(APIView):
-    """API to return lines for a graph."""
+class FilteredOpnamesAPIView(APIView):
+    """Base view for returning opnames, filted by GET parameters."""
 
     # TODO: use
     # http://www.django-rest-framework.org/api-guide/generic-views/#genericapiview
@@ -142,10 +91,10 @@ class LinesAPI(APIView):
     def filtered_opnames(self):
         opnames = models.Opname.objects.all()
 
-        start_date = self.request.GET.get('start_date', None)
-        end_date = self.request.GET.get('end_date', None)
-        locations = self.request.GET.getlist('locatie', None)
-        par_groep_id = request.QUERY_PARAMS.get('parametergroep')
+        start_date = self.request.query_params.get('start_date')
+        end_date = self.request.query_params.get('end_date')
+        locations = self.request.query_params.getlist('locatie')
+        parametergroep_id = self.request.query_params.get('parametergroep')
 
         if start_date:
             start_datetime = str_to_datetime(start_date)
@@ -154,18 +103,60 @@ class LinesAPI(APIView):
         if end_date:
             end_datetime = str_to_datetime(end_date)
             if end_datetime:
-                opnames = opnames.filter(datum__tt=end_datetime)
+                opnames = opnames.filter(datum__lt=end_datetime)
         if locations:
             opnames = opnames.filter(locatie__loc_id__in=locations)
-        if par_groep_id:
+        if parametergroep_id:
             par_groepen = models.ParameterGroep.objects.filter(
-                Q(id=par_groep_id) |
-                Q(parent=par_groep_id) |
-                Q(parent__parent=par_groep_id))
+                Q(id=parametergroep_id) |
+                Q(parent=parametergroep_id) |
+                Q(parent__parent=parametergroep_id))
 
             opnames = opnames.filter(
                 wns__parameter__parametergroep__in=par_groepen)
         return opnames
+
+
+class LocatieAPI(generics.ListAPIView):
+
+    model = models.Locatie
+    serializer_class = serializers.LocatieSerializer
+    paginate_by_param = 'page_size'
+    paginate_by = 50
+    max_page_size = 500
+
+    def get_queryset(self):
+        # TODO: filtering by meetnet
+        # meetnet = self.request.query_params.get('meetnet', None)
+        return models.Locatie.objects.all()
+
+
+class OpnamesAPI(FilteredOpnamesAPIView):
+
+    def get(self, request, format=None):
+        # TODO: refactor pagination stuff with djangorestframework 3.1
+        ITEMS_PER_PAGE = 30
+
+        page = request.query_params.get('page')
+        page_size = request.query_params.get('page_size')
+        if page_size not in [None, '']:
+            ITEMS_PER_PAGE = page_size
+        paginator = Paginator(self.filtered_opnames, ITEMS_PER_PAGE)
+        try:
+            opnames = paginator.page(page)
+        except PageNotAnInteger:
+            opnames = paginator.page(1)
+        except EmptyPage:
+            opnames = paginator.page(paginator.num_pages)
+
+        serializer = serializers.PaginatedOpnameSerializer(
+            opnames,
+            context={'request': request})
+        return Response(serializer.data)
+
+
+class LinesAPI(FilteredOpnamesAPIView):
+    """API to return lines for a graph."""
 
     def get(self, request, format=None):
         numerical_opnames = self.filtered_opnames.exclude(waarde_n=None)
