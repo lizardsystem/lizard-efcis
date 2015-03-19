@@ -12,6 +12,13 @@ class ParameterGroepSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('id', 'code', 'children')
 
 
+class MeetnetSerializer(serializers.HyperlinkedModelSerializer):
+
+    class Meta:
+        model = models.Meetnet
+        fields = ('id', 'code', 'children')
+
+
 class OpnameSerializer(serializers.HyperlinkedModelSerializer):
 
     loc_id = serializers.PrimaryKeyRelatedField(
