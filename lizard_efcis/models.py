@@ -34,6 +34,8 @@ class Meetnet(models.Model):
     class Meta:
         ordering = ['id']
         unique_together = (('code', 'parent'))
+        verbose_name = "meetnet"
+        verbose_name_plural = "meetnetten"
 
     @property
     def meetnet_dict(self):
@@ -109,6 +111,11 @@ class Waterlichaam(models.Model):
         null=True,
         blank=True)
 
+    class Meta:
+        ordering = ['wl_code']
+        verbose_name = "waterlichaam"
+        verbose_name_plural = "waterlichamen"
+
     def __unicode__(self):
         return '{}'.format(self.wl_code)
 
@@ -169,10 +176,12 @@ class Locatie(models.Model):
 
         super(Locatie, self).save(*args, **kwargs)
 
-    def __unicode__(self):
-        return '{}'.format(self.loc_oms)
+    class Meta:
+        ordering = ['loc_id']
+        verbose_name = "locatie"
+        verbose_name_plural = "locaties"
 
-    def __str__(self):
+    def __unicode__(self):
         return self.loc_oms
 
 
@@ -216,6 +225,8 @@ class ParameterGroep(models.Model):
 
     class Meta:
         ordering = ['code']
+        verbose_name = "parametergroep"
+        verbose_name_plural = "parametergroepen"
 
 
 class Parameter(models.Model):
@@ -236,6 +247,8 @@ class Parameter(models.Model):
 
     class Meta:
         ordering = ['par_code']
+        verbose_name = "parameter"
+        verbose_name_plural = "parameters"
 
 
 class Eenheid(models.Model):
@@ -257,6 +270,11 @@ class Eenheid(models.Model):
     def __unicode__(self):
         return '{}'.format(self.eenheid)
 
+    class Meta:
+        ordering = ['eenheid']
+        verbose_name = "eenheid"
+        verbose_name_plural = "eenheden"
+
 
 class Hoedanigheid(models.Model):
 
@@ -271,6 +289,11 @@ class Hoedanigheid(models.Model):
 
     def __unicode__(self):
         return '{}'.format(self.hoedanigheid)
+
+    class Meta:
+        ordering = ['hoedanigheid']
+        verbose_name = "hoedanigheid"
+        verbose_name_plural = "hoedanigheden"
 
 
 class Compartiment(models.Model):
@@ -287,6 +310,11 @@ class Compartiment(models.Model):
     def __unicode__(self):
         return '{}'.format(self.compartiment)
 
+    class Meta:
+        ordering = ['compartiment']
+        verbose_name = "compartiment"
+        verbose_name_plural = "compartimenten"
+
 
 class Detectiegrens(models.Model):
 
@@ -295,6 +323,10 @@ class Detectiegrens(models.Model):
 
     def __unicode__(self):
         return '{}'.format(self.teken)
+
+    class Meta:
+        verbose_name = "detectiegrens"
+        verbose_name_plural = "detectiegrenzen"
 
 
 class Activiteit(models.Model):
@@ -347,6 +379,11 @@ class Activiteit(models.Model):
     def __unicode__(self):
         return '{}'.format(self.activiteit)
 
+    class Meta:
+        ordering = ['activiteit']
+        verbose_name = "activiteit"
+        verbose_name_plural = "activiteit"
+
 
 class WNS(models.Model):
 
@@ -369,10 +406,11 @@ class WNS(models.Model):
     status = models.ForeignKey(Status, null=True, blank=True)
 
     def __unicode__(self):
-        return '{}'.format(self.wns_code)
-
-    def __str__(self):
         return self.wns_code
+
+    class Meta:
+        verbose_name = "waarnemingssoort (WNS)"
+        verbose_name_plural = "waarnemingssoorten (WNS)"
 
 
 class Opname(models.Model):
@@ -400,6 +438,8 @@ class Opname(models.Model):
             'locatie')
         )
         ordering = ['wns', 'locatie', 'datum', 'tijd']
+        verbose_name = "opname"
+        verbose_name_plural = "opnames"
 
     @property
     def moment(self):
@@ -439,6 +479,8 @@ class ImportMapping(models.Model):
 
     class Meta:
         ordering = ['tabel_naam']
+        verbose_name = "importmapping"
+        verbose_name_plural = "importmappings"
 
     def __unicode__(self):
         return self.code
@@ -492,3 +534,5 @@ class MappingField(models.Model):
 
     class Meta:
         ordering = ['db_field']
+        verbose_name = "mappingveld"
+        verbose_name_plural = "mappingvelden"
