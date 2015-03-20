@@ -66,6 +66,11 @@ class StatusKRW(models.Model):
         null=True,
         blank=True)
 
+    class Meta:
+        ordering = ['code']
+        verbose_name = "KRW status"
+        verbose_name_plural = "KRW statussen"
+
     def __unicode__(self):
         return '{}'.format(self.code)
 

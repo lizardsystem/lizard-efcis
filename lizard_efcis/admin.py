@@ -16,11 +16,79 @@ class ImportMappingAdmin(admin.ModelAdmin):
     inlines = [MappingFieldInlineAdmin]
 
 
+class LocatieAdmin(admin.ModelAdmin):
+    list_display = ['loc_id',
+                    'loc_oms',
+                    'waterlichaam',
+                    'watertype']
+    search_fields = ['loc_id',
+                     'loc_oms']
+    list_filter = ['waterlichaam',
+                   'watertype',
+                   'status_fc',
+                   'status_bio']
+
+
+class MeetnetAdmin(admin.ModelAdmin):
+    list_display = ['code',
+                    'parent']
+
+
+class OpnameAdmin(admin.ModelAdmin):
+    list_display = ['wns',
+                    'locatie',
+                    'waarde_n',
+                    'waarde_a',
+                    'datum',
+                    'tijd']
+    search_fields = ['wns',
+                     'locatie']
+    list_filter = ['datum']
+
+
+class ParameterGroepAdmin(admin.ModelAdmin):
+    list_display = ['code',
+                    'parent']
+
+
+class StatusKRWAdmin(admin.ModelAdmin):
+    list_display = ['code',
+                    'omschrijving',
+                    'datum_status',
+                    'datum_begin',
+                    'datum_eind']
+
+
+class WaterlichaamAdmin(admin.ModelAdmin):
+    list_display = ['wl_code',
+                    'wl_naam',
+                    'wl_type',
+                    'wl_oms',
+                    'status']
+    list_filter = ['wl_type',
+                   'status']
+    search_fields = ['wl_code',
+                     'wl_naam']
+
+
+class WatertypeAdmin(admin.ModelAdmin):
+    list_display = ['code',
+                    'omschrijving',
+                    'groep',
+                    'datum_status',
+                    'datum_begin',
+                    'datum_eind']
+    list_filter = ['groep',
+                   'datum_status']
+    search_fields = ['code',
+                     'omschrijving']
+
+
 admin.site.register(models.ImportMapping, ImportMappingAdmin)
-admin.site.register(models.Locatie)
-admin.site.register(models.Meetnet)
-admin.site.register(models.Opname)
-admin.site.register(models.ParameterGroep)
-admin.site.register(models.StatusKRW)
-admin.site.register(models.Waterlichaam)
-admin.site.register(models.Watertype)
+admin.site.register(models.Locatie, LocatieAdmin)
+admin.site.register(models.Meetnet, MeetnetAdmin)
+admin.site.register(models.Opname, OpnameAdmin)
+admin.site.register(models.ParameterGroep, ParameterGroepAdmin)
+admin.site.register(models.StatusKRW, StatusKRWAdmin)
+admin.site.register(models.Waterlichaam, WaterlichaamAdmin)
+admin.site.register(models.Watertype, WatertypeAdmin)
