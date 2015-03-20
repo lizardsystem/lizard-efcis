@@ -17,10 +17,10 @@ class ImportMappingAdmin(admin.ModelAdmin):
 
 
 admin.site.register(models.ImportMapping, ImportMappingAdmin)
+admin.site.register(models.Locatie)
 admin.site.register(models.Meetnet)
+admin.site.register(models.Opname)
 admin.site.register(models.ParameterGroep)
 admin.site.register(models.StatusKRW)
 admin.site.register(models.Waterlichaam)
 admin.site.register(models.Watertype)
-admin.site.register(models.Locatie)
-admin.site.register(models.Opname)
