@@ -155,7 +155,7 @@ class LocatieAPI(generics.ListAPIView):
     max_page_size = 500
 
     def get_queryset(self):
-        meetnet_id = self.request.query_params.get('meetnet', None)
+        meetnet_id = self.request.query_params.get('meetnet')
         locaties = None
         if meetnet_id is None:
             locaties = models.Locatie.objects.all()
