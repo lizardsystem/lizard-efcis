@@ -525,7 +525,7 @@ class DataImport(object):
                 setattr(inst, mapping_field.db_field, values)
             else:
                 setattr(inst, mapping_field.db_field, value)
-            inst.save()
+        inst.save()
 
     def validate_csv(self, filename, mapping_code, ignore_duplicate_key=True):
         """TODO create separate function per validation."""
