@@ -155,9 +155,20 @@ class LocatieAPI(generics.ListAPIView):
     max_page_size = 500
 
     def get_queryset(self):
-        # TODO: filtering by meetnet
-        # meetnet = self.request.query_params.get('meetnet', None)
-        return models.Locatie.objects.all()
+        meetnet_id = self.request.query_params.get('meetnet')
+        locaties = None
+        if meetnet_id is None:
+            locaties = models.Locatie.objects.all()
+        else:
+            meetnetten = models.Meetnet.objects.filter(
+                Q(id=meetnet_id) |
+                Q(parent=meetnet_id) |
+                Q(parent__parent=meetnet_id) |
+                Q(parent__parent__parent=meetnet_id) |
+                Q(parent__parent__parent__parent=meetnet_id)
+            )
+            locaties = models.Locatie.objects.filter(meetnet__in=meetnetten)
+        return locaties
 
 
 class OpnamesAPI(FilteredOpnamesAPIView):
