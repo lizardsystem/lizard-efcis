@@ -6,10 +6,17 @@ from lizard_efcis import models
 
 
 class ParameterGroepSerializer(serializers.HyperlinkedModelSerializer):
-
+    text = serializers.CharField(source='code')
     class Meta:
         model = models.ParameterGroep
-        fields = ('id', 'code', 'children')
+        fields = ('id', 'code', 'children', 'text')
+
+
+class ParameterSerializer(serializers.HyperlinkedModelSerializer):
+
+    class Meta:
+        model = models.Parameter
+        fields = ('id', 'par_oms')
 
 
 class MeetnetSerializer(serializers.HyperlinkedModelSerializer):

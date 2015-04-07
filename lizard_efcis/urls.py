@@ -33,6 +33,10 @@ urlpatterns = patterns(
         views.ParameterGroepAPI.as_view(),
         name='efcis-parametergroep-tree'),
 
+    url(r'^parameters/$',
+        views.ParameterAPI.as_view(),
+        name='efcis-parameters-list'),
+
     url(r'^locaties/$',
         views.LocatieAPI.as_view(),
         name='efcis-locaties-list'),

@@ -56,6 +56,10 @@ def api_root(request, format=None):
             'efcis-meetnet-tree',
             request=request,
             format=format),
+        'parameters': reverse(
+            'efcis-parameters-list',
+            request=request,
+            format=format),
     })
 
 
@@ -82,6 +86,20 @@ class ParameterGroepAPI(APIView):
             context={'request': request}
         )
         return Response(serializer.data)
+
+
+class ParameterAPI(generics.ListAPIView):
+
+    model = models.Parameter
+    serializer_class = serializers.ParameterSerializer
+    paginate_by_param = 'page_size'
+    paginate_by = 50
+    max_page_size = 500
+
+    def get_queryset(self):
+        #parametergroup_id = self.request.query_params.get('parametergroup')        
+        parameters = models.Parameter.objects.all()
+        return parameters
 
 
 class MeetnetAPI(APIView):
