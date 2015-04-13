@@ -56,3 +56,5 @@ Import domain data::
 Import ibever data::
 
     $ bin/django import_ibever --mapping='iBever-opnames'
+    $ bin/django import_hdsr_bio --mapping='hdsr-bio-opnames'
+    
