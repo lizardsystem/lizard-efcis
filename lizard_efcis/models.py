@@ -425,7 +425,7 @@ class Opname(models.Model):
     tijd = models.TimeField(null=True, blank=True)
     waarde_n = models.FloatField(null=True, blank=True)
     waarde_a = models.CharField(
-        max_length=30,
+        max_length=255,
         null=True,
         blank=True)
     activiteit = models.ForeignKey(Activiteit)
@@ -470,7 +470,8 @@ class ImportMapping(models.Model):
         ('Opname', 'Opname'),
         ('Locatie', 'Locatie'),
         ('ParameterGroep', 'ParameterGroep'),
-        ('Meetnet', 'Meetnet')
+        ('Meetnet', 'Meetnet'),
+        ('Activiteit', 'Activiteit')
     ]
     code = models.CharField(max_length=50, unique=True)
     omschrijving = models.TextField(null=True, blank=True)
@@ -502,7 +503,8 @@ class MappingField(models.Model):
         'Meetnet',
         'StatusKRW',
         'Waterlichaam',
-        'Watertype'
+        'Watertype',
+        'Activiteit'
     ]
 
     type_choices = [

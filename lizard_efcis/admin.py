@@ -84,6 +84,22 @@ class WatertypeAdmin(admin.ModelAdmin):
                      'omschrijving']
 
 
+class ActiviteitAdmin(admin.ModelAdmin):
+    list_display = ['activiteit',
+                    'act_oms',
+                    'act_type',
+                    'met_mafa',
+                    'met_mafy',
+                    'met_fyt',
+                    'met_vis',
+                    'met_fc',
+                    'met_toets']
+    list_filter = ['act_type',
+                   'uitvoerende']
+    search_fields = ['activiteit',
+                     'act_oms']
+
+
 admin.site.register(models.ImportMapping, ImportMappingAdmin)
 admin.site.register(models.Locatie, LocatieAdmin)
 admin.site.register(models.Meetnet, MeetnetAdmin)
@@ -92,3 +108,4 @@ admin.site.register(models.ParameterGroep, ParameterGroepAdmin)
 admin.site.register(models.StatusKRW, StatusKRWAdmin)
 admin.site.register(models.Waterlichaam, WaterlichaamAdmin)
 admin.site.register(models.Watertype, WatertypeAdmin)
+admin.site.register(models.Activiteit, ActiviteitAdmin)

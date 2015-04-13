@@ -23,6 +23,6 @@ class Command(BaseCommand):
 
         data_import = DataImport()
         data_import.data_dir = os.path.join(
-            settings.DATA_IMPORT_DIR, 'domain')
+            settings.DATA_IMPORT_DIR, 'hdsr', 'domain')
         data_import.import_domain_data()
         self.stdout.write('End import')

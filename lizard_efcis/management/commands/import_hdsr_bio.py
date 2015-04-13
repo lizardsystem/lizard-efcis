@@ -5,7 +5,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from lizard_efcis.import_data import DataImport
-from lizard_efcis.models import Activiteit, ImportMapping
+from lizard_efcis.models import ImportMapping
 
 
 class Command(BaseCommand):
@@ -31,13 +31,6 @@ class Command(BaseCommand):
         data_import.data_dir = os.path.join(
             settings.DATA_IMPORT_DIR, 'hdsr', 'historisch')
 
-        activiteiten = Activiteit.objects.filter(activiteit='import ibever')
-        if activiteiten.exists():
-            activiteit = activiteiten[0]
-        else:
-            activiteit = Activiteit(activiteit='import ibever')
-            activiteit.save()
-
-        data_import.import_csv('ibever.csv', mapping_code, activiteit)
+        data_import.import_csv('hdsr_biologie.csv', mapping_code)
 
         self.stdout.write('Einde import')

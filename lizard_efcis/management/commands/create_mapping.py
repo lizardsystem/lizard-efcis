@@ -8,11 +8,13 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.create_ibever_opname_mapping()
+        self.create_hdsr_bio_opname_mapping()
         self.create_mapping_parameter_groep_n0()
         self.create_mapping_parameter_groep_n1()
         self.create_mapping_parameter_groep_n2()
         self.create_mapping_meetnet()
         self.create_mapping_locations()
+        self.create_mapping_activiteit_bio()
         self.stdout.write('Einde import')
 
     def add_mapping_fields(self, imp_mapping, mapping_fields):
@@ -40,6 +42,62 @@ class Command(BaseCommand):
             self.add_mapping_fields(imp_mapping, mapping_fields)
             self.stdout.write(
                 "Mapping {} aangemaakt.".format(import_mapping['code']))
+
+    def create_mapping_activiteit_bio(self):
+        import_mapping = {
+            'code': 'activiteit-bio',
+            'tabel_naam': 'Activiteit',
+            'omschrijving': 'Automatisch gegenereerde mapping.'
+        }
+
+        mapping_fields = [
+            {
+                'db_field': 'activiteit',
+                'file_field': 'activiteit',
+                'db_datatype': 'CharField'
+            },
+            {
+                'db_field': 'act_type',
+                'file_field': 'TYPE',
+                'db_datatype': 'CharField'
+            },
+            {
+                'db_field': 'act_oms',
+                'file_field': 'ACT_OMS',
+                'db_datatype': 'CharField'
+            },
+            {
+                'db_field': 'met_mafa',
+                'file_field': 'MET_MAFA',
+                'db_datatype': 'CharField'
+            },
+            {
+                'db_field': 'met_mafy',
+                'file_field': 'MET_MAFY',
+                'db_datatype': 'CharField'
+            },
+            {
+                'db_field': 'met_fyt',
+                'file_field': 'MET_FYT',
+                'db_datatype': 'CharField'
+            },
+            {
+                'db_field': 'met_vis',
+                'file_field': 'MET_VIS',
+                'db_datatype': 'CharField'
+            },
+            {
+                'db_field': 'met_fc',
+                'file_field': 'MET_FC',
+                'db_datatype': 'CharField'
+            },
+            {
+                'db_field': 'met_toets',
+                'file_field': 'MET_TOETS',
+                'db_datatype': 'CharField'
+            }
+        ]
+        self.create(import_mapping, mapping_fields)
 
     def create_mapping_parameter_groep_n0(self):
         import_mapping = {
@@ -97,6 +155,58 @@ class Command(BaseCommand):
                 'file_field': 'parametergroup1',
                 'db_datatype': 'ParameterGroep',
                 'foreignkey_field': 'code'
+            }
+        ]
+        self.create(import_mapping, mapping_fields)
+
+    def create_hdsr_bio_opname_mapping(self):
+        dformat = '%d-%m-%Y'
+        import_mapping = {
+            'code': 'hdsr-bio-opnames',
+            'tabel_naam': 'Opname',
+            'omschrijving': 'Automatisch gegenereerde mapping.'
+        }
+
+        mapping_fields = [
+            {
+                'db_field': 'datum',
+                'file_field': 'datum',
+                'db_datatype': 'date',
+                'data_format': dformat
+            },
+            {
+                'db_field': 'waarde_n',
+                'file_field': 'waarde_n',
+                'db_datatype': 'float',
+            },
+            {
+                'db_field': 'waarde_a',
+                'file_field': 'waarde_a',
+                'db_datatype': 'CharField'
+            },
+            {
+                'db_field': 'locatie',
+                'file_field': 'LOC_ID',
+                'db_datatype': 'Locatie',
+                'foreignkey_field': 'loc_id'
+            },
+            {
+                'db_field': 'wns',
+                'file_field': 'WNS_CODE',
+                'db_datatype': 'WNS',
+                'foreignkey_field': 'wns_code'
+            },
+            {
+                'db_field': 'detect',
+                'file_field': 'DETECT',
+                'db_datatype': 'Detectiegrens',
+                'foreignkey_field': 'teken'
+            },
+            {
+                'db_field': 'activiteit',
+                'file_field': 'activiteit',
+                'db_datatype': 'Activiteit',
+                'foreignkey_field': 'activiteit'
             }
         ]
         self.create(import_mapping, mapping_fields)
@@ -260,13 +370,25 @@ class Command(BaseCommand):
             },
             {
                 'db_field': 'meetnet',
-                'file_field': 'ROULEREND_FC',
+                'file_field': 'KRW_FC',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
             },
             {
                 'db_field': 'meetnet',
-                'file_field': 'ROULEREND_BIO',
+                'file_field': 'KRW_BIO',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'ROULEREND MEETNET_FC',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'ROULEREND MEETNET_BIO',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
             },

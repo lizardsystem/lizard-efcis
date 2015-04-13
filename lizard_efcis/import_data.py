@@ -43,7 +43,8 @@ class DataImport(object):
         self.import_wns('wns.csv')
         self.import_csv('meetnet.csv', 'meetnet')
         self.import_csv('locaties_met_meetnet.csv', 'locaties')
-
+        self.import_csv('hdsr_biologie.csv', 'activiteit-bio')
+        
     def _datestr_to_date(self, datestr):
         dt = None
         try:
@@ -503,7 +504,8 @@ class DataImport(object):
                 # omit spaces
                 val_space_omitted = val_raw
                 if val_space_omitted:
-                    val_space_omitted = val_space_omitted.replace(' ', '')
+                    #val_space_omitted = val_space_omitted.replace(' ', '')
+                    val_space_omitted = val_space_omitted.strip(' ')
                 value = self._get_foreignkey_inst(
                     val_space_omitted,
                     datatype,
