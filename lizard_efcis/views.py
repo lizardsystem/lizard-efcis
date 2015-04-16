@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 from datetime import datetime
 from itertools import groupby
 import logging
+import json
 
 from django.core.paginator import EmptyPage
 from django.core.paginator import PageNotAnInteger
@@ -97,8 +98,12 @@ class ParameterAPI(generics.ListAPIView):
     max_page_size = 500
 
     def get_queryset(self):
-        #parametergroup_id = self.request.query_params.get('parametergroup')        
-        parameters = models.Parameter.objects.all()
+        parametergroups = self.request.query_params.get('parametergroups')
+        if parametergroups:
+            parameters = models.Parameter.objects.filter(
+                parametergroep__id__in=json.loads(parametergroups))
+        else:
+            parameters = models.Parameter.objects.all()
         return parameters
 
 
