@@ -97,11 +97,23 @@ class ParameterAPI(generics.ListAPIView):
     paginate_by = 50
     max_page_size = 500
 
+    def _get_parametergroep_childs(self, groep_ids):
+        groep_tree_ids = []
+        for groep_id in groep_ids:
+            par_groeppen = models.ParameterGroep.objects.filter(
+                Q(id=groep_id) |
+                Q(parent=groep_id) |
+                Q(parent__parent=groep_id))
+            groep_tree_ids.extend(par_groeppen.values_list('id', flat=True))
+        return groep_tree_ids
+
     def get_queryset(self):
         parametergroups = self.request.query_params.get('parametergroups')
         if parametergroups:
+            groep_tree_ids = self._get_parametergroep_childs(
+                json.loads(parametergroups))
             parameters = models.Parameter.objects.filter(
-                parametergroep__id__in=json.loads(parametergroups))
+                parametergroep__id__in=groep_tree_ids)
         else:
             parameters = models.Parameter.objects.all()
         return parameters
