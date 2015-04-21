@@ -148,7 +148,7 @@ class FilteredOpnamesAPIView(APIView):
         locations = self.request.query_params.getlist('locatie')
         parametergroep_id = self.request.query_params.get('parametergroep')
         meetnet_id = self.request.query_params.get('meetnet')
-
+        parameter_ids = self.request.query_params.get('parameters')
         if start_date:
             start_datetime = str_to_datetime(start_date)
             if start_datetime:
@@ -178,6 +178,9 @@ class FilteredOpnamesAPIView(APIView):
 
             opnames = opnames.filter(
                 locatie__meetnet__in=meetnetten)
+        if parameter_ids:
+            ids_list = json.loads(parameter_ids)
+            opnames = opnames.filter(wns__parameter__id__in=ids_list)
         return opnames
 
 
