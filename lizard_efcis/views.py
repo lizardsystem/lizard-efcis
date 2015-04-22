@@ -6,7 +6,6 @@ from __future__ import unicode_literals
 from datetime import datetime
 from itertools import groupby
 import logging
-import json
 
 from django.core.paginator import EmptyPage
 from django.core.paginator import PageNotAnInteger
@@ -111,7 +110,7 @@ class ParameterAPI(generics.ListAPIView):
         parametergroups = self.request.query_params.get('parametergroups')
         if parametergroups:
             groep_tree_ids = self._get_parametergroep_childs(
-                json.loads(parametergroups))
+                parametergroups.split(','))
             parameters = models.Parameter.objects.filter(
                 parametergroep__id__in=groep_tree_ids)
         else:
@@ -179,8 +178,8 @@ class FilteredOpnamesAPIView(APIView):
             opnames = opnames.filter(
                 locatie__meetnet__in=meetnetten)
         if parameter_ids:
-            ids_list = json.loads(parameter_ids)
-            opnames = opnames.filter(wns__parameter__id__in=ids_list)
+            opnames = opnames.filter(
+                wns__parameter__id__in=parameter_ids.split(','))
         return opnames
 
 
