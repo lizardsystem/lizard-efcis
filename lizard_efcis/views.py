@@ -145,7 +145,7 @@ class FilteredOpnamesAPIView(APIView):
         start_date = self.request.query_params.get('start_date')
         end_date = self.request.query_params.get('end_date')
         locations = self.request.query_params.getlist('locatie')
-        parametergroep_ids = self.request.query_params.get('parametergroeps')
+        parametergroeps = self.request.query_params.get('parametergroeps')
         meetnet_id = self.request.query_params.get('meetnet')
         parameter_ids = self.request.query_params.get('parameters')
         if start_date:
@@ -158,15 +158,15 @@ class FilteredOpnamesAPIView(APIView):
                 opnames = opnames.filter(datum__lt=end_datetime)
         if locations:
             opnames = opnames.filter(locatie__loc_id__in=locations)
-        if parametergroep_ids:
-            par_groep_ids = parametergroep_ids.split(',')
-            par_groepen = models.ParameterGroep.objects.filter(
-                Q(id__in=par_groep_ids) |
-                Q(parent__in=par_groep_ids) |
-                Q(parent__parent__in=par_groep_ids))
+        if parametergroeps:
+            parameter_group_ids = parametergroeps.split(',')
+            parametergroepen = models.ParameterGroep.objects.filter(
+                Q(id__in=parameter_group_ids) |
+                Q(parent__in=parameter_group_ids) |
+                Q(parent__parent__in=parameter_group_ids))
 
             opnames = opnames.filter(
-                wns__parameter__parametergroep__in=par_groepen)
+                wns__parameter__parametergroep__in=parametergroepen)
         if meetnet_id:
             meetnetten = models.Meetnet.objects.filter(
                 Q(id=meetnet_id) |
