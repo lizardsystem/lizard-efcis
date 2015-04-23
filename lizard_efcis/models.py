@@ -42,7 +42,8 @@ class Meetnet(models.Model):
         return {
             'id': self.id,
             'code': self.code,
-            'children': self.children
+            'children': self.children,
+            'text': self.code
         }
 
     @property

@@ -20,10 +20,10 @@ class ParameterSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class MeetnetSerializer(serializers.HyperlinkedModelSerializer):
-
+    text = serializers.CharField(source='code')
     class Meta:
         model = models.Meetnet
-        fields = ('id', 'code', 'children')
+        fields = ('id', 'code', 'children', 'text')
 
 
 class OpnameSerializer(serializers.HyperlinkedModelSerializer):

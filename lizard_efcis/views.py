@@ -144,9 +144,9 @@ class FilteredOpnamesAPIView(APIView):
 
         start_date = self.request.query_params.get('start_date')
         end_date = self.request.query_params.get('end_date')
-        locations = self.request.query_params.getlist('locatie')
+        locations = self.request.query_params.get('locations')
         parametergroeps = self.request.query_params.get('parametergroeps')
-        meetnet_id = self.request.query_params.get('meetnet')
+        meetnets = self.request.query_params.get('meetnets')
         parameter_ids = self.request.query_params.get('parameters')
         if start_date:
             start_datetime = str_to_datetime(start_date)
@@ -157,7 +157,7 @@ class FilteredOpnamesAPIView(APIView):
             if end_datetime:
                 opnames = opnames.filter(datum__lt=end_datetime)
         if locations:
-            opnames = opnames.filter(locatie__loc_id__in=locations)
+            opnames = opnames.filter(locatie__loc_id__in=locations.split(','))
         if parametergroeps:
             parameter_group_ids = parametergroeps.split(',')
             parametergroepen = models.ParameterGroep.objects.filter(
@@ -167,13 +167,14 @@ class FilteredOpnamesAPIView(APIView):
 
             opnames = opnames.filter(
                 wns__parameter__parametergroep__in=parametergroepen)
-        if meetnet_id:
+        if meetnets:
+            meetnet_ids = meetnets.split(',')
             meetnetten = models.Meetnet.objects.filter(
-                Q(id=meetnet_id) |
-                Q(parent=meetnet_id) |
-                Q(parent__parent=meetnet_id) |
-                Q(parent__parent__parent=meetnet_id) |
-                Q(parent__parent__parent__parent=meetnet_id)
+                Q(id__in=meetnet_ids) |
+                Q(parent__in=meetnet_ids) |
+                Q(parent__parent__in=meetnet_ids) |
+                Q(parent__parent__parent__in=meetnet_ids) |
+                Q(parent__parent__parent__parent__in=meetnet_ids)
             )
 
             opnames = opnames.filter(
@@ -193,17 +194,18 @@ class LocatieAPI(generics.ListAPIView):
     max_page_size = 500
 
     def get_queryset(self):
-        meetnet_id = self.request.query_params.get('meetnet')
+        meetnets = self.request.query_params.get('meetnets')
         locaties = None
-        if meetnet_id is None:
+        if meetnets is None:
             locaties = models.Locatie.objects.all()
         else:
+            meetnet_ids = meetnets.split(',')
             meetnetten = models.Meetnet.objects.filter(
-                Q(id=meetnet_id) |
-                Q(parent=meetnet_id) |
-                Q(parent__parent=meetnet_id) |
-                Q(parent__parent__parent=meetnet_id) |
-                Q(parent__parent__parent__parent=meetnet_id)
+                Q(id__in=meetnet_ids) |
+                Q(parent__in=meetnet_ids) |
+                Q(parent__parent__in=meetnet_ids) |
+                Q(parent__parent__parent__in=meetnet_ids) |
+                Q(parent__parent__parent__parent__in=meetnet_ids)
             )
             locaties = models.Locatie.objects.filter(meetnet__in=meetnetten)
         return locaties
