@@ -69,6 +69,9 @@ class OpnameDetailSerializer(OpnameSerializer):
 
 
 class PaginatedOpnameSerializer(pagination.BasePaginationSerializer):
+    next = pagination.NextPageField(source='*')
+    prev = pagination.PreviousPageField(source='*')
+    count = serializers.ReadOnlyField(source='paginator.count')
 
     class Meta:
         object_serializer_class = OpnameSerializer
