@@ -78,6 +78,20 @@ class PaginatedOpnameSerializer(pagination.BasePaginationSerializer):
 
 
 class LocatieSerializer(gis_serializers.GeoFeatureModelSerializer):
+
+    geo_punt_2 = gis_serializers.GeometryField(source='geo_punt2')
+    geo_punt_1 = gis_serializers.GeometryField(source='geo_punt1')
+
+    class Meta:
+        model = models.Locatie
+        fields = (
+            'id', 'loc_id', 'loc_oms', 'geo_punt_2',
+            'waterlichaam', 'watertype', 'status_krw'
+        )
+        geo_field = 'geo_punt_1'
+
+
+class MapSerializer(gis_serializers.GeoFeatureModelSerializer):
     geo_punt_1 = gis_serializers.GeometryField(source='geo_punt1')
     color_value = serializers.SerializerMethodField()
     latest_value = serializers.SerializerMethodField()

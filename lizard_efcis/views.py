@@ -55,6 +55,10 @@ def api_root(request, format=None):
             'efcis-locaties-list',
             request=request,
             format=format),
+        'map': reverse(
+            'efcis-map',
+            request=request,
+            format=format),
         'meetnetten': reverse(
             'efcis-meetnet-tree',
             request=request,
@@ -189,7 +193,33 @@ class FilteredOpnamesAPIView(APIView):
         return opnames
 
 
-class LocatieAPI(FilteredOpnamesAPIView):
+class LocatieAPI(generics.ListAPIView):
+
+    model = models.Locatie
+    serializer_class = serializers.LocatieSerializer
+    paginate_by_param = 'page_size'
+    paginate_by = 50
+    max_page_size = 500
+
+    def get_queryset(self):
+        meetnets = self.request.query_params.get('meetnets')
+        locaties = None
+        if meetnets is None:
+            locaties = models.Locatie.objects.all()
+        else:
+            meetnet_ids = meetnets.split(',')
+            meetnetten = models.Meetnet.objects.filter(
+                Q(id__in=meetnet_ids) |
+                Q(parent__in=meetnet_ids) |
+                Q(parent__parent__in=meetnet_ids) |
+                Q(parent__parent__parent__in=meetnet_ids) |
+                Q(parent__parent__parent__parent__in=meetnet_ids)
+            )
+            locaties = models.Locatie.objects.filter(meetnet__in=meetnetten)
+        return locaties
+
+
+class MapAPI(FilteredOpnamesAPIView):
     """Lists locations as geojson for the map.
 
     ``features`` lists the actual geojson locations. In the properties,
@@ -254,7 +284,7 @@ class LocatieAPI(FilteredOpnamesAPIView):
                 color_values[locatie] = color_value
 
         locaties = models.Locatie.objects.filter(id__in=relevant_locatie_ids)
-        serializer = serializers.LocatieSerializer(
+        serializer = serializers.MapSerializer(
             locaties,
             many=True,
             context={'latest_values': latest_values,
@@ -287,7 +317,7 @@ class OpnamesAPI(FilteredOpnamesAPIView):
         page = request.query_params.get('page')
         page_size = request.query_params.get('page_size')
         filtered_opnames = self.filtered_opnames
-        
+
         if loc_id_filter:
             filtered_opnames = filtered_opnames.filter(
                 locatie__loc_id__icontains=loc_id_filter)
@@ -323,7 +353,7 @@ class OpnamesAPI(FilteredOpnamesAPIView):
             opnames = paginator.page(1)
         except EmptyPage:
             opnames = paginator.page(paginator.num_pages)
-        
+
         serializer = serializers.PaginatedOpnameSerializer(
             opnames,
             context={'request': request})

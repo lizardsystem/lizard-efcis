@@ -40,6 +40,9 @@ urlpatterns = patterns(
     url(r'^locaties/$',
         views.LocatieAPI.as_view(),
         name='efcis-locaties-list'),
+    url(r'^map/$',
+        views.MapAPI.as_view(),
+        name='efcis-map'),
 
     url(r'^meetnetten/$',
         views.MeetnetAPI.as_view(),
