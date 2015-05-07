@@ -463,6 +463,7 @@ class Opname(models.Model):
                 self.datum.year,
                 self.datum.month,
                 self.datum.day)
+    # TODO: remove moment
 
 
 class ImportMapping(models.Model):
