@@ -148,12 +148,6 @@ class FilteredOpnamesAPIView(APIView):
         parametergroeps = self.request.query_params.get('parametergroeps')
         meetnets = self.request.query_params.get('meetnets')
         parameter_ids = self.request.query_params.get('parameters')
-        loc_id_filter = self.request.query_params.get('loc_id')
-        wns_oms_filter = self.request.query_params.get('wns_oms')
-        loc_oms_filter = self.request.query_params.get('loc_oms')
-        activiteit_filter = self.request.query_params.get('activiteit')
-        detectiegrens_filter = self.request.query_params.get('detectiegrens')
-        waarde_n_filter = self.request.query_params.get('waarde_n')
 
         if start_date:
             start_datetime = str_to_datetime(start_date)
@@ -189,29 +183,6 @@ class FilteredOpnamesAPIView(APIView):
         if parameter_ids:
             opnames = opnames.filter(
                 wns__parameter__id__in=parameter_ids.split(','))
-
-        if loc_id_filter:
-            opnames = opnames.filter(
-                locatie__loc_id__icontains=loc_id_filter)
-        if wns_oms_filter:
-            opnames = opnames.filter(
-                wns__wns_oms__icontains=wns_oms_filter)
-        if loc_oms_filter:
-            opnames = opnames.filter(
-                locatie__loc_oms__icontains=loc_oms_filter)
-        if activiteit_filter:
-            opnames = opnames.filter(
-                activiteit__activiteit__icontains=activiteit_filter)
-        if detectiegrens_filter:
-            opnames = opnames.filter(
-                detect__teken__icontains=detectiegrens_filter)
-        if waarde_n_filter:
-            waarde_range = waarde_n_filter.split('..')
-            if len(waarde_range) > 1:
-                opnames = opnames.filter(waarde_n__gt=waarde_range[0])
-                opnames = opnames.filter(waarde_n__lt=waarde_range[1])
-            else:
-                opnames = opnames.filter(waarde_n=waarde_n_filter)
         return opnames
 
 
@@ -245,20 +216,55 @@ class OpnamesAPI(FilteredOpnamesAPIView):
 
     def get(self, request, format=None):
         # TODO: refactor pagination stuff with djangorestframework 3.1
+        loc_id_filter = self.request.query_params.get('loc_id')
+        wns_oms_filter = self.request.query_params.get('wns_oms')
+        loc_oms_filter = self.request.query_params.get('loc_oms')
+        activiteit_filter = self.request.query_params.get('activiteit')
+        detectiegrens_filter = self.request.query_params.get('detectiegrens')
+        waarde_n_filter = self.request.query_params.get('waarde_n')
+
         ITEMS_PER_PAGE = 30
 
         page = request.query_params.get('page')
         page_size = request.query_params.get('page_size')
+        filtered_opnames = self.filtered_opnames
+        
+        if loc_id_filter:
+            filtered_opnames = filtered_opnames.filter(
+                locatie__loc_id__icontains=loc_id_filter)
+        if wns_oms_filter:
+            filtered_opnames = filtered_opnames.filter(
+                wns__wns_oms__icontains=wns_oms_filter)
+        if loc_oms_filter:
+            filtered_opnames = filtered_opnames.filter(
+                locatie__loc_oms__icontains=loc_oms_filter)
+        if activiteit_filter:
+            filtered_opnames = filtered_opnames.filter(
+                activiteit__activiteit__icontains=activiteit_filter)
+        if detectiegrens_filter:
+            filtered_opnames = filtered_opnames.filter(
+                detect__teken__icontains=detectiegrens_filter)
+        if waarde_n_filter:
+            waarde_range = waarde_n_filter.split('..')
+            if len(waarde_range) > 1:
+                filtered_opnames = filtered_opnames.filter(
+                    waarde_n__gt=waarde_range[0])
+                filtered_opnames = filtered_opnames.filter(
+                    waarde_n__lt=waarde_range[1])
+            else:
+                filtered_opnames = filtered_opnames.filter(
+                    waarde_n=waarde_n_filter)
+
         if page_size not in [None, '']:
             ITEMS_PER_PAGE = page_size
-        paginator = Paginator(self.filtered_opnames, ITEMS_PER_PAGE)
+        paginator = Paginator(filtered_opnames, ITEMS_PER_PAGE)
         try:
             opnames = paginator.page(page)
         except PageNotAnInteger:
             opnames = paginator.page(1)
         except EmptyPage:
             opnames = paginator.page(paginator.num_pages)
-
+        
         serializer = serializers.PaginatedOpnameSerializer(
             opnames,
             context={'request': request})
