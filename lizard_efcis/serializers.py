@@ -44,6 +44,7 @@ class OpnameSerializer(serializers.HyperlinkedModelSerializer):
         read_only=True,
         source='detect.teken')
     moment = serializers.DateTimeField(format='%d-%m-%Y')
+    # TODO: remove moment
 
     class Meta:
         model = models.Opname
@@ -51,6 +52,7 @@ class OpnameSerializer(serializers.HyperlinkedModelSerializer):
                   'loc_oms', 'waarde_n', 'waarde_a',
                   'moment', 'detectiegrens', 'url',
                   'datum', 'tijd')
+        # TODO: remove moment
 
 
 class OpnameDetailSerializer(OpnameSerializer):
@@ -68,6 +70,7 @@ class OpnameDetailSerializer(OpnameSerializer):
                   'moment', 'detectiegrens', 'par_code',
                   'par_oms',
                   'datum', 'tijd')
+        # TODO: remove moment
 
 
 class PaginatedOpnameSerializer(pagination.BasePaginationSerializer):
