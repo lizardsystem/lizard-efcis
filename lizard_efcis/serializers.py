@@ -49,7 +49,8 @@ class OpnameSerializer(serializers.HyperlinkedModelSerializer):
         model = models.Opname
         fields = ('wns_oms', 'activiteit', 'loc_id',
                   'loc_oms', 'waarde_n', 'waarde_a',
-                  'moment', 'detectiegrens', 'url')
+                  'moment', 'detectiegrens', 'url',
+                  'datum', 'tijd')
 
 
 class OpnameDetailSerializer(OpnameSerializer):
