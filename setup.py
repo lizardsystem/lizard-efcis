@@ -16,6 +16,7 @@ install_requires = [
     'django-nose',
     'django-hstore',
     'gunicorn',
+    'Markdown',
     'python-memcached',
     'pyproj',
     'raven',

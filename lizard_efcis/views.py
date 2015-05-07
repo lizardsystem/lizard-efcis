@@ -10,13 +10,16 @@ import logging
 from django.core.paginator import EmptyPage
 from django.core.paginator import PageNotAnInteger
 from django.core.paginator import Paginator
+from django.db.models import Max
+from django.db.models import Min
 from django.db.models import Q
+from django.utils.functional import cached_property
+from rest_framework import generics
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
-from rest_framework import generics
 
 from lizard_efcis import models
 from lizard_efcis import serializers
@@ -186,30 +189,86 @@ class FilteredOpnamesAPIView(APIView):
         return opnames
 
 
-class LocatieAPI(generics.ListAPIView):
+class LocatieAPI(FilteredOpnamesAPIView):
+    """Lists locations as geojson for the map.
 
-    model = models.Locatie
-    serializer_class = serializers.LocatieSerializer
-    paginate_by_param = 'page_size'
-    paginate_by = 50
-    max_page_size = 500
+    ``features`` lists the actual geojson locations. In the properties,
+    ``color_value`` is a value between 0 and 100 that you can use to color the
+    points. The value is ``null`` when there's no value at this location for
+    the measurement.
 
-    def get_queryset(self):
-        meetnets = self.request.query_params.get('meetnets')
-        locaties = None
-        if meetnets is None:
-            locaties = models.Locatie.objects.all()
-        else:
-            meetnet_ids = meetnets.split(',')
-            meetnetten = models.Meetnet.objects.filter(
-                Q(id__in=meetnet_ids) |
-                Q(parent__in=meetnet_ids) |
-                Q(parent__parent__in=meetnet_ids) |
-                Q(parent__parent__parent__in=meetnet_ids) |
-                Q(parent__parent__parent__parent__in=meetnet_ids)
-            )
-            locaties = models.Locatie.objects.filter(meetnet__in=meetnetten)
-        return locaties
+    ``min_value`` and ``max_value`` are the minimum and maximum values found
+    in all the available "opnames" for the "wns" that we color on.
+
+    ``color_by_fields`` is a list of fields (rather "wns" id/description
+    pairs) that we can color the locations by. Add a GET parameter
+    ``color_by=id``, taking the id from this list to enable it.
+
+    """
+
+
+    @cached_property
+    def color_by(self):
+        from_query_param = self.request.query_params.get('color_by')
+        if from_query_param:
+            return int(from_query_param)
+
+    def get(self, request, format=None):
+        numerical_opnames = self.filtered_opnames.exclude(waarde_n=None)
+        opnames = numerical_opnames.values(
+            'locatie', 'wns', 'datum', 'tijd', 'waarde_n')
+        relevant_locatie_ids = list(set(
+            [opname['locatie'] for opname in opnames]))
+        relevant_wns_ids = list(set(
+            [opname['wns'] for opname in opnames]))
+
+        latest_values = {}  # Latest value per location.
+        color_values = {}  # Latest value converted to 0-100 scale.
+        min_value = None
+        max_value = None
+        color_by_name = None
+        if self.color_by:
+            color_by_name = models.WNS.objects.get(pk=self.color_by).wns_oms
+            min_max = models.Opname.objects.filter(
+                wns=self.color_by).aggregate(
+                Min('waarde_n'), Max('waarde_n'))
+            min_value = min_max['waarde_n__min']
+            max_value = min_max['waarde_n__max']
+            difference = max_value - min_value
+            opnames_for_color_by = [opname for opname in opnames
+                                    if opname['wns'] == self.color_by]
+
+            def _key(opname):
+                return opname['locatie']
+
+            for locatie, group in groupby(opnames_for_color_by, _key):
+                opnames_per_locatie = list(group)
+                if not opnames_per_locatie:
+                    continue
+                # Group is sorted according to date/time, we can grab the
+                # latest one.
+                latest_value = opnames_per_locatie[-1]['waarde_n']
+                latest_values[locatie] = latest_value
+                color_value = round(
+                    (latest_value - min_value) / difference * 100)
+                color_values[locatie] = color_value
+
+        locaties = models.Locatie.objects.filter(id__in=relevant_locatie_ids)
+        serializer = serializers.LocatieSerializer(
+            locaties,
+            many=True,
+            context={'latest_values': latest_values,
+                     'color_values': color_values})
+        result = serializer.data
+
+        color_by_fields = models.WNS.objects.filter(
+            pk__in=relevant_wns_ids).values('id', 'wns_oms')
+        result['color_by_fields'] = color_by_fields
+
+        result['min_value'] = min_value
+        result['max_value'] = max_value
+        result['color_by_name'] = color_by_name
+        return Response(result)
 
 
 class OpnamesAPI(FilteredOpnamesAPIView):
