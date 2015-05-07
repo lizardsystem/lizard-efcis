@@ -5,7 +5,7 @@ Changelog of lizard-efcis
 0.2 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Added API for locations, including coloring of the points per value.
 
 
 0.1 (2015-03-09)
