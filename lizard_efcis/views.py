@@ -188,33 +188,7 @@ class FilteredOpnamesAPIView(APIView):
         return opnames
 
 
-class LocatieAPI(generics.ListAPIView):
-
-    model = models.Locatie
-    serializer_class = serializers.LocatieSerializer
-    paginate_by_param = 'page_size'
-    paginate_by = 50
-    max_page_size = 500
-
-    def get_queryset(self):
-        meetnets = self.request.query_params.get('meetnets')
-        locaties = None
-        if meetnets is None:
-            locaties = models.Locatie.objects.all()
-        else:
-            meetnet_ids = meetnets.split(',')
-            meetnetten = models.Meetnet.objects.filter(
-                Q(id__in=meetnet_ids) |
-                Q(parent__in=meetnet_ids) |
-                Q(parent__parent__in=meetnet_ids) |
-                Q(parent__parent__parent__in=meetnet_ids) |
-                Q(parent__parent__parent__parent__in=meetnet_ids)
-            )
-            locaties = models.Locatie.objects.filter(meetnet__in=meetnetten)
-        return locaties
-
-
-class LocatieAPI2(FilteredOpnamesAPIView):
+class LocatieAPI(FilteredOpnamesAPIView):
 
     @cached_property
     def color_by(self):
@@ -263,7 +237,7 @@ class LocatieAPI2(FilteredOpnamesAPIView):
                 color_values[locatie] = color_value
 
         locaties = models.Locatie.objects.filter(id__in=relevant_locatie_ids)
-        serializer = serializers.LocatieSerializer2(
+        serializer = serializers.LocatieSerializer(
             locaties,
             many=True,
             context={'latest_values': latest_values,
