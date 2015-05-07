@@ -235,7 +235,9 @@ class LocatieAPI2(FilteredOpnamesAPIView):
         color_values = {}  # Latest value converted to 0-100 scale.
         min_value = None
         max_value = None
+        color_by_name = None
         if self.color_by:
+            color_by_name = models.WNS.objects.get(pk=self.color_by).wns_oms
             min_max = models.Opname.objects.filter(
                 wns=self.color_by).aggregate(
                 Min('waarde_n'), Max('waarde_n'))
@@ -256,25 +258,25 @@ class LocatieAPI2(FilteredOpnamesAPIView):
                 # latest one.
                 latest_value = opnames_per_locatie[-1]['waarde_n']
                 latest_values[locatie] = latest_value
-                color_value = round((latest_value - min_value) / difference * 100)
+                color_value = round(
+                    (latest_value - min_value) / difference * 100)
                 color_values[locatie] = color_value
 
         locaties = models.Locatie.objects.filter(id__in=relevant_locatie_ids)
         serializer = serializers.LocatieSerializer2(
             locaties,
             many=True,
-            context={'min_value': min_value,
-                     'max_value': max_value})
+            context={'latest_values': latest_values,
+                     'color_values': color_values})
         result = serializer.data
 
         color_by_fields = models.WNS.objects.filter(
             pk__in=relevant_wns_ids).values('id', 'wns_oms')
         result['color_by_fields'] = color_by_fields
 
-        result['latest_values'] = latest_values
-        result['color_values'] = color_values
         result['min_value'] = min_value
         result['max_value'] = max_value
+        result['color_by_name'] = color_by_name
         return Response(result)
 
 

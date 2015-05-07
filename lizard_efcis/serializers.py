@@ -94,8 +94,16 @@ class LocatieSerializer(gis_serializers.GeoFeatureModelSerializer):
 class LocatieSerializer2(gis_serializers.GeoFeatureModelSerializer):
 
     geo_punt_1 = gis_serializers.GeometryField(source='geo_punt1')
+    color_value = serializers.SerializerMethodField()
+    latest_value = serializers.SerializerMethodField()
+
+    def get_color_value(self, obj):
+        return self.context['color_values'].get(obj.id)
+
+    def get_latest_value(self, obj):
+        return self.context['latest_values'].get(obj.id)
 
     class Meta:
         model = models.Locatie
-        fields = ('loc_id', 'loc_oms')
+        fields = ('id', 'loc_id', 'loc_oms', 'color_value', 'latest_value')
         geo_field = 'geo_punt_1'
