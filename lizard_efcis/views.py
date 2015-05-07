@@ -189,6 +189,22 @@ class FilteredOpnamesAPIView(APIView):
 
 
 class LocatieAPI(FilteredOpnamesAPIView):
+    """Lists locations as geojson for the map.
+
+    ``features`` lists the actual geojson locations. In the properties,
+    ``color_value`` is a value between 0 and 100 that you can use to color the
+    points. The value is ``null`` when there's no value at this location for
+    the measurement.
+
+    ``min_value`` and ``max_value`` are the minimum and maximum values found
+    in all the available "opnames" for the "wns" that we color on.
+
+    ``color_by_fields`` is a list of fields (rather "wns" id/description
+    pairs) that we can color the locations by. Add a GET parameter
+    ``color_by=id``, taking the id from this list to enable it.
+
+    """
+
 
     @cached_property
     def color_by(self):
