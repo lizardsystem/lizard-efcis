@@ -141,10 +141,6 @@ class MeetnetAPI(APIView):
 class FilteredOpnamesAPIView(APIView):
     """Base view for returning opnames, filted by GET parameters."""
 
-    # TODO: use
-    # http://www.django-rest-framework.org/api-guide/generic-views/#genericapiview
-    # to get some basic pagination stuff for free.
-
     @property
     def filtered_opnames(self):
         opnames = models.Opname.objects.all()
