@@ -222,7 +222,8 @@ class OpnamesAPI(FilteredOpnamesAPIView):
         activiteit_filter = self.request.query_params.get('activiteit')
         detectiegrens_filter = self.request.query_params.get('detectiegrens')
         waarde_n_filter = self.request.query_params.get('waarde_n')
-
+        sort_fields = self.request.query_params.get('sort_fields')
+        sort_dirs = self.request.query_params.get('sort_dirs')
         ITEMS_PER_PAGE = 30
 
         page = request.query_params.get('page')
@@ -254,6 +255,9 @@ class OpnamesAPI(FilteredOpnamesAPIView):
             else:
                 filtered_opnames = filtered_opnames.filter(
                     waarde_n=waarde_n_filter)
+        if sort_fields and sort_dirs:
+            filtered_opnames = self.order_opnames(
+                sort_fields, sort_dirs, filtered_opnames)
 
         if page_size not in [None, '']:
             ITEMS_PER_PAGE = page_size
@@ -264,13 +268,41 @@ class OpnamesAPI(FilteredOpnamesAPIView):
             opnames = paginator.page(1)
         except EmptyPage:
             opnames = paginator.page(paginator.num_pages)
-        
+
         serializer = serializers.PaginatedOpnameSerializer(
             opnames,
             context={'request': request})
         return Response(serializer.data)
 
-
+    def order_opnames(self, sort_fields, sort_dirs, filtered_opnames):
+        sort_field_names = sort_fields.split(',')
+        sort_directions = sort_dirs.split(',')
+        ordering = []
+        for fieldname in sort_field_names:
+            direction = sort_directions[sort_field_names.index(fieldname)]
+            
+            if direction.startswith('-'):
+                direction_sign = '-'
+            else:
+                direction_sign = ''
+            
+            if fieldname == 'wns_oms':
+                fieldname = 'wns__wns_oms'
+            elif fieldname == 'loc_id':
+                fieldname = 'locatie__loc_id'
+            elif fieldname == 'loc_oms':
+                fieldname = 'locatie__loc_oms'
+            elif fieldname == 'activiteit':
+                fieldname == 'activiteit__activiteit'
+            elif fieldname == 'detectiegrens':
+                fieldname = 'detect__teken'
+            elif fieldname == 'moment':
+                fieldname == 'datum'
+            ordering.append('%s%s' % (direction_sign, fieldname))
+        filtered_opnames = filtered_opnames.order_by(*ordering)
+        return filtered_opnames
+                
+                    
 class LinesAPI(FilteredOpnamesAPIView):
     """API to return lines for a graph."""
 
