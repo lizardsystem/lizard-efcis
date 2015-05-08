@@ -356,7 +356,7 @@ class OpnamesAPI(FilteredOpnamesAPIView):
             'wns__wns_oms',
             'activiteit__activiteit',
             'detect__teken',
-            'wns__parameter__par_code',
+            'wns__parameter__par_oms',
             )
 
         paginator = Paginator(filtered_opnames, ITEMS_PER_PAGE)
@@ -394,8 +394,8 @@ class OpnamesAPI(FilteredOpnamesAPIView):
                 fieldname == 'activiteit__activiteit'
             elif fieldname == 'detectiegrens':
                 fieldname = 'detect__teken'
-            # elif fieldname == 'moment':
-            #     fieldname == 'datum'
+            elif fieldname == 'par_oms':
+                fieldname = 'wns__parameter__par_oms'
             ordering.append('%s%s' % (direction_sign, fieldname))
         filtered_opnames = filtered_opnames.order_by(*ordering)
         return filtered_opnames
