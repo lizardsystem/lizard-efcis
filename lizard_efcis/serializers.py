@@ -28,19 +28,19 @@ class MeetnetSerializer(serializers.HyperlinkedModelSerializer):
 
 class OpnameSerializer(serializers.HyperlinkedModelSerializer):
 
-    loc_id = serializers.PrimaryKeyRelatedField(
+    loc_id = serializers.CharField(
         read_only=True,
         source='locatie.loc_id')
-    loc_oms = serializers.PrimaryKeyRelatedField(
+    loc_oms = serializers.CharField(
         read_only=True,
         source='locatie.loc_oms')
-    wns_oms = serializers.PrimaryKeyRelatedField(
+    wns_oms = serializers.CharField(
         read_only=True,
         source='wns.wns_oms')
-    activiteit = serializers.PrimaryKeyRelatedField(
+    activiteit = serializers.CharField(
         read_only=True,
         source='activiteit.activiteit')
-    detectiegrens = serializers.PrimaryKeyRelatedField(
+    detectiegrens = serializers.CharField(
         read_only=True,
         source='detect.teken')
     moment = serializers.DateTimeField(format='%d-%m-%Y')
