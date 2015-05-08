@@ -334,12 +334,20 @@ class OpnamesAPI(FilteredOpnamesAPIView):
             filtered_opnames = filtered_opnames.filter(
                 detect__teken__icontains=detectiegrens_filter)
         if waarde_n_filter:
-            waarde_range = waarde_n_filter.split('..')
-            if len(waarde_range) > 1:
+            if '..' in waarde_n_filter:
+                waarde_range = waarde_n_filter.split('..')
                 filtered_opnames = filtered_opnames.filter(
                     waarde_n__gt=waarde_range[0])
                 filtered_opnames = filtered_opnames.filter(
                     waarde_n__lt=waarde_range[1])
+            elif '<' in waarde_n_filter:
+                waarde_n_filter = waarde_n_filter.replace('<', '').strip()
+                filtered_opnames = filtered_opnames.filter(
+                    waarde_n__lt=waarde_n_filter)
+            elif '>' in waarde_n_filter:
+                waarde_n_filter = waarde_n_filter.replace('>', '').strip()
+                filtered_opnames = filtered_opnames.filter(
+                    waarde_n__gt=waarde_n_filter)
             else:
                 filtered_opnames = filtered_opnames.filter(
                     waarde_n=waarde_n_filter)
