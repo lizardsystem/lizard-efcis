@@ -10,20 +10,21 @@ long_description = '\n\n'.join([
 
 install_requires = [
     'Django',
+    'Markdown',
     'django-celery',
     'django-compressor',
     'django-extensions',
-    'django-nose',
     'django-hstore',
+    'django-nose',
+    'djangorestframework >= 3.0.4',
+    'djangorestframework-csv'
+    'djangorestframework-gis >= 0.8',
     'gunicorn',
-    'Markdown',
-    'python-memcached',
     'pyproj',
+    'python-memcached',
     'raven',
     'south',
     'werkzeug',
-    'djangorestframework >= 3.0.4',
-    'djangorestframework-gis >= 0.8',
     # Maptree and wms are included for demo purposes; almost every site needs
     # them anyway.
     ],
