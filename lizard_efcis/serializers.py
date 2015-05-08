@@ -49,7 +49,7 @@ class OpnameSerializer(serializers.HyperlinkedModelSerializer):
         source='wns.parameter.par_oms')
 
     def get_validatiestatus(self, obj):
-        return True
+        return 'ok'
 
     class Meta:
         model = models.Opname
@@ -68,6 +68,10 @@ class OpnameDetailSerializer(OpnameSerializer):
     par_oms = serializers.CharField(
         read_only=True,
         source='wns.parameter.par_oms')
+    validatiestatus = serializers.SerializerMethodField()
+
+    def get_validatiestatus(self, obj):
+        return 'ok'
 
     class Meta:
         model = models.Opname
