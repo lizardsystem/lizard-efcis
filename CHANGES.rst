@@ -7,6 +7,8 @@ Changelog of lizard-efcis
 
 - Added API for locations, including coloring of the points per value.
 
+- Added option for csv export of opnames. Add ``format=csv`` to the API call.
+
 
 0.1 (2015-03-09)
 ----------------
