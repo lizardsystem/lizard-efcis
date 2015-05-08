@@ -17,7 +17,7 @@ install_requires = [
     'django-hstore',
     'django-nose',
     'djangorestframework >= 3.0.4',
-    'djangorestframework-csv'
+    'djangorestframework-csv',
     'djangorestframework-gis >= 0.8',
     'gunicorn',
     'pyproj',
