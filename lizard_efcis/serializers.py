@@ -45,13 +45,22 @@ class OpnameSerializer(serializers.HyperlinkedModelSerializer):
         source='detect.teken')
     moment = serializers.DateTimeField(format='%d-%m-%Y')
     # TODO: remove moment
+    validatiestatus = serializers.SerializerMethodField()
+    par_oms = serializers.CharField(
+        read_only=True,
+        source='wns.parameter.par_oms')
+
+    def get_validatiestatus(self, obj):
+        return True
 
     class Meta:
         model = models.Opname
         fields = ('wns_oms', 'activiteit', 'loc_id',
                   'loc_oms', 'waarde_n', 'waarde_a',
                   'moment', 'detectiegrens', 'url',
-                  'datum', 'tijd')
+                  'datum', 'tijd',
+                  'par_oms',
+                  'validatiestatus')
         # TODO: remove moment
 
 
