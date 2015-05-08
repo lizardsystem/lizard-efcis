@@ -422,16 +422,29 @@ class WNS(models.Model):
 
 class Opname(models.Model):
 
-    datum = models.DateField()
-    tijd = models.TimeField(null=True, blank=True)
-    waarde_n = models.FloatField(null=True, blank=True)
+    datum = models.DateField(
+        db_index=True)
+    tijd = models.TimeField(
+        null=True,
+        blank=True,
+        db_index=True)
+    waarde_n = models.FloatField(
+        null=True,
+        blank=True,
+        db_index=True)
     waarde_a = models.CharField(
         max_length=255,
+        db_index=True,
         null=True,
         blank=True)
-    activiteit = models.ForeignKey(Activiteit)
-    wns = models.ForeignKey(WNS)
-    locatie = models.ForeignKey(Locatie)
+    activiteit = models.ForeignKey(
+        Activiteit)
+    wns = models.ForeignKey(
+        WNS,
+        db_index=True)
+    locatie = models.ForeignKey(
+        Locatie,
+        db_index=True)
     detect = models.ForeignKey(
         Detectiegrens,
         null=True,
@@ -444,7 +457,7 @@ class Opname(models.Model):
             'wns',
             'locatie')
         )
-        ordering = ['wns', 'locatie', 'datum', 'tijd']
+        ordering = ['wns', 'locatie_id', 'datum', 'tijd']
         verbose_name = "opname"
         verbose_name_plural = "opnames"
 

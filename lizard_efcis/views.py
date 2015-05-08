@@ -346,6 +346,15 @@ class OpnamesAPI(FilteredOpnamesAPIView):
 
         if page_size not in [None, '']:
             ITEMS_PER_PAGE = page_size
+
+        filtered_opnames = filtered_opnames.select_related(
+            'locatie__loc_id',
+            'locatie__loc_oms',
+            'wns__wns_oms',
+            'activiteit__activiteit',
+            'detect__teken',
+            )
+
         paginator = Paginator(filtered_opnames, ITEMS_PER_PAGE)
         try:
             opnames = paginator.page(page)
@@ -365,12 +374,12 @@ class OpnamesAPI(FilteredOpnamesAPIView):
         ordering = []
         for fieldname in sort_field_names:
             direction = sort_directions[sort_field_names.index(fieldname)]
-            
+
             if direction.startswith('-'):
                 direction_sign = '-'
             else:
                 direction_sign = ''
-            
+
             if fieldname == 'wns_oms':
                 fieldname = 'wns__wns_oms'
             elif fieldname == 'loc_id':
@@ -386,8 +395,8 @@ class OpnamesAPI(FilteredOpnamesAPIView):
             ordering.append('%s%s' % (direction_sign, fieldname))
         filtered_opnames = filtered_opnames.order_by(*ordering)
         return filtered_opnames
-                
-                    
+
+
 class LinesAPI(FilteredOpnamesAPIView):
     """API to return lines for a graph."""
 
