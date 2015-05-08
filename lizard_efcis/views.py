@@ -19,7 +19,9 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
+from rest_framework.settings import api_settings
 from rest_framework.views import APIView
+from rest_framework_csv.renderers import CSVRenderer
 
 from lizard_efcis import models
 from lizard_efcis import serializers
@@ -301,6 +303,7 @@ class MapAPI(FilteredOpnamesAPIView):
 
 
 class OpnamesAPI(FilteredOpnamesAPIView):
+    renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES + [CSVRenderer]
 
     def get(self, request, format=None):
         # TODO: refactor pagination stuff with djangorestframework 3.1
@@ -366,6 +369,13 @@ class OpnamesAPI(FilteredOpnamesAPIView):
             'detect__teken',
             'wns__parameter__par_oms',
             )
+
+        if request.query_params.get('format') == 'csv':
+            serializer = serializers.OpnameSerializer(
+                filtered_opnames,
+                many=True,
+                context={'request': request})
+            return Response(serializer.data)
 
         paginator = Paginator(filtered_opnames, ITEMS_PER_PAGE)
         try:
