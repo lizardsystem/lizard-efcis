@@ -279,7 +279,7 @@ class MapAPI(FilteredOpnamesAPIView):
                     color_value = round(
                         (latest_value - min_value) / difference * 100)
                 else:
-                    color_value = 100
+                    color_value = 100.0
                 color_values[locatie] = color_value
 
         locaties = models.Locatie.objects.filter(id__in=relevant_locatie_ids)
