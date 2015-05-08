@@ -356,6 +356,7 @@ class OpnamesAPI(FilteredOpnamesAPIView):
             'wns__wns_oms',
             'activiteit__activiteit',
             'detect__teken',
+            'wns__parameter__par_code',
             )
 
         paginator = Paginator(filtered_opnames, ITEMS_PER_PAGE)
