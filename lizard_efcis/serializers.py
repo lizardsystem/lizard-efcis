@@ -65,10 +65,10 @@ class OpnameSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class OpnameDetailSerializer(OpnameSerializer):
-    par_code = serializers.PrimaryKeyRelatedField(
+    par_code = serializers.CharField(
         read_only=True,
         source='wns.parameter.par_code')
-    par_oms = serializers.PrimaryKeyRelatedField(
+    par_oms = serializers.CharField(
         read_only=True,
         source='wns.parameter.par_oms')
 
