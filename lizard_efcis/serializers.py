@@ -75,6 +75,7 @@ class OpnameDetailSerializer(OpnameSerializer):
                   'loc_oms', 'waarde_n', 'waarde_a',
                   'detectiegrens', 'par_code',
                   'par_oms',
+                  'validatiestatus',
                   'datum', 'tijd')
 
 
