@@ -393,8 +393,8 @@ class OpnamesAPI(FilteredOpnamesAPIView):
                 fieldname == 'activiteit__activiteit'
             elif fieldname == 'detectiegrens':
                 fieldname = 'detect__teken'
-            elif fieldname == 'moment':
-                fieldname == 'datum'
+            # elif fieldname == 'moment':
+            #     fieldname == 'datum'
             ordering.append('%s%s' % (direction_sign, fieldname))
         filtered_opnames = filtered_opnames.order_by(*ordering)
         return filtered_opnames

@@ -461,23 +461,6 @@ class Opname(models.Model):
         verbose_name = "opname"
         verbose_name_plural = "opnames"
 
-    @property
-    def moment(self):
-        if self.tijd:
-            return datetime.datetime(
-                self.datum.year,
-                self.datum.month,
-                self.datum.day,
-                self.tijd.hour,
-                self.tijd.minute,
-                self.tijd.second)
-        else:
-            return datetime.datetime(
-                self.datum.year,
-                self.datum.month,
-                self.datum.day)
-    # TODO: remove moment
-
 
 class ImportMapping(models.Model):
 
