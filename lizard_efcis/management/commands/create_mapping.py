@@ -358,19 +358,37 @@ class Command(BaseCommand):
             },
             {
                 'db_field': 'meetnet',
-                'file_field': 'FC_LOCATIES',
+                'file_field': 'BASIS_FC',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
             },
             {
                 'db_field': 'meetnet',
-                'file_field': 'BIO_LOCATIES',
+                'file_field': 'PROJECT_FC',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'ONBEKEND_FC',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
             },
             {
                 'db_field': 'meetnet',
                 'file_field': 'KRW_FC',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'BASIS_BIO',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'PROJECT_BIO',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
             },
@@ -406,6 +424,12 @@ class Command(BaseCommand):
             },
             {
                 'db_field': 'meetnet',
+                'file_field': 'ZWEM',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
                 'file_field': 'MNLSO',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
@@ -418,49 +442,85 @@ class Command(BaseCommand):
             },
             {
                 'db_field': 'meetnet',
-                'file_field': 'ZWEMWATER',
-                'db_datatype': 'Meetnet',
-                'foreignkey_field': 'id'
-            },
-            {
-                'db_field': 'meetnet',
                 'file_field': 'CMNO',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
             },
             {
                 'db_field': 'meetnet',
-                'file_field': 'CSD',
+                'file_field': 'FC_CSD',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
             },
             {
                 'db_field': 'meetnet',
-                'file_field': 'KRR_HONS',
+                'file_field': 'FC_KRR_HONS',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
             },
             {
                 'db_field': 'meetnet',
-                'file_field': 'LOP',
+                'file_field': 'FC_LOP',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
             },
             {
                 'db_field': 'meetnet',
-                'file_field': 'OR',
+                'file_field': 'FC_OR',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
             },
             {
                 'db_field': 'meetnet',
-                'file_field': 'GROM',
+                'file_field': 'FC_GROM',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
             },
             {
                 'db_field': 'meetnet',
-                'file_field': 'LBW',
+                'file_field': 'FC_LBW',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'BIO_CSD',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'BIO_KRR_HONS',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'BIO_LOP',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'BIO_OR',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'BIO_GROM',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'BIO_LBW',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'BIO_ONB',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
             }
