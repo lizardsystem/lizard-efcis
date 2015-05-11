@@ -441,7 +441,7 @@ class LinesAPI(FilteredOpnamesAPIView):
         # :500 is a temporary limit.
 
         def _key(point):
-            return (point['wns__wns_code'], point['locatie__loc_id'])
+            return '%s_%s' % (point['wns__wns_code'], point['locatie__loc_id'])
 
         lines = []
         for key, group in groupby(points, _key):
@@ -452,7 +452,8 @@ class LinesAPI(FilteredOpnamesAPIView):
             line = {'wns': first['wns__wns_oms'],
                     'location': first['locatie__loc_oms'],
                     'unit': first['wns__parameter__par_code'],
-                    'data': data}
+                    'data': data,
+                    'id': key}
             lines.append(line)
 
         return Response(lines)
