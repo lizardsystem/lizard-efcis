@@ -163,7 +163,7 @@ class FilteredOpnamesAPIView(APIView):
             if end_datetime:
                 opnames = opnames.filter(datum__lt=end_datetime)
         if locations:
-            opnames = opnames.filter(locatie__loc_id__in=locations.split(','))
+            opnames = opnames.filter(locatie__in=locations.split(','))
         if parametergroeps:
             parameter_group_ids = parametergroeps.split(',')
             parametergroepen = models.ParameterGroep.objects.filter(
