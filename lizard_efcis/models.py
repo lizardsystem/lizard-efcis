@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 from __future__ import unicode_literals
-import datetime
 
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point
