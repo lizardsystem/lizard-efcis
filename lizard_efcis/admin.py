@@ -4,6 +4,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from django.contrib import admin
+from django.db.models import Count
 
 from lizard_efcis import models
 
@@ -17,10 +18,21 @@ class ImportMappingAdmin(admin.ModelAdmin):
 
 
 class LocatieAdmin(admin.ModelAdmin):
+
+    def get_queryset(self, request):
+        qs = super(LocatieAdmin, self).get_queryset(request)
+        return qs.annotate(aantal_opnames=Count('opnames'))
+
+    def aantal_opnames(self, inst):
+        return inst.aantal_opnames
+
+    aantal_opnames.admin_order_field = 'aantal_opnames'
+
     list_display = ['loc_id',
                     'loc_oms',
                     'waterlichaam',
-                    'watertype']
+                    'watertype',
+                    'aantal_opnames']
     search_fields = ['loc_id',
                      'loc_oms']
     list_filter = ['waterlichaam',
