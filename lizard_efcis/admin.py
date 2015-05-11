@@ -67,8 +67,7 @@ class WNSAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         qs = super(WNSAdmin, self).get_queryset(request)
         return qs.annotate(
-            aantal_opnames=Count('opnames')).select_related(
-                'parameter__code', 'eenheid__eenheid')
+            aantal_opnames=Count('opnames'))
 
     def aantal_opnames(self, inst):
         return inst.aantal_opnames
@@ -85,6 +84,7 @@ class WNSAdmin(admin.ModelAdmin):
                      'parameter__par_code',
                      'parameter__par_oms',
                  ]
+    list_select_related = ['parameter__code', 'eenheid__eenheid']
 
 
 @admin.register(models.ParameterGroep)
