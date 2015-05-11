@@ -162,17 +162,29 @@ class FilteredOpnamesAPIView(APIView):
             end_datetime = str_to_datetime(end_date)
             if end_datetime:
                 opnames = opnames.filter(datum__lt=end_datetime)
-        if locations:
-            opnames = opnames.filter(locatie__in=locations.split(','))
+
+        # Locations: parameter and parametergroep should be additive, not
+        # restrictive.
+        parameter_filter = Q()
+        if parameter_ids:
+            parameter_filter = parameter_filter | Q(
+                wns__parameter__id__in=parameter_ids.split(','))
         if parametergroeps:
             parameter_group_ids = parametergroeps.split(',')
             parametergroepen = models.ParameterGroep.objects.filter(
                 Q(id__in=parameter_group_ids) |
                 Q(parent__in=parameter_group_ids) |
                 Q(parent__parent__in=parameter_group_ids))
-
-            opnames = opnames.filter(
+            parameter_filter = parameter_filter | Q(
                 wns__parameter__parametergroep__in=parametergroepen)
+        opnames = opnames.filter(parameter_filter)
+
+        # Locations: meetnet and individual selections should be additive, not
+        # restrictive.
+        location_filter = Q()
+        if locations:
+            location_filter = location_filter | Q(
+                locatie__in=locations.split(','))
         if meetnets:
             meetnet_ids = meetnets.split(',')
             meetnetten = models.Meetnet.objects.filter(
@@ -183,11 +195,9 @@ class FilteredOpnamesAPIView(APIView):
                 Q(parent__parent__parent__parent__in=meetnet_ids)
             )
 
-            opnames = opnames.filter(
+            location_filter = location_filter | Q(
                 locatie__meetnet__in=meetnetten)
-        if parameter_ids:
-            opnames = opnames.filter(
-                wns__parameter__id__in=parameter_ids.split(','))
+        opnames = opnames.filter(location_filter)
         return opnames
 
 
