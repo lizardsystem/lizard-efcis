@@ -4,6 +4,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from django.contrib import admin
+from django.db.models import Count
 
 from lizard_efcis import models
 
@@ -16,11 +17,23 @@ class ImportMappingAdmin(admin.ModelAdmin):
     inlines = [MappingFieldInlineAdmin]
 
 
+@admin.register(models.Locatie)
 class LocatieAdmin(admin.ModelAdmin):
+
+    def get_queryset(self, request):
+        qs = super(LocatieAdmin, self).get_queryset(request)
+        return qs.annotate(aantal_opnames=Count('opnames'))
+
+    def aantal_opnames(self, inst):
+        return inst.aantal_opnames
+
+    aantal_opnames.admin_order_field = 'aantal_opnames'
+
     list_display = ['loc_id',
                     'loc_oms',
                     'waterlichaam',
-                    'watertype']
+                    'watertype',
+                    'aantal_opnames']
     search_fields = ['loc_id',
                      'loc_oms']
     list_filter = ['waterlichaam',
@@ -29,11 +42,13 @@ class LocatieAdmin(admin.ModelAdmin):
                    'status_bio']
 
 
+@admin.register(models.Meetnet)
 class MeetnetAdmin(admin.ModelAdmin):
     list_display = ['code',
                     'parent']
 
 
+@admin.register(models.Opname)
 class OpnameAdmin(admin.ModelAdmin):
     list_display = ['wns',
                     'locatie',
@@ -41,16 +56,44 @@ class OpnameAdmin(admin.ModelAdmin):
                     'waarde_a',
                     'datum',
                     'tijd']
-    search_fields = ['wns',
-                     'locatie']
+    search_fields = ['wns__wns_oms',
+                     'locatie__loc_oms']
     list_filter = ['datum']
 
 
+@admin.register(models.WNS)
+class WNSAdmin(admin.ModelAdmin):
+
+    def get_queryset(self, request):
+        qs = super(WNSAdmin, self).get_queryset(request)
+        return qs.annotate(
+            aantal_opnames=Count('opnames'))
+
+    def aantal_opnames(self, inst):
+        return inst.aantal_opnames
+
+    aantal_opnames.admin_order_field = 'aantal_opnames'
+
+    list_display = ['wns_code',
+                    'wns_oms',
+                    'parameter',
+                    'eenheid',
+                    'aantal_opnames']
+    search_fields = ['wns_code',
+                     'wns_oms',
+                     'parameter__par_code',
+                     'parameter__par_oms',
+                 ]
+    list_select_related = ['parameter__code', 'eenheid__eenheid']
+
+
+@admin.register(models.ParameterGroep)
 class ParameterGroepAdmin(admin.ModelAdmin):
     list_display = ['code',
                     'parent']
 
 
+@admin.register(models.StatusKRW)
 class StatusKRWAdmin(admin.ModelAdmin):
     list_display = ['code',
                     'omschrijving',
@@ -59,6 +102,7 @@ class StatusKRWAdmin(admin.ModelAdmin):
                     'datum_eind']
 
 
+@admin.register(models.Waterlichaam)
 class WaterlichaamAdmin(admin.ModelAdmin):
     list_display = ['wl_code',
                     'wl_naam',
@@ -71,6 +115,7 @@ class WaterlichaamAdmin(admin.ModelAdmin):
                      'wl_naam']
 
 
+@admin.register(models.Watertype)
 class WatertypeAdmin(admin.ModelAdmin):
     list_display = ['code',
                     'omschrijving',
@@ -84,6 +129,7 @@ class WatertypeAdmin(admin.ModelAdmin):
                      'omschrijving']
 
 
+@admin.register(models.Activiteit)
 class ActiviteitAdmin(admin.ModelAdmin):
     list_display = ['activiteit',
                     'act_oms',
@@ -98,14 +144,3 @@ class ActiviteitAdmin(admin.ModelAdmin):
                    'uitvoerende']
     search_fields = ['activiteit',
                      'act_oms']
-
-
-admin.site.register(models.ImportMapping, ImportMappingAdmin)
-admin.site.register(models.Locatie, LocatieAdmin)
-admin.site.register(models.Meetnet, MeetnetAdmin)
-admin.site.register(models.Opname, OpnameAdmin)
-admin.site.register(models.ParameterGroep, ParameterGroepAdmin)
-admin.site.register(models.StatusKRW, StatusKRWAdmin)
-admin.site.register(models.Waterlichaam, WaterlichaamAdmin)
-admin.site.register(models.Watertype, WatertypeAdmin)
-admin.site.register(models.Activiteit, ActiviteitAdmin)

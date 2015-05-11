@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 from __future__ import unicode_literals
-import datetime
 
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point
@@ -438,12 +437,15 @@ class Opname(models.Model):
         null=True,
         blank=True)
     activiteit = models.ForeignKey(
-        Activiteit)
+        Activiteit,
+        related_name='opnames')
     wns = models.ForeignKey(
         WNS,
+        related_name='opnames',
         db_index=True)
     locatie = models.ForeignKey(
         Locatie,
+        related_name='opnames',
         db_index=True)
     detect = models.ForeignKey(
         Detectiegrens,

@@ -11,8 +11,6 @@ from rest_framework import routers
 
 from lizard_efcis import views
 
-admin.autodiscover()
-
 router = routers.DefaultRouter()
 
 urlpatterns = patterns(
