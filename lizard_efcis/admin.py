@@ -58,6 +58,31 @@ class OpnameAdmin(admin.ModelAdmin):
     list_filter = ['datum']
 
 
+class WNSAdmin(admin.ModelAdmin):
+
+    def get_queryset(self, request):
+        qs = super(WNSAdmin, self).get_queryset(request)
+        return qs.annotate(
+            aantal_opnames=Count('opnames')).select_related(
+                'parameter__code', 'eenheid__eenheid')
+
+    def aantal_opnames(self, inst):
+        return inst.aantal_opnames
+
+    aantal_opnames.admin_order_field = 'aantal_opnames'
+
+    list_display = ['wns_code',
+                    'wns_oms',
+                    'parameter',
+                    'eenheid',
+                    'aantal_opnames']
+    search_fields = ['wns_code',
+                     'wns_oms',
+                     'parameter__par_code',
+                     'parameter__par_oms',
+                 ]
+
+
 class ParameterGroepAdmin(admin.ModelAdmin):
     list_display = ['code',
                     'parent']
@@ -121,3 +146,4 @@ admin.site.register(models.StatusKRW, StatusKRWAdmin)
 admin.site.register(models.Waterlichaam, WaterlichaamAdmin)
 admin.site.register(models.Watertype, WatertypeAdmin)
 admin.site.register(models.Activiteit, ActiviteitAdmin)
+admin.site.register(models.WNS, WNSAdmin)
