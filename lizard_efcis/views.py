@@ -213,7 +213,8 @@ class LocatieAPI(generics.ListAPIView):
                 Q(parent__parent__parent__in=meetnet_ids) |
                 Q(parent__parent__parent__parent__in=meetnet_ids)
             )
-            locaties = models.Locatie.objects.filter(meetnet__in=meetnetten)
+            locaties = models.Locatie.objects.filter(
+                meetnet__in=meetnetten).distinct()
         return locaties
 
 
