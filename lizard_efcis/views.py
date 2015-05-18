@@ -437,8 +437,7 @@ class LinesAPI(FilteredOpnamesAPIView):
         points = numerical_opnames.values(
             'wns__wns_code', 'wns__wns_oms', 'wns__parameter__par_code',
             'locatie__loc_id', 'locatie__loc_oms',
-            'datum', 'tijd', 'waarde_n')[:500]
-        # :500 is a temporary limit.
+            'datum', 'tijd', 'waarde_n')
 
         def _key(point):
             return '%s_%s' % (point['wns__wns_code'], point['locatie__loc_id'])
