@@ -162,17 +162,29 @@ class FilteredOpnamesAPIView(APIView):
             end_datetime = str_to_datetime(end_date)
             if end_datetime:
                 opnames = opnames.filter(datum__lt=end_datetime)
-        if locations:
-            opnames = opnames.filter(locatie__in=locations.split(','))
+
+        # Locations: parameter and parametergroep should be additive, not
+        # restrictive.
+        parameter_filter = Q()
+        if parameter_ids:
+            parameter_filter = parameter_filter | Q(
+                wns__parameter__id__in=parameter_ids.split(','))
         if parametergroeps:
             parameter_group_ids = parametergroeps.split(',')
             parametergroepen = models.ParameterGroep.objects.filter(
                 Q(id__in=parameter_group_ids) |
                 Q(parent__in=parameter_group_ids) |
                 Q(parent__parent__in=parameter_group_ids))
-
-            opnames = opnames.filter(
+            parameter_filter = parameter_filter | Q(
                 wns__parameter__parametergroep__in=parametergroepen)
+        opnames = opnames.filter(parameter_filter)
+
+        # Locations: meetnet and individual selections should be additive, not
+        # restrictive.
+        location_filter = Q()
+        if locations:
+            location_filter = location_filter | Q(
+                locatie__in=locations.split(','))
         if meetnets:
             meetnet_ids = meetnets.split(',')
             meetnetten = models.Meetnet.objects.filter(
@@ -183,11 +195,9 @@ class FilteredOpnamesAPIView(APIView):
                 Q(parent__parent__parent__parent__in=meetnet_ids)
             )
 
-            opnames = opnames.filter(
+            location_filter = location_filter | Q(
                 locatie__meetnet__in=meetnetten)
-        if parameter_ids:
-            opnames = opnames.filter(
-                wns__parameter__id__in=parameter_ids.split(','))
+        opnames = opnames.filter(location_filter)
         return opnames
 
 
@@ -428,22 +438,22 @@ class LinesAPI(FilteredOpnamesAPIView):
         points = numerical_opnames.values(
             'wns__wns_code', 'wns__wns_oms', 'wns__parameter__par_code',
             'locatie__loc_id', 'locatie__loc_oms',
-            'datum', 'tijd', 'waarde_n')[:500]
-        # :500 is a temporary limit.
+            'datum', 'tijd', 'waarde_n')
 
         def _key(point):
-            return (point['wns__wns_code'], point['locatie__loc_id'])
+            return '%s_%s' % (point['wns__wns_code'], point['locatie__loc_id'])
 
         lines = []
         for key, group in groupby(points, _key):
             points = list(group)
             first = points[0]
-            data = [{'datetime': '%s %s' % (point['datum'], point['tijd']),
+            data = [{'datetime': '%sT%s.000Z' % (point['datum'], point['tijd']),
                      'value': point['waarde_n']} for point in points]
             line = {'wns': first['wns__wns_oms'],
                     'location': first['locatie__loc_oms'],
                     'unit': first['wns__parameter__par_code'],
-                    'data': data}
+                    'data': data,
+                    'id': key}
             lines.append(line)
 
         return Response(lines)
