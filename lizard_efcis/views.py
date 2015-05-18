@@ -446,7 +446,7 @@ class LinesAPI(FilteredOpnamesAPIView):
         for key, group in groupby(points, _key):
             points = list(group)
             first = points[0]
-            data = [{'datetime': '%s %s' % (point['datum'], point['tijd']),
+            data = [{'datetime': '%sT%s.000Z' % (point['datum'], point['tijd']),
                      'value': point['waarde_n']} for point in points]
             line = {'wns': first['wns__wns_oms'],
                     'location': first['locatie__loc_oms'],
