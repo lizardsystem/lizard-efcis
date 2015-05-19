@@ -20,20 +20,11 @@ class ImportMappingAdmin(admin.ModelAdmin):
 @admin.register(models.Locatie)
 class LocatieAdmin(admin.ModelAdmin):
 
-    def get_queryset(self, request):
-        qs = super(LocatieAdmin, self).get_queryset(request)
-        return qs.annotate(aantal_opnames=Count('opnames'))
-
-    def aantal_opnames(self, inst):
-        return inst.aantal_opnames
-
-    aantal_opnames.admin_order_field = 'aantal_opnames'
-
     list_display = ['loc_id',
                     'loc_oms',
                     'waterlichaam',
                     'watertype',
-                    'aantal_opnames']
+    ]
     search_fields = ['loc_id',
                      'loc_oms']
     list_filter = ['waterlichaam',
@@ -64,21 +55,10 @@ class OpnameAdmin(admin.ModelAdmin):
 @admin.register(models.WNS)
 class WNSAdmin(admin.ModelAdmin):
 
-    def get_queryset(self, request):
-        qs = super(WNSAdmin, self).get_queryset(request)
-        return qs.annotate(
-            aantal_opnames=Count('opnames'))
-
-    def aantal_opnames(self, inst):
-        return inst.aantal_opnames
-
-    aantal_opnames.admin_order_field = 'aantal_opnames'
-
     list_display = ['wns_code',
                     'wns_oms',
                     'parameter',
-                    'eenheid',
-                    'aantal_opnames']
+                    'eenheid']
     search_fields = ['wns_code',
                      'wns_oms',
                      'parameter__par_code',
