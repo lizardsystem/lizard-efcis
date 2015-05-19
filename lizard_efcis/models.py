@@ -23,7 +23,7 @@ class Status(models.Model):
     naam = models.CharField(unique=True, max_length=50)
 
     def __unicode__(self):
-        return '{}'.format(self.naam)
+        return self.naam
 
 
 class Meetnet(models.Model):
@@ -72,7 +72,7 @@ class StatusKRW(models.Model):
         verbose_name_plural = "KRW statussen"
 
     def __unicode__(self):
-        return '{}'.format(self.code)
+        return self.code
 
 
 class Watertype(models.Model):
@@ -249,7 +249,7 @@ class Parameter(models.Model):
     parametergroep = models.ForeignKey(ParameterGroep, null=True)
 
     def __unicode__(self):
-        return unicode(self.par_code)
+        return self.par_code
 
     class Meta:
         ordering = ['par_code']
@@ -274,7 +274,7 @@ class Eenheid(models.Model):
     status = models.ForeignKey(Status, null=True, blank=True)
 
     def __unicode__(self):
-        return '{}'.format(self.eenheid)
+        return self.eenheid
 
     class Meta:
         ordering = ['eenheid']
@@ -294,7 +294,7 @@ class Hoedanigheid(models.Model):
     status = models.ForeignKey(Status, null=True, blank=True)
 
     def __unicode__(self):
-        return '{}'.format(self.hoedanigheid)
+        return self.hoedanigheid
 
     class Meta:
         ordering = ['hoedanigheid']
@@ -314,7 +314,7 @@ class Compartiment(models.Model):
     status = models.ForeignKey(Status, null=True, blank=True)
 
     def __unicode__(self):
-        return '{}'.format(self.compartiment)
+        return self.compartiment
 
     class Meta:
         ordering = ['compartiment']
@@ -328,7 +328,7 @@ class Detectiegrens(models.Model):
     omschrijving = models.TextField(null=True, blank=True)
 
     def __unicode__(self):
-        return '{}'.format(self.teken)
+        return self.teken
 
     class Meta:
         verbose_name = "detectiegrens"
@@ -383,7 +383,7 @@ class Activiteit(models.Model):
         blank=True)
 
     def __unicode__(self):
-        return '{}'.format(self.activiteit)
+        return self.activiteit
 
     class Meta:
         ordering = ['activiteit']
