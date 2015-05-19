@@ -17,23 +17,61 @@ class ImportMappingAdmin(admin.ModelAdmin):
     inlines = [MappingFieldInlineAdmin]
 
 
+@admin.register(models.Status)
+class StatusAdmin(admin.ModelAdmin):
+    list_display = ['naam']
+
+
+@admin.register(models.Eenheid)
+class EenheidAdmin(admin.ModelAdmin):
+    list_display = ['eenheid',
+                    'eenheid_oms',
+                    'dimensie',
+                    'eenheidgroep',
+                    'datum_status',
+                    'status',
+                ]
+    list_filter = ['eenheidgroep',
+                   'dimensie',
+                   'status']
+
+
+@admin.register(models.Hoedanigheid)
+class HoedanigheidAdmin(admin.ModelAdmin):
+    list_display = ['hoedanigheid',
+                    'hoed_oms',
+                    'hoedanigheidgroep',
+                    'datum_status',
+                    'status']
+    list_filter = ['hoedanigheidgroep',
+                   'status']
+
+
+@admin.register(models.Compartiment)
+class CompartimentAdmin(admin.ModelAdmin):
+    list_display = ['compartiment',
+                    'comp_oms',
+                    'compartimentgroep',
+                    'datum_status',
+                    'status']
+    list_filter = ['compartimentgroep',
+                   'status']
+
+
+@admin.register(models.Detectiegrens)
+class DetectiegrensAdmin(admin.ModelAdmin):
+    list_display = ['teken',
+                    'omschrijving']
+
+
 @admin.register(models.Locatie)
 class LocatieAdmin(admin.ModelAdmin):
-
-    def get_queryset(self, request):
-        qs = super(LocatieAdmin, self).get_queryset(request)
-        return qs.annotate(aantal_opnames=Count('opnames'))
-
-    def aantal_opnames(self, inst):
-        return inst.aantal_opnames
-
-    aantal_opnames.admin_order_field = 'aantal_opnames'
 
     list_display = ['loc_id',
                     'loc_oms',
                     'waterlichaam',
                     'watertype',
-                    'aantal_opnames']
+    ]
     search_fields = ['loc_id',
                      'loc_oms']
     list_filter = ['waterlichaam',
@@ -64,21 +102,10 @@ class OpnameAdmin(admin.ModelAdmin):
 @admin.register(models.WNS)
 class WNSAdmin(admin.ModelAdmin):
 
-    def get_queryset(self, request):
-        qs = super(WNSAdmin, self).get_queryset(request)
-        return qs.annotate(
-            aantal_opnames=Count('opnames'))
-
-    def aantal_opnames(self, inst):
-        return inst.aantal_opnames
-
-    aantal_opnames.admin_order_field = 'aantal_opnames'
-
     list_display = ['wns_code',
                     'wns_oms',
                     'parameter',
-                    'eenheid',
-                    'aantal_opnames']
+                    'eenheid']
     search_fields = ['wns_code',
                      'wns_oms',
                      'parameter__par_code',
@@ -91,6 +118,18 @@ class WNSAdmin(admin.ModelAdmin):
 class ParameterGroepAdmin(admin.ModelAdmin):
     list_display = ['code',
                     'parent']
+
+
+@admin.register(models.Parameter)
+class Parameter(admin.ModelAdmin):
+    list_display = ['par_code',
+                    'par_oms',
+                    'casnummer',
+                    'datum_status',
+                    'status',
+                    'parametergroep']
+    list_filter = ['parametergroep',
+                   'status']
 
 
 @admin.register(models.StatusKRW)

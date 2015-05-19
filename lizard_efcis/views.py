@@ -437,6 +437,7 @@ class LinesAPI(FilteredOpnamesAPIView):
         numerical_opnames = self.filtered_opnames.exclude(waarde_n=None)
         points = numerical_opnames.values(
             'wns__wns_code', 'wns__wns_oms', 'wns__parameter__par_code',
+            'wns__eenheid__eenheid',
             'locatie__loc_id', 'locatie__loc_oms',
             'datum', 'tijd', 'waarde_n')
 
@@ -451,7 +452,7 @@ class LinesAPI(FilteredOpnamesAPIView):
                      'value': point['waarde_n']} for point in points]
             line = {'wns': first['wns__wns_oms'],
                     'location': first['locatie__loc_oms'],
-                    'unit': first['wns__parameter__par_code'],
+                    'unit': first['wns__eenheid__eenheid'],
                     'data': data,
                     'id': key}
             lines.append(line)
