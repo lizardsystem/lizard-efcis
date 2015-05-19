@@ -459,7 +459,7 @@ class Opname(models.Model):
             'wns',
             'locatie')
         )
-        ordering = ['wns', 'locatie_id', 'datum', 'tijd']
+        ordering = ['wns_id', 'locatie_id', 'datum', 'tijd']
         verbose_name = "opname"
         verbose_name_plural = "opnames"
 
