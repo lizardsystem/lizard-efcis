@@ -122,7 +122,7 @@ class Waterlichaam(models.Model):
         verbose_name_plural = "waterlichamen"
 
     def __unicode__(self):
-        return '{}'.format(self.wl_code)
+        return self.wl_code
 
 
 class Locatie(models.Model):
