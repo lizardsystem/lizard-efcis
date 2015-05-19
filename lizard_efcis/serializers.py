@@ -43,6 +43,15 @@ class OpnameSerializer(serializers.HyperlinkedModelSerializer):
     detectiegrens = serializers.CharField(
         read_only=True,
         source='detect.teken')
+    eenheid_oms = serializers.CharField(
+        read_only=True,
+        source='wns.eenheid.eenheid_oms')
+    comp_oms = serializers.CharField(
+        read_only=True,
+        source='wns.compartiment.comp_oms')
+    hoed_oms = serializers.CharField(
+        read_only=True,
+        source='wns.hoedanigheid.hoed_oms')
     validatiestatus = serializers.SerializerMethodField()
     par_oms = serializers.CharField(
         read_only=True,
@@ -58,7 +67,8 @@ class OpnameSerializer(serializers.HyperlinkedModelSerializer):
                   'detectiegrens', 'url',
                   'datum', 'tijd',
                   'par_oms',
-                  'validatiestatus')
+                  'validatiestatus',
+                  'eenheid_oms', 'hoed_oms', 'comp_oms')
 
 
 class OpnameDetailSerializer(OpnameSerializer):
@@ -69,10 +79,73 @@ class OpnameDetailSerializer(OpnameSerializer):
         read_only=True,
         source='wns.parameter.par_oms')
     validatiestatus = serializers.SerializerMethodField()
+    x1 = serializers.CharField(
+        read_only=True,
+        source='locatie.x1')
+    y1 = serializers.CharField(
+        read_only=True,
+        source='locatie.y1')
+    x2 = serializers.CharField(
+        read_only=True,
+        source='locatie.x2')
+    y2 = serializers.CharField(
+        read_only=True,
+        source='locatie.y2')
+    waterlichaam = serializers.CharField(
+        read_only=True,
+        source='locatie.waterlichaam.wl_naam')
+    watertype = serializers.CharField(
+        read_only=True,
+        source='locatie.watertype.code')
+    status_krw = serializers.CharField(
+        read_only=True,
+        source='locatie.status_krw.code')
+    meetnet = serializers.SerializerMethodField()
+    activiteit_type = serializers.CharField(
+        read_only=True,
+        source='activiteit.act_type')
+    uitvoerende = serializers.CharField(
+        read_only=True,
+        source='activiteit.uitvoerende')
+    act_oms = serializers.CharField(
+        read_only=True,
+        source='activiteit.act_oms')
+    met_mafa = serializers.CharField(
+        read_only=True,
+        source='activiteit.met_mafa')
+    met_mafy = serializers.CharField(
+        read_only=True,
+        source='activiteit.met_mafy')
+    met_fyt = serializers.CharField(
+        read_only=True,
+        source='activiteit.met_fyt')
+    met_vis = serializers.CharField(
+        read_only=True,
+        source='activiteit.met_vis')
+    met_fc = serializers.CharField(
+        read_only=True,
+        source='activiteit.met_fc')
+    met_toets = serializers.CharField(
+        read_only=True,
+        source='activiteit.met_toets')
+    eenheid = serializers.CharField(
+        read_only=True,
+        source='wns.eenheid.eenheid')
+    hoedanigheid = serializers.CharField(
+        read_only=True,
+        source='wns.hoedanigheid.hoedanigheid')
+    compartiment = serializers.CharField(
+        read_only=True,
+        source='wns.compartiment.compartiment')
 
     def get_validatiestatus(self, obj):
         return 'ok'
 
+    def get_meetnet(self, obj):
+        meetnetten = obj.locatie.meetnet.all().values_list(
+            'code', flat=True)
+        return ', '.join(meetnetten)
+        
     class Meta:
         model = models.Opname
         fields = ('wns_oms', 'activiteit', 'loc_id',
@@ -80,7 +153,13 @@ class OpnameDetailSerializer(OpnameSerializer):
                   'detectiegrens', 'par_code',
                   'par_oms',
                   'validatiestatus',
-                  'datum', 'tijd')
+                  'datum', 'tijd', 'meetnet','x1', 'y1', 'x2', 'y2',
+                  'waterlichaam', 'watertype', 'status_krw',
+                  'activiteit_type', 'uitvoerende',
+                  'act_oms', 'met_mafa', 'met_mafy', 'met_fyt',
+                  'met_vis', 'met_fc', 'met_toets', 'eenheid',
+                  'eenheid_oms', 'hoedanigheid', 'hoed_oms',
+                  'compartiment', 'comp_oms')
 
 
 class PaginatedOpnameSerializer(pagination.BasePaginationSerializer):
