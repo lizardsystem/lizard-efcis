@@ -17,6 +17,53 @@ class ImportMappingAdmin(admin.ModelAdmin):
     inlines = [MappingFieldInlineAdmin]
 
 
+@admin.register(models.Status)
+class StatusAdmin(admin.ModelAdmin):
+    list_display = ['naam']
+
+
+@admin.register(models.Eenheid)
+class EenheidAdmin(admin.ModelAdmin):
+    list_display = ['eenheid',
+                    'eenheid_oms',
+                    'dimensie',
+                    'eenheidgroep',
+                    'datum_status',
+                    'status',
+                ]
+    list_filter = ['eenheidgroep',
+                   'dimensie',
+                   'status']
+
+
+@admin.register(models.Hoedanigheid)
+class HoedanigheidAdmin(admin.ModelAdmin):
+    list_display = ['hoedanigheid',
+                    'hoed_oms',
+                    'hoedanigheidgroep',
+                    'datum_status',
+                    'status']
+    list_filter = ['hoedanigheidgroep',
+                   'status']
+
+
+@admin.register(models.Compartiment)
+class CompartimentAdmin(admin.ModelAdmin):
+    list_display = ['compartiment',
+                    'comp_oms',
+                    'compartimentgroep',
+                    'datum_status',
+                    'status']
+    list_filter = ['compartimentgroep',
+                   'status']
+
+
+@admin.register(models.Detectiegrens)
+class DetectiegrensAdmin(admin.ModelAdmin):
+    list_display = ['teken',
+                    'omschrijving']
+
+
 @admin.register(models.Locatie)
 class LocatieAdmin(admin.ModelAdmin):
 
@@ -71,6 +118,18 @@ class WNSAdmin(admin.ModelAdmin):
 class ParameterGroepAdmin(admin.ModelAdmin):
     list_display = ['code',
                     'parent']
+
+
+@admin.register(models.Parameter)
+class Parameter(admin.ModelAdmin):
+    list_display = ['par_code',
+                    'par_oms',
+                    'casnummer',
+                    'datum_status',
+                    'status',
+                    'parametergroep']
+    list_filter = ['parametergroep',
+                   'status']
 
 
 @admin.register(models.StatusKRW)
