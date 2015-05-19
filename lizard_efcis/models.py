@@ -96,7 +96,7 @@ class Watertype(models.Model):
         blank=True)
 
     def __unicode__(self):
-        return '{}'.format(self.code)
+        return self.code
 
 
 class Waterlichaam(models.Model):
