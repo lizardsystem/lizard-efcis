@@ -441,6 +441,12 @@ class OpnamesAPI(FilteredOpnamesAPIView):
                 fieldname = 'detect__teken'
             elif fieldname == 'par_oms':
                 fieldname = 'wns__parameter__par_oms'
+            elif fieldname == 'hoed_oms':
+                fieldname = 'wns__hoedanigheid__hoed_oms'
+            elif fieldname == 'comp_oms':
+                fieldname = 'wns__compartiment__comp_oms'
+            elif fieldname == 'eenheid_oms':
+                fieldname = 'wns__eenheid__eenheid_oms'
             ordering.append('%s%s' % (direction_sign, fieldname))
         filtered_opnames = filtered_opnames.order_by(*ordering)
         return filtered_opnames
