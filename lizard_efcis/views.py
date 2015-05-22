@@ -324,6 +324,10 @@ class OpnamesAPI(FilteredOpnamesAPIView):
         activiteit_filter = self.request.query_params.get('activiteit')
         detectiegrens_filter = self.request.query_params.get('detectiegrens')
         waarde_n_filter = self.request.query_params.get('waarde_n')
+        waarde_a_filter = self.request.query_params.get('waarde_a')
+        eenheid_oms_filter = self.request.query_params.get('eenheid_oms')
+        hoedanigheid_oms_filter = self.request.query_params.get('hoed_oms')
+        compartiment_oms_filter = self.request.query_params.get('comp_oms')
         sort_fields = self.request.query_params.get('sort_fields')
         sort_dirs = self.request.query_params.get('sort_dirs')
         ITEMS_PER_PAGE = 30
@@ -365,6 +369,18 @@ class OpnamesAPI(FilteredOpnamesAPIView):
             else:
                 filtered_opnames = filtered_opnames.filter(
                     waarde_n=waarde_n_filter)
+        if waarde_a_filter:
+            filtered_opnames = filtered_opnames.filter(
+                waarde_a=waarde_a_filter)
+        if eenheid_oms_filter:
+            filtered_opnames = filtered_opnames.filter(
+                wns__eenheid__eenheid_oms__icontains=eenheid_oms_filter)
+        if hoedanigheid_oms_filter:
+            filtered_opnames = filtered_opnames.filter(
+                wns__hoedanigheid__hoed_oms__icontains=hoedanigheid_oms_filter)
+        if compartiment_oms_filter:
+            filtered_opnames = filtered_opnames.filter(
+                wns__compartiment__comp_oms__icontains=compartiment_oms_filter)
         if sort_fields and sort_dirs:
             filtered_opnames = self.order_opnames(
                 sort_fields, sort_dirs, filtered_opnames)
@@ -425,6 +441,12 @@ class OpnamesAPI(FilteredOpnamesAPIView):
                 fieldname = 'detect__teken'
             elif fieldname == 'par_oms':
                 fieldname = 'wns__parameter__par_oms'
+            elif fieldname == 'hoed_oms':
+                fieldname = 'wns__hoedanigheid__hoed_oms'
+            elif fieldname == 'comp_oms':
+                fieldname = 'wns__compartiment__comp_oms'
+            elif fieldname == 'eenheid_oms':
+                fieldname = 'wns__eenheid__eenheid_oms'
             ordering.append('%s%s' % (direction_sign, fieldname))
         filtered_opnames = filtered_opnames.order_by(*ordering)
         return filtered_opnames
