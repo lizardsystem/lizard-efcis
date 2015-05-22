@@ -53,7 +53,7 @@ class OpnameSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = models.Opname
-        fields = ('wns_oms', 'activiteit', 'loc_id',
+        fields = ('id', 'wns_oms', 'activiteit', 'loc_id',
                   'loc_oms', 'waarde_n', 'waarde_a',
                   'detectiegrens', 'url',
                   'datum', 'tijd',
