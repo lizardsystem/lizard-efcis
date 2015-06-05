@@ -10,6 +10,7 @@ import logging
 from django.core.paginator import EmptyPage
 from django.core.paginator import PageNotAnInteger
 from django.core.paginator import Paginator
+from django.db import connection
 from django.db.models import Max
 from django.db.models import Min
 from django.db.models import Q
@@ -28,6 +29,14 @@ from lizard_efcis import serializers
 
 logger = logging.getLogger(__name__)
 
+
+def dictfetchall(cursor):
+    """Returns all rows from a cursor as a dict"""
+    desc = cursor.description
+    return [
+        dict(zip([col[0] for col in desc], row))
+        for row in cursor.fetchall()
+    ]
 
 def str_to_datetime(dtstr):
     dtformat = "%d-%m-%Y"
@@ -49,6 +58,10 @@ def api_root(request, format=None):
             'efcis-lines',
             request=request,
             format=format),
+        'boxplots': reverse(
+            'efcis-boxplots',
+            request=request,
+            format=format),        
         'parametergroeps': reverse(
             'efcis-parametergroep-tree',
             request=request,
@@ -263,14 +276,17 @@ class MapAPI(FilteredOpnamesAPIView):
 
         latest_values = {}  # Latest value per location.
         color_values = {}  # Latest value converted to 0-100 scale.
+        percentiles = {}
         min_value = None
         max_value = None
         color_by_name = None
         if self.color_by:
+
             color_by_name = models.WNS.objects.get(pk=self.color_by).wns_oms
             min_max = models.Opname.objects.filter(
                 wns=self.color_by).aggregate(
                 Min('waarde_n'), Max('waarde_n'))
+
             min_value = min_max['waarde_n__min']
             max_value = min_max['waarde_n__max']
             difference = max_value - min_value
@@ -281,6 +297,22 @@ class MapAPI(FilteredOpnamesAPIView):
                 return opname['locatie']
 
             for locatie, group in groupby(opnames_for_color_by, _key):
+
+                cursor = connection.cursor()
+                # cursor.execute("SELECT waarde_n, ntile(99) OVER (PARTITION BY locatie_id ORDER BY waarde_n) \
+                #                 FROM lizard_efcis_opname WHERE waarde_n IS NOT NULL \
+                #                 AND wns_id = %s AND locatie_id = %s", [self.color_by, locatie])
+
+                # Should probably rewrite the following to models.Opname.objects.raw() instead, but had JSON serialization trouble.
+                # This works for now:
+                cursor.execute("SELECT min, max, median, q1, q3, p10, p90, mean FROM ( \
+                                SELECT locatie_id, (boxplot(waarde_n::numeric)).* \
+                                FROM lizard_efcis_opname \
+                                WHERE locatie_id=%s AND waarde_n IS NOT NULL \
+                                GROUP BY locatie_id) AS boxplot", [locatie])
+                percentile = dictfetchall(cursor)
+
+
                 opnames_per_locatie = list(group)
                 if not opnames_per_locatie:
                     continue
@@ -294,19 +326,22 @@ class MapAPI(FilteredOpnamesAPIView):
                 else:
                     color_value = 100.0
                 color_values[locatie] = color_value
+                percentiles[locatie] = percentile
 
         locaties = models.Locatie.objects.filter(id__in=relevant_locatie_ids)
         serializer = serializers.MapSerializer(
             locaties,
             many=True,
             context={'latest_values': latest_values,
-                     'color_values': color_values})
+                     'color_values': color_values,
+                     'percentiles': percentiles})
         result = serializer.data
 
         color_by_fields = models.WNS.objects.filter(
             pk__in=relevant_wns_ids).values('id', 'wns_oms')
         result['color_by_fields'] = color_by_fields
 
+        # result['percentiles'] = percentiles
         result['min_value'] = min_value
         result['max_value'] = max_value
         result['color_by_name'] = color_by_name
@@ -477,6 +512,52 @@ class LinesAPI(FilteredOpnamesAPIView):
                     'unit': first['wns__eenheid__eenheid'],
                     'data': data,
                     'id': key}
+            lines.append(line)
+
+        return Response(lines)
+
+
+class BoxplotAPI(FilteredOpnamesAPIView):
+    """API to return the Boxplot values for a graph"""
+
+    def get(self, request, format=None):
+        numerical_opnames = self.filtered_opnames.exclude(waarde_n=None)[:900]
+
+        # import pdb;pdb.set_trace()
+
+        points = numerical_opnames.values(
+            'wns__wns_code', 'wns__wns_oms', 'wns__parameter__par_code',
+            'wns__eenheid__eenheid',
+            'locatie__loc_id', 'locatie__id', 'locatie__loc_oms',
+            'datum', 'tijd', 'waarde_n')
+
+        def _key(point):
+            # import pdb;pdb.set_trace()
+            return '%s_%s' % (point['wns__wns_code'], point['locatie__loc_id'])
+
+        lines = []
+        for key, group in groupby(points, _key):
+            points = list(group)
+            first = points[0]
+            locid = first.get('locatie__id')
+            cursor = connection.cursor()
+            cursor.execute("SELECT min, max, median, q1, q3, p10, p90, mean FROM ( \
+                            SELECT locatie_id, (boxplot(waarde_n::numeric)).* \
+                            FROM lizard_efcis_opname \
+                            WHERE locatie_id=%s AND waarde_n IS NOT NULL \
+                            GROUP BY locatie_id) AS boxplot", [locid])
+            percentile = dictfetchall(cursor)            
+            data = [{'datetime': '%sT%s.000Z' % (point['datum'], point['tijd']),
+                     'value': point['waarde_n']} for point in points]
+            line = {'wns': first['wns__wns_oms'],
+                    'location': first['locatie__loc_oms'],
+                    'unit': first['wns__eenheid__eenheid'],
+                    # 'data': data,
+                    'id': key,
+                    'percentile': percentile}
+
+
+            # import pdb;pdb.set_trace()
             lines.append(line)
 
         return Response(lines)

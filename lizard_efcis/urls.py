@@ -27,6 +27,10 @@ urlpatterns = patterns(
         views.LinesAPI.as_view(),
         name='efcis-lines'),
 
+    url(r'^boxplots/$',
+        views.BoxplotAPI.as_view(),
+        name='efcis-boxplots'),    
+
     url(r'^parametergroeps/$',
         views.ParameterGroepAPI.as_view(),
         name='efcis-parametergroep-tree'),
@@ -38,6 +42,7 @@ urlpatterns = patterns(
     url(r'^locaties/$',
         views.LocatieAPI.as_view(),
         name='efcis-locaties-list'),
+    
     url(r'^map/$',
         views.MapAPI.as_view(),
         name='efcis-map'),

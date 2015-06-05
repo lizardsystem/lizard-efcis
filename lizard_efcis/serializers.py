@@ -189,6 +189,7 @@ class MapSerializer(gis_serializers.GeoFeatureModelSerializer):
     geo_punt_1 = gis_serializers.GeometryField(source='geo_punt1')
     color_value = serializers.SerializerMethodField()
     latest_value = serializers.SerializerMethodField()
+    percentiles = serializers.SerializerMethodField()
 
     def get_color_value(self, obj):
         return self.context['color_values'].get(obj.id)
@@ -196,7 +197,10 @@ class MapSerializer(gis_serializers.GeoFeatureModelSerializer):
     def get_latest_value(self, obj):
         return self.context['latest_values'].get(obj.id)
 
+    def get_percentiles(self, obj):
+        return self.context['percentiles'].get(obj.id)        
+
     class Meta:
         model = models.Locatie
-        fields = ('id', 'loc_id', 'loc_oms', 'color_value', 'latest_value')
+        fields = ('id', 'loc_id', 'loc_oms', 'color_value', 'latest_value', 'percentiles')
         geo_field = 'geo_punt_1'
