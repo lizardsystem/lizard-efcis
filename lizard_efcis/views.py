@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 from datetime import datetime
 from itertools import groupby
 import logging
+import numpy as np
 
 from django.core.paginator import EmptyPage
 from django.core.paginator import PageNotAnInteger
@@ -521,9 +522,7 @@ class BoxplotAPI(FilteredOpnamesAPIView):
     """API to return the Boxplot values for a graph"""
 
     def get(self, request, format=None):
-        numerical_opnames = self.filtered_opnames.exclude(waarde_n=None)[:900]
-
-        # import pdb;pdb.set_trace()
+        numerical_opnames = self.filtered_opnames.exclude(waarde_n=None)
 
         points = numerical_opnames.values(
             'wns__wns_code', 'wns__wns_oms', 'wns__parameter__par_code',
@@ -532,32 +531,29 @@ class BoxplotAPI(FilteredOpnamesAPIView):
             'datum', 'tijd', 'waarde_n')
 
         def _key(point):
-            # import pdb;pdb.set_trace()
             return '%s_%s' % (point['wns__wns_code'], point['locatie__loc_id'])
 
         lines = []
         for key, group in groupby(points, _key):
             points = list(group)
             first = points[0]
-            locid = first.get('locatie__id')
-            cursor = connection.cursor()
-            cursor.execute("SELECT min, max, median, q1, q3, p10, p90, mean FROM ( \
-                            SELECT locatie_id, (boxplot(waarde_n::numeric)).* \
-                            FROM lizard_efcis_opname \
-                            WHERE locatie_id=%s AND waarde_n IS NOT NULL \
-                            GROUP BY locatie_id) AS boxplot", [locid])
-            percentile = dictfetchall(cursor)            
-            data = [{'datetime': '%sT%s.000Z' % (point['datum'], point['tijd']),
-                     'value': point['waarde_n']} for point in points]
+
+            values = [point['waarde_n'] for point in points]
+            boxplot_data = {'mean': np.mean(values),
+                     'median': np.median(values),
+                     'min': np.min(values),
+                     'max': np.max(values),
+                     'q1': np.percentile(values, 25),
+                     'q3': np.percentile(values, 75),
+                     'p10': np.percentile(values, 10),
+                     'p90': np.percentile(values, 90)}
+
             line = {'wns': first['wns__wns_oms'],
                     'location': first['locatie__loc_oms'],
                     'unit': first['wns__eenheid__eenheid'],
-                    # 'data': data,
                     'id': key,
-                    'percentile': percentile}
+                    'boxplot_data': boxplot_data}
 
-
-            # import pdb;pdb.set_trace()
             lines.append(line)
 
         return Response(lines)
