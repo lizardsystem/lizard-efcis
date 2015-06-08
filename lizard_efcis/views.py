@@ -6,10 +6,12 @@ from __future__ import unicode_literals
 from datetime import datetime
 from itertools import groupby
 import logging
+import numpy as np
 
 from django.core.paginator import EmptyPage
 from django.core.paginator import PageNotAnInteger
 from django.core.paginator import Paginator
+
 from django.db.models import Max
 from django.db.models import Min
 from django.db.models import Q
@@ -49,6 +51,10 @@ def api_root(request, format=None):
             'efcis-lines',
             request=request,
             format=format),
+        'boxplots': reverse(
+            'efcis-boxplots',
+            request=request,
+            format=format),        
         'parametergroeps': reverse(
             'efcis-parametergroep-tree',
             request=request,
@@ -261,16 +267,20 @@ class MapAPI(FilteredOpnamesAPIView):
         relevant_wns_ids = list(set(
             [opname['wns'] for opname in opnames]))
 
+
         latest_values = {}  # Latest value per location.
         color_values = {}  # Latest value converted to 0-100 scale.
+
         min_value = None
         max_value = None
         color_by_name = None
         if self.color_by:
+
             color_by_name = models.WNS.objects.get(pk=self.color_by).wns_oms
             min_max = models.Opname.objects.filter(
                 wns=self.color_by).aggregate(
                 Min('waarde_n'), Max('waarde_n'))
+
             min_value = min_max['waarde_n__min']
             max_value = min_max['waarde_n__max']
             difference = max_value - min_value
@@ -281,6 +291,7 @@ class MapAPI(FilteredOpnamesAPIView):
                 return opname['locatie']
 
             for locatie, group in groupby(opnames_for_color_by, _key):
+
                 opnames_per_locatie = list(group)
                 if not opnames_per_locatie:
                     continue
@@ -310,6 +321,7 @@ class MapAPI(FilteredOpnamesAPIView):
         result['min_value'] = min_value
         result['max_value'] = max_value
         result['color_by_name'] = color_by_name
+
         return Response(result)
 
 
@@ -477,6 +489,47 @@ class LinesAPI(FilteredOpnamesAPIView):
                     'unit': first['wns__eenheid__eenheid'],
                     'data': data,
                     'id': key}
+            lines.append(line)
+
+        return Response(lines)
+
+
+class BoxplotAPI(FilteredOpnamesAPIView):
+    """API to return the Boxplot values for a graph"""
+
+    def get(self, request, format=None):
+        numerical_opnames = self.filtered_opnames.exclude(waarde_n=None)
+
+        points = numerical_opnames.values(
+            'wns__wns_code', 'wns__wns_oms', 'wns__parameter__par_code',
+            'wns__eenheid__eenheid',
+            'locatie__loc_id', 'locatie__id', 'locatie__loc_oms',
+            'datum', 'tijd', 'waarde_n')
+
+        def _key(point):
+            return '%s_%s' % (point['wns__wns_code'], point['locatie__loc_id'])
+
+        lines = []
+        for key, group in groupby(points, _key):
+            points = list(group)
+            first = points[0]
+
+            values = [point['waarde_n'] for point in points]
+            boxplot_data = {'mean': np.mean(values),
+                     'median': np.median(values),
+                     'min': np.min(values),
+                     'max': np.max(values),
+                     'q1': np.percentile(values, 25),
+                     'q3': np.percentile(values, 75),
+                     'p10': np.percentile(values, 10),
+                     'p90': np.percentile(values, 90)}
+
+            line = {'wns': first['wns__wns_oms'],
+                    'location': first['locatie__loc_oms'],
+                    'unit': first['wns__eenheid__eenheid'],
+                    'id': key,
+                    'boxplot_data': boxplot_data}
+
             lines.append(line)
 
         return Response(lines)
