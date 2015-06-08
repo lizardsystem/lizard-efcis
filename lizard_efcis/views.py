@@ -31,14 +31,6 @@ from lizard_efcis import serializers
 logger = logging.getLogger(__name__)
 
 
-def dictfetchall(cursor):
-    """Returns all rows from a cursor as a dict"""
-    desc = cursor.description
-    return [
-        dict(zip([col[0] for col in desc], row))
-        for row in cursor.fetchall()
-    ]
-
 def str_to_datetime(dtstr):
     dtformat = "%d-%m-%Y"
     try:
