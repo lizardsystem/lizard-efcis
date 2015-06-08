@@ -11,7 +11,7 @@ import numpy as np
 from django.core.paginator import EmptyPage
 from django.core.paginator import PageNotAnInteger
 from django.core.paginator import Paginator
-from django.db import connection
+
 from django.db.models import Max
 from django.db.models import Min
 from django.db.models import Q
@@ -275,9 +275,10 @@ class MapAPI(FilteredOpnamesAPIView):
         relevant_wns_ids = list(set(
             [opname['wns'] for opname in opnames]))
 
+
         latest_values = {}  # Latest value per location.
         color_values = {}  # Latest value converted to 0-100 scale.
-        percentiles = {}
+
         min_value = None
         max_value = None
         color_by_name = None
@@ -299,21 +300,6 @@ class MapAPI(FilteredOpnamesAPIView):
 
             for locatie, group in groupby(opnames_for_color_by, _key):
 
-                cursor = connection.cursor()
-                # cursor.execute("SELECT waarde_n, ntile(99) OVER (PARTITION BY locatie_id ORDER BY waarde_n) \
-                #                 FROM lizard_efcis_opname WHERE waarde_n IS NOT NULL \
-                #                 AND wns_id = %s AND locatie_id = %s", [self.color_by, locatie])
-
-                # Should probably rewrite the following to models.Opname.objects.raw() instead, but had JSON serialization trouble.
-                # This works for now:
-                cursor.execute("SELECT min, max, median, q1, q3, p10, p90, mean FROM ( \
-                                SELECT locatie_id, (boxplot(waarde_n::numeric)).* \
-                                FROM lizard_efcis_opname \
-                                WHERE locatie_id=%s AND waarde_n IS NOT NULL \
-                                GROUP BY locatie_id) AS boxplot", [locatie])
-                percentile = dictfetchall(cursor)
-
-
                 opnames_per_locatie = list(group)
                 if not opnames_per_locatie:
                     continue
@@ -327,25 +313,23 @@ class MapAPI(FilteredOpnamesAPIView):
                 else:
                     color_value = 100.0
                 color_values[locatie] = color_value
-                percentiles[locatie] = percentile
 
         locaties = models.Locatie.objects.filter(id__in=relevant_locatie_ids)
         serializer = serializers.MapSerializer(
             locaties,
             many=True,
             context={'latest_values': latest_values,
-                     'color_values': color_values,
-                     'percentiles': percentiles})
+                     'color_values': color_values})
         result = serializer.data
 
         color_by_fields = models.WNS.objects.filter(
             pk__in=relevant_wns_ids).values('id', 'wns_oms')
         result['color_by_fields'] = color_by_fields
 
-        # result['percentiles'] = percentiles
         result['min_value'] = min_value
         result['max_value'] = max_value
         result['color_by_name'] = color_by_name
+
         return Response(result)
 
 

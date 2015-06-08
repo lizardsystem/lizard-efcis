@@ -1,3 +1,5 @@
+import numpy as np
+
 from rest_framework import pagination
 from rest_framework import serializers
 from rest_framework_gis import serializers as gis_serializers
@@ -189,7 +191,7 @@ class MapSerializer(gis_serializers.GeoFeatureModelSerializer):
     geo_punt_1 = gis_serializers.GeometryField(source='geo_punt1')
     color_value = serializers.SerializerMethodField()
     latest_value = serializers.SerializerMethodField()
-    percentiles = serializers.SerializerMethodField()
+    boxplot_data = serializers.SerializerMethodField()
 
     def get_color_value(self, obj):
         return self.context['color_values'].get(obj.id)
@@ -197,10 +199,19 @@ class MapSerializer(gis_serializers.GeoFeatureModelSerializer):
     def get_latest_value(self, obj):
         return self.context['latest_values'].get(obj.id)
 
-    def get_percentiles(self, obj):
-        return self.context['percentiles'].get(obj.id)        
+    def get_boxplot_data(self, obj):
+        values = obj.opnames.all().values_list('waarde_n', flat=True)
+        boxplot_data = {'mean': np.mean(values),
+                 'median': np.median(values),
+                 'min': np.min(values),
+                 'max': np.max(values),
+                 'q1': np.percentile(values, 25),
+                 'q3': np.percentile(values, 75),
+                 'p10': np.percentile(values, 10),
+                 'p90': np.percentile(values, 90)}        
+        return boxplot_data
 
     class Meta:
         model = models.Locatie
-        fields = ('id', 'loc_id', 'loc_oms', 'color_value', 'latest_value', 'percentiles')
+        fields = ('id', 'loc_id', 'loc_oms', 'color_value', 'latest_value', 'boxplot_data')
         geo_field = 'geo_punt_1'
