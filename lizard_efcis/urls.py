@@ -28,7 +28,7 @@ urlpatterns = patterns(
         name='efcis-lines'),
 
     url(r'^boxplots/$',
-        views.BoxplotAPI.as_view(),
+        views.BoxplotsAPI.as_view(),
         name='efcis-boxplots'),    
 
     url(r'^parametergroeps/$',
