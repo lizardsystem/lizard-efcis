@@ -190,6 +190,7 @@ class MapSerializer(gis_serializers.GeoFeatureModelSerializer):
     geo_punt_1 = gis_serializers.GeometryField(source='geo_punt1')
     color_value = serializers.SerializerMethodField()
     latest_value = serializers.SerializerMethodField()
+    latest_datetime = serializers.SerializerMethodField()
     boxplot_data = serializers.SerializerMethodField()
 
     def get_color_value(self, obj):
@@ -198,10 +199,14 @@ class MapSerializer(gis_serializers.GeoFeatureModelSerializer):
     def get_latest_value(self, obj):
         return self.context['latest_values'].get(obj.id)
 
+    def get_latest_datetime(self, obj):
+        return self.context['latest_datetimes'].get(obj.id)
+
     def get_boxplot_data(self, obj):
         return self.context['boxplot_values'].get(obj.id)
 
     class Meta:
         model = models.Locatie
-        fields = ('id', 'loc_id', 'loc_oms', 'color_value', 'latest_value', 'boxplot_data')
+        fields = ('id', 'loc_id', 'loc_oms', 'color_value', 'latest_value', 
+            'latest_datetime', 'boxplot_data')
         geo_field = 'geo_punt_1'

@@ -270,6 +270,7 @@ class MapAPI(FilteredOpnamesAPIView):
         latest_values = {}  # Latest value per location.
         color_values = {}  # Latest value converted to 0-100 scale.
         boxplot_values = {}
+        latest_datetimes = {}
 
         min_value = None
         max_value = None
@@ -294,6 +295,7 @@ class MapAPI(FilteredOpnamesAPIView):
 
                 opnames_per_locatie = list(group)
                 values = [opname['waarde_n'] for opname in opnames_per_locatie]
+                
                 boxplot_data = {'mean': np.mean(values),
                          'median': np.median(values),
                          'min': np.min(values),
@@ -309,6 +311,9 @@ class MapAPI(FilteredOpnamesAPIView):
                 # latest one.
                 latest_value = values[-1]
                 latest_values[locatie] = latest_value
+                latest_opname = opnames_per_locatie[-1]
+                latest_datetime = '%sT%s.000Z' % (latest_opname['datum'], latest_opname['tijd'])
+                latest_datetimes[locatie] = latest_datetime
                 if difference:
                     color_value = round(
                         (latest_value - min_value) / difference * 100)
@@ -322,6 +327,7 @@ class MapAPI(FilteredOpnamesAPIView):
             locaties,
             many=True,
             context={'latest_values': latest_values,
+                     'latest_datetimes': latest_datetimes,
                      'color_values': color_values,
                      'boxplot_values': boxplot_values})
         result = serializer.data
