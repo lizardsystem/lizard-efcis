@@ -1,5 +1,4 @@
 import numpy as np
-
 from rest_framework import pagination
 from rest_framework import serializers
 from rest_framework_gis import serializers as gis_serializers
@@ -200,16 +199,7 @@ class MapSerializer(gis_serializers.GeoFeatureModelSerializer):
         return self.context['latest_values'].get(obj.id)
 
     def get_boxplot_data(self, obj):
-        values = obj.opnames.all().values_list('waarde_n', flat=True)
-        boxplot_data = {'mean': np.mean(values),
-                 'median': np.median(values),
-                 'min': np.min(values),
-                 'max': np.max(values),
-                 'q1': np.percentile(values, 25),
-                 'q3': np.percentile(values, 75),
-                 'p10': np.percentile(values, 10),
-                 'p90': np.percentile(values, 90)}        
-        return boxplot_data
+        return self.context['boxplot_values'].get(obj.id)
 
     class Meta:
         model = models.Locatie
