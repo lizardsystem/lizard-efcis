@@ -7,7 +7,6 @@ from datetime import datetime
 from itertools import groupby
 import logging
 import numpy as np
-
 from django.core.paginator import EmptyPage
 from django.core.paginator import PageNotAnInteger
 from django.core.paginator import Paginator
@@ -270,6 +269,7 @@ class MapAPI(FilteredOpnamesAPIView):
 
         latest_values = {}  # Latest value per location.
         color_values = {}  # Latest value converted to 0-100 scale.
+        boxplot_values = {}
 
         min_value = None
         max_value = None
@@ -293,11 +293,21 @@ class MapAPI(FilteredOpnamesAPIView):
             for locatie, group in groupby(opnames_for_color_by, _key):
 
                 opnames_per_locatie = list(group)
+                values = [opname['waarde_n'] for opname in opnames_per_locatie]
+                boxplot_data = {'mean': np.mean(values),
+                         'median': np.median(values),
+                         'min': np.min(values),
+                         'max': np.max(values),
+                         'q1': np.percentile(values, 25),
+                         'q3': np.percentile(values, 75),
+                         'p10': np.percentile(values, 10),
+                         'p90': np.percentile(values, 90)}
+
                 if not opnames_per_locatie:
                     continue
                 # Group is sorted according to date/time, we can grab the
                 # latest one.
-                latest_value = opnames_per_locatie[-1]['waarde_n']
+                latest_value = values[-1]
                 latest_values[locatie] = latest_value
                 if difference:
                     color_value = round(
@@ -305,13 +315,15 @@ class MapAPI(FilteredOpnamesAPIView):
                 else:
                     color_value = 100.0
                 color_values[locatie] = color_value
+                boxplot_values[locatie] = boxplot_data
 
         locaties = models.Locatie.objects.filter(id__in=relevant_locatie_ids)
         serializer = serializers.MapSerializer(
             locaties,
             many=True,
             context={'latest_values': latest_values,
-                     'color_values': color_values})
+                     'color_values': color_values,
+                     'boxplot_values': boxplot_values})
         result = serializer.data
 
         color_by_fields = models.WNS.objects.filter(
@@ -494,7 +506,7 @@ class LinesAPI(FilteredOpnamesAPIView):
         return Response(lines)
 
 
-class BoxplotAPI(FilteredOpnamesAPIView):
+class BoxplotsAPI(FilteredOpnamesAPIView):
     """API to return the Boxplot values for a graph"""
 
     def get(self, request, format=None):
