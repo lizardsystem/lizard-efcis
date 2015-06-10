@@ -9,10 +9,27 @@ from django.db.models import Count
 from lizard_efcis import models
 
 
+def validate_data(modeladmin, request, queryset):
+    print('validate', queryset.count())
+validate_data.short_description = "Validate selected import(s)"
+
+@admin.register(models.ImportRun)
+class ImportRunAdmin(admin.ModelAdmin):
+    list_display = ['name',
+                    'attachment',
+                    'uploaded_by',
+                    'uploaded_date'
+    ]
+    list_filter =['type_run', 'uploaded_by']
+    search_fields = ['name', 'uploaded_by', 'attachment']
+    actions = [validate_data]
+
+
 class MappingFieldInlineAdmin(admin.TabularInline):
     model = models.MappingField
 
 
+@admin.register(models.ImportMapping)
 class ImportMappingAdmin(admin.ModelAdmin):
     inlines = [MappingFieldInlineAdmin]
 

@@ -3,11 +3,26 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import os
+from datetime import datetime
+
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point
+from django.conf import settings
 
 from lizard_efcis import utils
 
+
+def get_attachment_path(instance, filename):
+    dt = datetime.now()
+    prefix = "{0}_{1}".format(
+        dt.date().isoformat(),
+        dt.time().isoformat()
+    )
+    return os.path.join(
+        settings.UPLOAD_DIR,
+        "{0}_{1}".format(prefix, filename))
+ 
 
 class Status(models.Model):
 
@@ -463,7 +478,7 @@ class Opname(models.Model):
         verbose_name = "opname"
         verbose_name_plural = "opnames"
 
-
+    
 class ImportMapping(models.Model):
 
     tabellen = [
@@ -491,6 +506,37 @@ class ImportMapping(models.Model):
 
     def __unicode__(self):
         return self.code
+
+
+class ImportRun(models.Model):
+    AUTO = "Automatisch"
+    MANUAL = "Handmatig"
+
+    TYPE_CHOICES = (
+        (AUTO, AUTO),
+        (MANUAL, MANUAL)
+    )
+    name = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True)
+    type_run = models.CharField(
+        choices=TYPE_CHOICES,
+        max_length=20)
+    attachment = models.FileField(
+        upload_to=settings.UPLOAD_DIR,
+        blank=True,
+        null=True)
+    uploaded_by = models.CharField(
+        max_length=200,
+        blank=True)
+    uploaded_date = models.DateTimeField(
+        blank=True, 
+        null=True)
+    import_mapping = models.ForeignKey(
+        ImportMapping,
+        blank=True,
+        null=True)
 
 
 class MappingField(models.Model):
