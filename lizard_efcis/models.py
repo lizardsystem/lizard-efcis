@@ -37,6 +37,11 @@ class Status(models.Model):
 
     naam = models.CharField(unique=True, max_length=50)
 
+    class Meta:
+        ordering = ['naam'] 
+        verbose_name = "status"
+        verbose_name_plural = "statussen"
+
     def __unicode__(self):
         return self.naam
 
