@@ -3,7 +3,7 @@ from lizard_efcis.settings import *
 
 DEBUG = True
 
-LOGGING['loggers']['']['level'] = DEBUG
+LOGGING['loggers']['']['level'] = 'DEBUG'
 RAVEN_CONFIG = {}
 
 # ENGINE: 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
