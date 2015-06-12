@@ -27,6 +27,8 @@ from rest_framework_csv.renderers import CSVRenderer
 from lizard_efcis import models
 from lizard_efcis import serializers
 
+MAX_GRAPH_RESULTS = 10000
+
 logger = logging.getLogger(__name__)
 
 
@@ -53,7 +55,7 @@ def api_root(request, format=None):
         'boxplots': reverse(
             'efcis-boxplots',
             request=request,
-            format=format),        
+            format=format),
         'parametergroeps': reverse(
             'efcis-parametergroep-tree',
             request=request,
@@ -295,7 +297,7 @@ class MapAPI(FilteredOpnamesAPIView):
 
                 opnames_per_locatie = list(group)
                 values = [opname['waarde_n'] for opname in opnames_per_locatie]
-                
+
                 boxplot_data = {'mean': np.mean(values),
                          'median': np.median(values),
                          'min': np.min(values),
@@ -487,17 +489,17 @@ class LinesAPI(FilteredOpnamesAPIView):
 
     def get(self, request, format=None):
         numerical_opnames = self.filtered_opnames.exclude(waarde_n=None)
-        points = numerical_opnames.values(
+        all_points = numerical_opnames.values(
             'wns__wns_code', 'wns__wns_oms', 'wns__parameter__par_code',
             'wns__eenheid__eenheid',
             'locatie__loc_id', 'locatie__loc_oms',
-            'datum', 'tijd', 'waarde_n')
+            'datum', 'tijd', 'waarde_n')[:MAX_GRAPH_RESULTS]
 
         def _key(point):
             return '%s_%s' % (point['wns__wns_code'], point['locatie__loc_id'])
 
         lines = []
-        for key, group in groupby(points, _key):
+        for key, group in groupby(all_points, _key):
             points = list(group)
             first = points[0]
             data = [{'datetime': '%sT%s.000Z' % (point['datum'], point['tijd']),
@@ -509,6 +511,12 @@ class LinesAPI(FilteredOpnamesAPIView):
                     'id': key}
             lines.append(line)
 
+        if len(all_points) == MAX_GRAPH_RESULTS:
+            del(lines[-1])
+            logger.info(
+                "Capped the number of points to %s and removed the last "
+                "(=possibly incomplete) line, %s remaining",
+                MAX_GRAPH_RESULTS, len(lines))
         return Response(lines)
 
 
@@ -518,17 +526,17 @@ class BoxplotsAPI(FilteredOpnamesAPIView):
     def get(self, request, format=None):
         numerical_opnames = self.filtered_opnames.exclude(waarde_n=None)
 
-        points = numerical_opnames.values(
+        all_points = numerical_opnames.values(
             'wns__wns_code', 'wns__wns_oms', 'wns__parameter__par_code',
             'wns__eenheid__eenheid',
             'locatie__loc_id', 'locatie__id', 'locatie__loc_oms',
-            'datum', 'tijd', 'waarde_n')
+            'datum', 'tijd', 'waarde_n')[:MAX_GRAPH_RESULTS]
 
         def _key(point):
             return '%s_%s' % (point['wns__wns_code'], point['locatie__loc_id'])
 
         lines = []
-        for key, group in groupby(points, _key):
+        for key, group in groupby(all_points, _key):
             points = list(group)
             first = points[0]
 
@@ -547,7 +555,12 @@ class BoxplotsAPI(FilteredOpnamesAPIView):
                     'unit': first['wns__eenheid__eenheid'],
                     'id': key,
                     'boxplot_data': boxplot_data}
-
             lines.append(line)
 
+        if len(all_points) == MAX_GRAPH_RESULTS:
+            del(lines[-1])
+            logger.info(
+                "Capped the number of points to %s and removed the last "
+                "(=possibly incomplete) boxplot, %s remaining",
+                MAX_GRAPH_RESULTS, len(lines))
         return Response(lines)
