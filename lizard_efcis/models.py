@@ -542,6 +542,11 @@ class ImportRun(models.Model):
         ImportMapping,
         blank=True,
         null=True)
+    action_log = models.TextField(
+        null=True,
+        blank=True)
+    validated = models.BooleanField(default=False)
+    imported = models.BooleanField(default=False)
 
 
 class MappingField(models.Model):
