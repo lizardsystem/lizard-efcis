@@ -540,10 +540,11 @@ class DataImport(object):
                     'alleen 1-veld. scheiding_teken: "{0}", header: "{1}"'),
             '005': 'Mapping bestaat niet. "{}"',
             '006': 'Mapping bevat het veld.',
-            '007': 'Mappingsveld komt niet voor in csv-header. "{}"',
+            '007': 'Mapping file-field "{1}" komt niet voor in csv-header "{2}".',
             '008': 'Data Integriteit: melding: {}',
             '009': ''}
         result = {}
+        is_valid = True
         logger.info("Validatie {}.".format(filename))
         # 001
         code = "001"
@@ -554,6 +555,7 @@ class DataImport(object):
                 "Interrup validatie, is not a file '{}'.".format(
                     filepath))
             result.update({code: roles[code].format(filepath)})
+            is_valid = False
         # 005
         code = "005"
         mappings = models.ImportMapping.objects.filter(code=mapping_code)
@@ -562,23 +564,26 @@ class DataImport(object):
             mapping = mappings[0]
         else:
             result.update({code: roles[code].format(mapping_code)})
+            is_valid = False
 
         if result:
-            return result
+            return (is_valid, result)
 
         # 006
         code = "006"
         mapping_fields = mapping.mappingfield_set.all()
         if mapping_fields.count() <= 0:
             result.update({code: roles[code]})
+            is_valid = False
         # 003
         code = "003"
         if not mapping.scheiding_teken or len(mapping.scheiding_teken) > 1:
             result.update({code: roles[code].format(
                 mapping_code, mapping.scheiding_teken)})
+            is_valid = False
 
         if result:
-            return result
+            return (is_valid, result)
 
         # 002, 004
         with open(filepath, 'rb') as f:
@@ -587,23 +592,28 @@ class DataImport(object):
             code = "002"
             if not headers:
                 result.update({code: roles[code].format(filepath)})
+                is_valid = False
             code = "004"
             if headers and len(headers) <= 1:
                 result.update({code: roles[code].format(
                     mapping.scheiding_teken, headers[0])})
+                is_valid = False
 
         if result:
-            return result
+            return (is_valid, result)
 
         # 007, 008
         code = "007"
-        # with open(filepath, 'rb') as f:
-        #     reader = csv.reader(f, delimiter=str(mapping.scheiding_teken))
-        #     headers = reader.next()
-        #     for mapping_field in mapping_fields:
-        #         if mapping_field.file_field not in headers:
-        #             result.update({code: roles[code].format(
-        #                 mapping_field.file_field)})
+        with open(filepath, 'rb') as f:
+            reader = csv.reader(f, delimiter=str(mapping.scheiding_teken))
+            headers = reader.next()
+            for mapping_field in mapping_fields:
+                if mapping_field.file_field not in headers:
+                    result.update({code: roles[code].format(
+                        mapping_field.file_field,
+                        mapping.scheiding_teken.join(headers))}
+                    )
+                    is_valid = False
         #     for row in reader:
         #         code = "008"
         #         val_raw = row[
@@ -627,7 +637,7 @@ class DataImport(object):
         #         except Exception as ex:
         #             if not ignore_duplicate_key:
         #                 result.update({code: ex.message()})
-        return result
+        return (is_valid, result)
 
     def import_csv(self, filename, mapping_code,
                    activiteit=None, ignore_duplicate_key=True):
@@ -666,6 +676,8 @@ class DataImport(object):
     def manual_import_csv(self, filename, mapping_code,
                    activiteit=None, ignore_duplicate_key=True):
         action_log = {}
+        is_imported = False
+        
         mapping = models.ImportMapping.objects.get(code=mapping_code)
         mapping_fields = mapping.mappingfield_set.all()
         filepath = filename
@@ -675,7 +687,7 @@ class DataImport(object):
                     mapping_code, filepath))
             action_log.update({"WARN1": "Interrup import {0}, is not a file '{1}'.".format(
                     mapping_code, filepath)}) 
-            return action_log
+            return (is_imported, action_log)
 
         created = 0
         with open(filepath, 'rb') as f:
@@ -702,5 +714,6 @@ class DataImport(object):
                 except Exception as ex:
                     action_log.update({"Error%s" % count: ex.message})
                     break
+                is_imported = True
         action_log.update({"CREATED":  "objects=%s" % created})
-        return action_log
+        return (is_imported, action_log)
