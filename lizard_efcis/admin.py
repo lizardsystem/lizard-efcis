@@ -53,7 +53,7 @@ def import_csv(modeladmin, request, queryset):
         if not can_run:
             messages.warning(
                 request,
-                "Validatie van '%s' NIET uitgevoerd: '%s'." %
+                "Import van '%s' NIET uitgevoerd: '%s'." %
                 (import_run.name, ', '.join(warn_messages)))
             continue
         action_log = "Start import\n"
