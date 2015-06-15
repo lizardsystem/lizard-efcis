@@ -3,52 +3,31 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import os
-
 from django.contrib import admin
-from django.db.models import Count
 from django.contrib import messages
+from django.db.models import Count
 
 from lizard_efcis import models
 from lizard_efcis.import_data import DataImport
-
-def can_run_action(request, import_run):
-    """Check fields of import_run."""
-    can_run = True
-    if not import_run.import_mapping:
-        messages.warning(
-            request,
-            "Actie van '%s' NIET uitgevoerd:"
-            " geen mapping." % import_run.name)
-        can_run = False
-    if not import_run.attachment:
-        messages.warning(
-            request,
-            "Actie van '%s' NIET uitgevoerd:"
-            " geen bestand," % import_run.name)
-        can_run = False
-    if import_run.attachment and not os.path.isfile(import_run.attachment.path):
-        messages.warning(
-            request,
-            "Actie van '%s' NIET uitgevoerd:"
-            " het bestand '%s' is niet aanwezig." % (
-                import_run.attachment.path, import_run.name))
-        can_run = False
-    return can_run
 
 
 def validate_data(modeladmin, request, queryset):
     data_import = DataImport()
     
     for import_run in queryset:
-        if not can_run_action(request, import_run):
+        can_run, warn_messages = import_run.can_run_any_action()
+        if not can_run:
+            messages.warning(
+                request,
+                "Validatie van '%s' NIET uitgevoerd: '%s'." %
+                (import_run.name, ', '.join(warn_messages)))
             continue
         result_as_text = "Start validation\n"
         result =  data_import.validate_csv(
             import_run.attachment.path,
             import_run.import_mapping.code)
-        for  k, v in result[1].iteritems():
-            result_as_text += '%s: %s\n' % (k, v)
+        for  code, message in result[1].iteritems():
+            result_as_text += '%s: %s\n' % (code, message)
         result_as_text += "Gevalideerd: %s.\n" % result[0]
         result_as_text += 'End of validation is reached.\n'
         result_as_text += '-------------------------------\n'
@@ -70,14 +49,19 @@ def import_csv(modeladmin, request, queryset):
                 "Import van '%s' NIET uitgevoerd:"
                 " niet valid." % import_run.name)
             continue
-        if not can_run_action(request, import_run):
+        can_run, warn_messages = import_run.can_run_any_action()
+        if not can_run:
+            messages.warning(
+                request,
+                "Validatie van '%s' NIET uitgevoerd: '%s'." %
+                (import_run.name, ', '.join(warn_messages)))
             continue
         action_log = "Start import\n"
         result =  data_import.manual_import_csv(
             import_run.attachment.path,
             import_run.import_mapping.code)
-        for  k, v in result[1].iteritems():
-            action_log += '%s: %s\n' % (k, v)
+        for  code, message in result[1].iteritems():
+            action_log += '%s: %s\n' % (code, message)
         action_log += 'End of import is reached.\n'
         action_log += '-------------------------------\n'
         import_run.action_log += action_log

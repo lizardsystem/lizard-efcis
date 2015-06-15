@@ -22,7 +22,7 @@ def get_attachment_path(instance, filename):
     return os.path.join(
         settings.UPLOAD_DIR,
         "{0}_{1}".format(prefix, filename))
- 
+
 
 class Status(models.Model):
 
@@ -547,6 +547,23 @@ class ImportRun(models.Model):
         blank=True)
     validated = models.BooleanField(default=False)
     imported = models.BooleanField(default=False)
+
+    def can_run_any_action(self):
+        """Check fields of import_run."""
+        can_run = True
+        messages = []
+        if not self.import_mapping:
+            messages.append("geen mapping")
+            can_run = False
+        if not self.attachment:
+            messages.append("geen bestand")
+            can_run = False
+        if self.attachment and not os.path.isfile(self.attachment.path):
+            messages.append(
+                "het bestand '%s' is niet "
+                "aanwezig." % self.attachment.path)
+            can_run = False
+        return (can_run, messages)
 
 
 class MappingField(models.Model):

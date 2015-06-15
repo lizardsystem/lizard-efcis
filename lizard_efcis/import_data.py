@@ -674,7 +674,7 @@ class DataImport(object):
             'End import: created={}.'.format(created))
 
     def manual_import_csv(self, filename, mapping_code,
-                   activiteit=None, ignore_duplicate_key=True):
+                          activiteit=None, ignore_duplicate_key=True):
         action_log = {}
         is_imported = False
         
@@ -715,5 +715,5 @@ class DataImport(object):
                     action_log.update({"Error%s" % count: ex.message})
                     break
                 is_imported = True
-        action_log.update({"CREATED":  "objects=%s" % created})
+        action_log.update({"CREATED":  " %s objects." % created})
         return (is_imported, action_log)
