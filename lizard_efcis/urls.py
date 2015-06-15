@@ -23,13 +23,15 @@ urlpatterns = patterns(
         'opname_detail',
         name='opname-detail'),
 
-    url(r'^lines/$',
-        views.LinesAPI.as_view(),
-        name='efcis-lines'),
-
-    url(r'^boxplots/$',
-        views.BoxplotsAPI.as_view(),
-        name='efcis-boxplots'),    
+    url(r'^graphs/$',
+        views.GraphsAPI.as_view(),
+        name='efcis-graphs'),
+    url(r'^lines/(?P<key>[^/]+)/$',
+        views.LineAPI.as_view(),
+        name='efcis-line'),
+    url(r'^boxplots/(?P<key>[^/]+)/$',
+        views.BoxplotAPI.as_view(),
+        name='efcis-boxplot'),
 
     url(r'^parametergroeps/$',
         views.ParameterGroepAPI.as_view(),
@@ -42,7 +44,7 @@ urlpatterns = patterns(
     url(r'^locaties/$',
         views.LocatieAPI.as_view(),
         name='efcis-locaties-list'),
-    
+
     url(r'^map/$',
         views.MapAPI.as_view(),
         name='efcis-map'),
