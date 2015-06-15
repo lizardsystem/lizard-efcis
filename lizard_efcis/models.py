@@ -527,6 +527,7 @@ class ImportRun(models.Model):
         null=True)
     type_run = models.CharField(
         choices=TYPE_CHOICES,
+        default=MANUAL,
         max_length=20)
     attachment = models.FileField(
         upload_to=settings.UPLOAD_DIR,
@@ -547,6 +548,10 @@ class ImportRun(models.Model):
         blank=True)
     validated = models.BooleanField(default=False)
     imported = models.BooleanField(default=False)
+    activiteit = models.ForeignKey(
+        Activiteit,
+        blank=True,
+        null=True)
 
     def can_run_any_action(self):
         """Check fields of import_run."""
@@ -562,6 +567,9 @@ class ImportRun(models.Model):
             messages.append(
                 "het bestand '%s' is niet "
                 "aanwezig." % self.attachment.path)
+            can_run = False
+        if not self.activiteit:
+            messages.append("geen activiteit")
             can_run = False
         return (can_run, messages)
 

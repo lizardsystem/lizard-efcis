@@ -59,7 +59,9 @@ def import_csv(modeladmin, request, queryset):
         action_log = "Start import\n"
         result =  data_import.manual_import_csv(
             import_run.attachment.path,
-            import_run.import_mapping.code)
+            import_run.import_mapping.code,
+            activiteit=import_run.activiteit
+        )
         for  code, message in result[1].iteritems():
             action_log += '%s: %s\n' % (code, message)
         action_log += 'End of import is reached.\n'
@@ -77,13 +79,14 @@ import_csv.short_description = "Uitvoeren geselecteerde imports"
 class ImportRunAdmin(admin.ModelAdmin):
     list_display = ['name',
                     'attachment',
+                    'activiteit',
                     'uploaded_by',
                     'uploaded_date',
                     'validated',
                     'imported',
     ]
     list_filter =['type_run', 'uploaded_by']
-    search_fields = ['name', 'uploaded_by', 'attachment']
+    search_fields = ['name', 'uploaded_by', 'attachment', 'activiteit']
     actions = [validate_data, import_csv]
     readonly_fields = ['validated', 'imported']
 
