@@ -4,15 +4,95 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from django.contrib import admin
+from django.contrib import messages
 from django.db.models import Count
 
 from lizard_efcis import models
+from lizard_efcis.import_data import DataImport
+
+
+def validate_data(modeladmin, request, queryset):
+    data_import = DataImport()
+    
+    for import_run in queryset:
+        can_run, warn_messages = import_run.can_run_any_action()
+        if not can_run:
+            messages.warning(
+                request,
+                "Validatie van '%s' NIET uitgevoerd: '%s'." %
+                (import_run.name, ', '.join(warn_messages)))
+            continue
+        result_as_text = "Start validation\n"
+        result =  data_import.validate_csv(
+            import_run.attachment.path,
+            import_run.import_mapping.code)
+        for  code, message in result[1].iteritems():
+            result_as_text += '%s: %s\n' % (code, message)
+        result_as_text += "Gevalideerd: %s.\n" % result[0]
+        result_as_text += 'End of validation is reached.\n'
+        result_as_text += '-------------------------------\n'
+        import_run.action_log += result_as_text
+        import_run.validated = result[0]
+        import_run.save()
+        messages.success(
+            request,
+            "Validatie van '%s' is uitgevoerd." % import_run.name)
+validate_data.short_description = "Valideer geselecteerde imports"
+
+
+def import_csv(modeladmin, request, queryset):
+    data_import = DataImport()
+    for import_run in queryset:
+        if not import_run.validated:
+            messages.warning(
+                request,
+                "Import van '%s' NIET uitgevoerd:"
+                " niet valid." % import_run.name)
+            continue
+        can_run, warn_messages = import_run.can_run_any_action()
+        if not can_run:
+            messages.warning(
+                request,
+                "Import van '%s' NIET uitgevoerd: '%s'." %
+                (import_run.name, ', '.join(warn_messages)))
+            continue
+        action_log = "Start import\n"
+        result =  data_import.manual_import_csv(
+            import_run.attachment.path,
+            import_run.import_mapping.code)
+        for  code, message in result[1].iteritems():
+            action_log += '%s: %s\n' % (code, message)
+        action_log += 'End of import is reached.\n'
+        action_log += '-------------------------------\n'
+        import_run.action_log += action_log
+        import_run.imported = result[0]
+        import_run.save()
+        messages.success(
+            request,
+            "Import van '%s' is uitgevoerd." % import_run.name)
+import_csv.short_description = "Uitvoeren geselecteerde imports"
+
+
+@admin.register(models.ImportRun)
+class ImportRunAdmin(admin.ModelAdmin):
+    list_display = ['name',
+                    'attachment',
+                    'uploaded_by',
+                    'uploaded_date',
+                    'validated',
+                    'imported',
+    ]
+    list_filter =['type_run', 'uploaded_by']
+    search_fields = ['name', 'uploaded_by', 'attachment']
+    actions = [validate_data, import_csv]
+    readonly_fields = ['validated', 'imported']
 
 
 class MappingFieldInlineAdmin(admin.TabularInline):
     model = models.MappingField
 
 
+@admin.register(models.ImportMapping)
 class ImportMappingAdmin(admin.ModelAdmin):
     inlines = [MappingFieldInlineAdmin]
 

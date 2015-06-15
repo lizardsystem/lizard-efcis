@@ -138,7 +138,11 @@ class OpnameDetailSerializer(OpnameSerializer):
     compartiment = serializers.CharField(
         read_only=True,
         source='wns.compartiment.compartiment')
+    wns_code = serializers.CharField(
+        read_only=True,
+        source='wns.wns_code')
 
+    
     def get_validatiestatus(self, obj):
         return 'ok'
 
@@ -149,7 +153,7 @@ class OpnameDetailSerializer(OpnameSerializer):
         
     class Meta:
         model = models.Opname
-        fields = ('wns_oms', 'activiteit', 'loc_id',
+        fields = ('wns_oms', 'wns_code', 'activiteit', 'loc_id',
                   'loc_oms', 'waarde_n', 'waarde_a',
                   'detectiegrens', 'par_code',
                   'par_oms',

@@ -540,19 +540,22 @@ class DataImport(object):
                     'alleen 1-veld. scheiding_teken: "{0}", header: "{1}"'),
             '005': 'Mapping bestaat niet. "{}"',
             '006': 'Mapping bevat het veld.',
-            '007': 'Mappingsveld komt niet voor in csv-header. "{}"',
-            '008': 'Data Integritei: melding: {}',
+            '007': 'Mapping file-field "{1}" komt niet voor in csv-header "{2}".',
+            '008': 'Data Integriteit: melding: {}',
             '009': ''}
-        result = []
+        result = {}
+        is_valid = True
         logger.info("Validatie {}.".format(filename))
         # 001
         code = "001"
-        filepath = os.path.join(self.data_dir, filename)
+        #filepath = os.path.join(self.data_dir, filename)
+        filepath = filename
         if not os.path.isfile(filepath):
             logger.warn(
                 "Interrup validatie, is not a file '{}'.".format(
                     filepath))
-            result.append({code: roles[code].format(filepath)})
+            result.update({code: roles[code].format(filepath)})
+            is_valid = False
         # 005
         code = "005"
         mappings = models.ImportMapping.objects.filter(code=mapping_code)
@@ -560,24 +563,27 @@ class DataImport(object):
         if mappings.exists():
             mapping = mappings[0]
         else:
-            result.append({code: roles[code].format(mapping_code)})
+            result.update({code: roles[code].format(mapping_code)})
+            is_valid = False
 
         if result:
-            return result
+            return (is_valid, result)
 
         # 006
         code = "006"
         mapping_fields = mapping.mappingfield_set.all()
         if mapping_fields.count() <= 0:
-            result.append({code: roles[code]})
+            result.update({code: roles[code]})
+            is_valid = False
         # 003
         code = "003"
         if not mapping.scheiding_teken or len(mapping.scheiding_teken) > 1:
-            result.append({code: roles[code].format(
+            result.update({code: roles[code].format(
                 mapping_code, mapping.scheiding_teken)})
+            is_valid = False
 
         if result:
-            return result
+            return (is_valid, result)
 
         # 002, 004
         with open(filepath, 'rb') as f:
@@ -585,14 +591,16 @@ class DataImport(object):
             headers = reader.next()
             code = "002"
             if not headers:
-                result.append({code: roles[code].format(filepath)})
+                result.update({code: roles[code].format(filepath)})
+                is_valid = False
             code = "004"
             if headers and len(headers) <= 1:
-                result.append({code: roles[code].format(
+                result.update({code: roles[code].format(
                     mapping.scheiding_teken, headers[0])})
+                is_valid = False
 
         if result:
-            return result
+            return (is_valid, result)
 
         # 007, 008
         code = "007"
@@ -601,30 +609,35 @@ class DataImport(object):
             headers = reader.next()
             for mapping_field in mapping_fields:
                 if mapping_field.file_field not in headers:
-                    result.append({code: roles[code].format(
-                        mapping_field.file_field)})
-            for row in reader:
-                code = "008"
-                val_raw = row[
-                    headers.index(mapping_field.file_field)].strip(' "')
-                # omit spaces
-                val_raw = val_raw.replace(' ', '')
-                inst = self._get_foreignkey_inst(
-                    val_raw,
-                    mapping_field.db_datatype,
-                    mapping_field.foreignkey_field)
-                if inst is None:
-                    result.append({
-                        code: "{0} '{1}' niet in domain-tabel.".format(
-                            mapping_field.db_datatype, val_raw)})
-                try:
-                    inst = django_models.get_model('lizard_efcis',
-                                                   mapping.tabel_naam)()
-                    self.set_data(inst, mapping_fields, row, headers)
-                    inst.validate_unique()
-                except Exception as ex:
-                    if not ignore_duplicate_key:
-                        result.append({code: ex.message()})
+                    result.update({code: roles[code].format(
+                        mapping_field.file_field,
+                        mapping.scheiding_teken.join(headers))}
+                    )
+                    is_valid = False
+        #     for row in reader:
+        #         code = "008"
+        #         val_raw = row[
+        #             headers.index(mapping_field.file_field)].strip(' "')
+        #         # omit spaces
+        #         val_raw = val_raw.replace(' ', '')
+        #         print (val_raw, mapping_field)
+        #         inst = self._get_foreignkey_inst(
+        #             val_raw,
+        #             mapping_field.db_datatype,
+        #             mapping_field.foreignkey_field)
+        #         if inst is None:
+        #             result.update({
+        #                 code: "{0} '{1}' niet in domain-tabel.".format(
+        #                     mapping_field.db_datatype, val_raw)})
+        #         try:
+        #             inst = django_models.get_model('lizard_efcis',
+        #                                            mapping.tabel_naam)()
+        #             self.set_data(inst, mapping_fields, row, headers)
+        #             inst.validate_unique()
+        #         except Exception as ex:
+        #             if not ignore_duplicate_key:
+        #                 result.update({code: ex.message()})
+        return (is_valid, result)
 
     def import_csv(self, filename, mapping_code,
                    activiteit=None, ignore_duplicate_key=True):
@@ -659,3 +672,48 @@ class DataImport(object):
                         break
         logger.info(
             'End import: created={}.'.format(created))
+
+    def manual_import_csv(self, filename, mapping_code,
+                          activiteit=None, ignore_duplicate_key=True):
+        action_log = {}
+        is_imported = False
+        
+        mapping = models.ImportMapping.objects.get(code=mapping_code)
+        mapping_fields = mapping.mappingfield_set.all()
+        filepath = filename
+        if not os.path.isfile(filepath):
+            logger.warn(
+                "Interrup import {0}, is not a file '{1}'.".format(
+                    mapping_code, filepath))
+            action_log.update({"WARN1": "Interrup import {0}, is not a file '{1}'.".format(
+                    mapping_code, filepath)}) 
+            return (is_imported, action_log)
+
+        created = 0
+        with open(filepath, 'rb') as f:
+            reader = csv.reader(f, delimiter=str(mapping.scheiding_teken))
+            # read headers
+            headers = reader.next()
+            count = 0
+            for row in reader:
+                count += 1
+                inst = django_models.get_model('lizard_efcis',
+                                               mapping.tabel_naam)()
+                if activiteit and hasattr(inst.__class__, 'activiteit'):
+                    inst.activiteit = activiteit
+                try:
+                    self.set_data(inst, mapping_fields, row, headers)
+                    created = created + 1
+                except IntegrityError as ex:
+                    if ignore_duplicate_key:
+                        continue
+                    else:
+                        logger.error(ex.message)
+                        action_log.update({"IntegrityError%s" % count: ex.message})
+                        break
+                except Exception as ex:
+                    action_log.update({"Error%s" % count: ex.message})
+                    break
+                is_imported = True
+        action_log.update({"CREATED":  " %s objects." % created})
+        return (is_imported, action_log)

@@ -3,10 +3,25 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import os
+from datetime import datetime
+
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point
+from django.conf import settings
 
 from lizard_efcis import utils
+
+
+def get_attachment_path(instance, filename):
+    dt = datetime.now()
+    prefix = "{0}_{1}".format(
+        dt.date().isoformat(),
+        dt.time().isoformat()
+    )
+    return os.path.join(
+        settings.UPLOAD_DIR,
+        "{0}_{1}".format(prefix, filename))
 
 
 class Status(models.Model):
@@ -21,6 +36,11 @@ class Status(models.Model):
     STATUS_LIST = [ST1, ST2, ST3, ST4, ST5, ST6, ST7]
 
     naam = models.CharField(unique=True, max_length=50)
+
+    class Meta:
+        ordering = ['naam'] 
+        verbose_name = "status"
+        verbose_name_plural = "statussen"
 
     def __unicode__(self):
         return self.naam
@@ -463,7 +483,7 @@ class Opname(models.Model):
         verbose_name = "opname"
         verbose_name_plural = "opnames"
 
-
+    
 class ImportMapping(models.Model):
 
     tabellen = [
@@ -491,6 +511,59 @@ class ImportMapping(models.Model):
 
     def __unicode__(self):
         return self.code
+
+
+class ImportRun(models.Model):
+    AUTO = "Automatisch"
+    MANUAL = "Handmatig"
+
+    TYPE_CHOICES = (
+        (AUTO, AUTO),
+        (MANUAL, MANUAL)
+    )
+    name = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True)
+    type_run = models.CharField(
+        choices=TYPE_CHOICES,
+        max_length=20)
+    attachment = models.FileField(
+        upload_to=settings.UPLOAD_DIR,
+        blank=True,
+        null=True)
+    uploaded_by = models.CharField(
+        max_length=200,
+        blank=True)
+    uploaded_date = models.DateTimeField(
+        blank=True, 
+        null=True)
+    import_mapping = models.ForeignKey(
+        ImportMapping,
+        blank=True,
+        null=True)
+    action_log = models.TextField(
+        null=True,
+        blank=True)
+    validated = models.BooleanField(default=False)
+    imported = models.BooleanField(default=False)
+
+    def can_run_any_action(self):
+        """Check fields of import_run."""
+        can_run = True
+        messages = []
+        if not self.import_mapping:
+            messages.append("geen mapping")
+            can_run = False
+        if not self.attachment:
+            messages.append("geen bestand")
+            can_run = False
+        if self.attachment and not os.path.isfile(self.attachment.path):
+            messages.append(
+                "het bestand '%s' is niet "
+                "aanwezig." % self.attachment.path)
+            can_run = False
+        return (can_run, messages)
 
 
 class MappingField(models.Model):
