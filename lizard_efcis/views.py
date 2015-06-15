@@ -96,7 +96,7 @@ class ParameterGroepAPI(APIView):
         serializer = serializers.ParameterGroepSerializer(
             parametergroeps,
             many=True,
-            context={'request': request}
+            context={'request': self.request}
         )
         return Response(serializer.data)
 
@@ -139,7 +139,7 @@ class MeetnetAPI(APIView):
         serializer = serializers.MeetnetSerializer(
             meetnetten,
             many=True,
-            context={'request': request}
+            context={'request': self.request}
         )
         return Response(serializer.data)
 
@@ -361,8 +361,8 @@ class OpnamesAPI(FilteredOpnamesAPIView):
         sort_dirs = self.request.query_params.get('sort_dirs')
         ITEMS_PER_PAGE = 30
 
-        page = request.query_params.get('page')
-        page_size = request.query_params.get('page_size')
+        page = self.request.query_params.get('page')
+        page_size = self.request.query_params.get('page_size')
         filtered_opnames = self.filtered_opnames
 
         if loc_id_filter:
@@ -426,11 +426,11 @@ class OpnamesAPI(FilteredOpnamesAPIView):
             'wns__parameter__par_oms',
             )
 
-        if request.query_params.get('format') == 'csv':
+        if self.request.query_params.get('format') == 'csv':
             serializer = serializers.OpnameSerializer(
                 filtered_opnames,
                 many=True,
-                context={'request': request})
+                context={'request': self.request})
             return Response(serializer.data)
 
         paginator = Paginator(filtered_opnames, ITEMS_PER_PAGE)
@@ -443,7 +443,7 @@ class OpnamesAPI(FilteredOpnamesAPIView):
 
         serializer = serializers.PaginatedOpnameSerializer(
             opnames,
-            context={'request': request})
+            context={'request': self.request})
         return Response(serializer.data)
 
     def order_opnames(self, sort_fields, sort_dirs, filtered_opnames):
@@ -508,12 +508,12 @@ class GraphsAPI(FilteredOpnamesAPIView):
                         'efcis-line',
                         kwargs={'key': key},
                         format=format,
-                        request=request),
+                        request=self.request),
                     'boxplot-url': reverse(
                         'efcis-boxplot',
                         kwargs={'key': key},
                         format=format,
-                        request=request),
+                        request=self.request),
                 }
             lines.append(line)
 
