@@ -12,6 +12,9 @@ Changelog of lizard-efcis
 - Split graph API into a separate /graphs listing all lines (without data) and
   separate views for individual line and boxplot data.
 
+- Accepting POST in addition to GET in most of the API: this dirty hack works
+  around issues with too-long URLs.
+
 
 0.1 (2015-03-09)
 ----------------
