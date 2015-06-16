@@ -27,7 +27,8 @@ from rest_framework_csv.renderers import CSVRenderer
 from lizard_efcis import models
 from lizard_efcis import serializers
 
-MAX_GRAPH_RESULTS = 10000
+MAX_GRAPH_RESULTS = 20000
+GRAPH_KEY_SEPARATOR = '___'
 
 logger = logging.getLogger(__name__)
 
@@ -48,12 +49,8 @@ def api_root(request, format=None):
             'efcis-opname-list',
             request=request,
             format=format),
-        'lines': reverse(
-            'efcis-lines',
-            request=request,
-            format=format),
-        'boxplots': reverse(
-            'efcis-boxplots',
+        'graphs': reverse(
+            'efcis-graphs',
             request=request,
             format=format),
         'parametergroeps': reverse(
@@ -99,7 +96,7 @@ class ParameterGroepAPI(APIView):
         serializer = serializers.ParameterGroepSerializer(
             parametergroeps,
             many=True,
-            context={'request': request}
+            context={'request': self.request}
         )
         return Response(serializer.data)
 
@@ -142,7 +139,7 @@ class MeetnetAPI(APIView):
         serializer = serializers.MeetnetSerializer(
             meetnetten,
             many=True,
-            context={'request': request}
+            context={'request': self.request}
         )
         return Response(serializer.data)
 
@@ -150,16 +147,26 @@ class MeetnetAPI(APIView):
 class FilteredOpnamesAPIView(APIView):
     """Base view for returning opnames, filted by GET parameters."""
 
+    def post(self, request, format=None):
+        # Dirty hack around long URLs due to long query parameters.  Note that
+        # this only works for the FilteredOpnamesAPIView descendants!
+        return self.get(request, format=None)
+
+    def get_or_post_param(self, param):
+        # Collary to abovementioned POST hack.
+        return (self.request.query_params.get(param)
+                or self.request.data.get(param))
+
     @property
     def filtered_opnames(self):
         opnames = models.Opname.objects.all()
 
-        start_date = self.request.query_params.get('start_date')
-        end_date = self.request.query_params.get('end_date')
-        locations = self.request.query_params.get('locations')
-        parametergroeps = self.request.query_params.get('parametergroeps')
-        meetnets = self.request.query_params.get('meetnets')
-        parameter_ids = self.request.query_params.get('parameters')
+        start_date = self.get_or_post_param('start_date')
+        end_date = self.get_or_post_param('end_date')
+        locations = self.get_or_post_param('locations')
+        parametergroeps = self.get_or_post_param('parametergroeps')
+        meetnets = self.get_or_post_param('meetnets')
+        parameter_ids = self.get_or_post_param('parameters')
 
         if start_date:
             start_datetime = str_to_datetime(start_date)
@@ -255,7 +262,7 @@ class MapAPI(FilteredOpnamesAPIView):
 
     @cached_property
     def color_by(self):
-        from_query_param = self.request.query_params.get('color_by')
+        from_query_param = self.get_or_post_param('color_by')
         if from_query_param:
             return int(from_query_param)
 
@@ -350,22 +357,22 @@ class OpnamesAPI(FilteredOpnamesAPIView):
 
     def get(self, request, format=None):
         # TODO: refactor pagination stuff with djangorestframework 3.1
-        loc_id_filter = self.request.query_params.get('loc_id')
-        wns_oms_filter = self.request.query_params.get('wns_oms')
-        loc_oms_filter = self.request.query_params.get('loc_oms')
-        activiteit_filter = self.request.query_params.get('activiteit')
-        detectiegrens_filter = self.request.query_params.get('detectiegrens')
-        waarde_n_filter = self.request.query_params.get('waarde_n')
-        waarde_a_filter = self.request.query_params.get('waarde_a')
-        eenheid_oms_filter = self.request.query_params.get('eenheid_oms')
-        hoedanigheid_oms_filter = self.request.query_params.get('hoed_oms')
-        compartiment_oms_filter = self.request.query_params.get('comp_oms')
-        sort_fields = self.request.query_params.get('sort_fields')
-        sort_dirs = self.request.query_params.get('sort_dirs')
+        loc_id_filter = self.get_or_post_param('loc_id')
+        wns_oms_filter = self.get_or_post_param('wns_oms')
+        loc_oms_filter = self.get_or_post_param('loc_oms')
+        activiteit_filter = self.get_or_post_param('activiteit')
+        detectiegrens_filter = self.get_or_post_param('detectiegrens')
+        waarde_n_filter = self.get_or_post_param('waarde_n')
+        waarde_a_filter = self.get_or_post_param('waarde_a')
+        eenheid_oms_filter = self.get_or_post_param('eenheid_oms')
+        hoedanigheid_oms_filter = self.get_or_post_param('hoed_oms')
+        compartiment_oms_filter = self.get_or_post_param('comp_oms')
+        sort_fields = self.get_or_post_param('sort_fields')
+        sort_dirs = self.get_or_post_param('sort_dirs')
         ITEMS_PER_PAGE = 30
 
-        page = request.query_params.get('page')
-        page_size = request.query_params.get('page_size')
+        page = self.get_or_post_param('page')
+        page_size = self.get_or_post_param('page_size')
         filtered_opnames = self.filtered_opnames
 
         if loc_id_filter:
@@ -429,11 +436,11 @@ class OpnamesAPI(FilteredOpnamesAPIView):
             'wns__parameter__par_oms',
             )
 
-        if request.query_params.get('format') == 'csv':
+        if self.get_or_post_param('format') == 'csv':
             serializer = serializers.OpnameSerializer(
                 filtered_opnames,
                 many=True,
-                context={'request': request})
+                context={'request': self.request})
             return Response(serializer.data)
 
         paginator = Paginator(filtered_opnames, ITEMS_PER_PAGE)
@@ -446,7 +453,7 @@ class OpnamesAPI(FilteredOpnamesAPIView):
 
         serializer = serializers.PaginatedOpnameSerializer(
             opnames,
-            context={'request': request})
+            context={'request': self.request})
         return Response(serializer.data)
 
     def order_opnames(self, sort_fields, sort_dirs, filtered_opnames):
@@ -484,83 +491,105 @@ class OpnamesAPI(FilteredOpnamesAPIView):
         return filtered_opnames
 
 
-class LinesAPI(FilteredOpnamesAPIView):
-    """API to return lines for a graph."""
+class GraphsAPI(FilteredOpnamesAPIView):
+    """API to return available graph lines."""
 
     def get(self, request, format=None):
         numerical_opnames = self.filtered_opnames.exclude(waarde_n=None)
         all_points = numerical_opnames.values(
             'wns__wns_code', 'wns__wns_oms', 'wns__parameter__par_code',
             'wns__eenheid__eenheid',
-            'locatie__loc_id', 'locatie__loc_oms',
-            'datum', 'tijd', 'waarde_n')[:MAX_GRAPH_RESULTS]
+            'locatie__loc_id', 'locatie__loc_oms')[:MAX_GRAPH_RESULTS]
 
         def _key(point):
-            return '%s_%s' % (point['wns__wns_code'], point['locatie__loc_id'])
+            return '%s%s%s' % (point['wns__wns_code'],
+                               GRAPH_KEY_SEPARATOR,
+                               point['locatie__loc_id'])
 
         lines = []
         for key, group in groupby(all_points, _key):
             points = list(group)
             first = points[0]
-            data = [{'datetime': '%sT%s.000Z' % (point['datum'], point['tijd']),
-                     'value': point['waarde_n']} for point in points]
-            line = {'wns': first['wns__wns_oms'],
-                    'location': first['locatie__loc_oms'],
-                    'unit': first['wns__eenheid__eenheid'],
-                    'data': data,
-                    'id': key}
-            lines.append(line)
-
-        if len(all_points) == MAX_GRAPH_RESULTS:
-            del(lines[-1])
-            logger.info(
-                "Capped the number of points to %s and removed the last "
-                "(=possibly incomplete) line, %s remaining",
-                MAX_GRAPH_RESULTS, len(lines))
-        return Response(lines)
-
-
-class BoxplotsAPI(FilteredOpnamesAPIView):
-    """API to return the Boxplot values for a graph"""
-
-    def get(self, request, format=None):
-        numerical_opnames = self.filtered_opnames.exclude(waarde_n=None)
-
-        all_points = numerical_opnames.values(
-            'wns__wns_code', 'wns__wns_oms', 'wns__parameter__par_code',
-            'wns__eenheid__eenheid',
-            'locatie__loc_id', 'locatie__id', 'locatie__loc_oms',
-            'datum', 'tijd', 'waarde_n')[:MAX_GRAPH_RESULTS]
-
-        def _key(point):
-            return '%s_%s' % (point['wns__wns_code'], point['locatie__loc_id'])
-
-        lines = []
-        for key, group in groupby(all_points, _key):
-            points = list(group)
-            first = points[0]
-
-            values = [point['waarde_n'] for point in points]
-            boxplot_data = {'mean': np.mean(values),
-                     'median': np.median(values),
-                     'min': np.min(values),
-                     'max': np.max(values),
-                     'q1': np.percentile(values, 25),
-                     'q3': np.percentile(values, 75),
-                     'p10': np.percentile(values, 10),
-                     'p90': np.percentile(values, 90)}
-
             line = {'wns': first['wns__wns_oms'],
                     'location': first['locatie__loc_oms'],
                     'unit': first['wns__eenheid__eenheid'],
                     'id': key,
-                    'boxplot_data': boxplot_data}
+                    'line-url': reverse(
+                        'efcis-line',
+                        kwargs={'key': key},
+                        format=format,
+                        request=self.request),
+                    'boxplot-url': reverse(
+                        'efcis-boxplot',
+                        kwargs={'key': key},
+                        format=format,
+                        request=self.request),
+                }
             lines.append(line)
 
-        if len(all_points) == MAX_GRAPH_RESULTS:
-            del(lines[-1])
-            logger.info(
-                "Capped the number of points to %s and removed the last "
-                "(=possibly incomplete) boxplot, %s remaining",
-                MAX_GRAPH_RESULTS, len(lines))
         return Response(lines)
+
+
+class LineAPI(FilteredOpnamesAPIView):
+    """API to return line for a single graph."""
+
+    def get(self, request, key=None, format=None):
+        numerical_opnames = self.filtered_opnames.exclude(waarde_n=None)
+        wns_code, loc_id = key.split(GRAPH_KEY_SEPARATOR)
+        our_opnames = numerical_opnames.filter(
+            wns__wns_code=wns_code, locatie__loc_id=loc_id)
+        points = our_opnames.values(
+            'wns__wns_oms',
+            'wns__parameter__par_code',
+            'wns__eenheid__eenheid',
+            'locatie__loc_oms',
+            'datum',
+            'tijd',
+            'waarde_n')
+
+        points = list(points)
+        first = points[0]
+        data = [{'datetime': '%sT%s.000Z' % (point['datum'], point['tijd']),
+                 'value': point['waarde_n']} for point in points]
+        line = {'wns': first['wns__wns_oms'],
+                'location': first['locatie__loc_oms'],
+                'unit': first['wns__eenheid__eenheid'],
+                'data': data,
+                'id': key}
+        return Response(line)
+
+
+class BoxplotAPI(FilteredOpnamesAPIView):
+    """API to return the Boxplot values for a single graph"""
+
+    def get(self, request, key=None, format=None):
+        numerical_opnames = self.filtered_opnames.exclude(waarde_n=None)
+        wns_code, loc_id = key.split(GRAPH_KEY_SEPARATOR)
+        our_opnames = numerical_opnames.filter(
+            wns__wns_code=wns_code, locatie__loc_id=loc_id)
+        points = our_opnames.values(
+            'wns__wns_oms',
+            'wns__parameter__par_code',
+            'wns__eenheid__eenheid',
+            'locatie__loc_oms',
+            'datum',
+            'tijd',
+            'waarde_n')
+
+        points = list(points)
+        first = points[0]
+        values = [point['waarde_n'] for point in points]
+        boxplot_data = {'mean': np.mean(values),
+                        'median': np.median(values),
+                        'min': np.min(values),
+                        'max': np.max(values),
+                        'q1': np.percentile(values, 25),
+                        'q3': np.percentile(values, 75),
+                        'p10': np.percentile(values, 10),
+                        'p90': np.percentile(values, 90)}
+        line = {'wns': first['wns__wns_oms'],
+                'location': first['locatie__loc_oms'],
+                'unit': first['wns__eenheid__eenheid'],
+                'boxplot_data': boxplot_data,
+                'id': key}
+        return Response(line)
