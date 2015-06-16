@@ -664,7 +664,7 @@ class ScatterplotSecondAxisAPI(FilteredOpnamesAPIView):
 
 
 class ScatterplotGraphAPI(FilteredOpnamesAPIView):
-    """API to return second axis lines for a single graph."""
+    """API to return scatterplot x/y data for two axes."""
 
     def get(self, request, axis1_key=None, axis2_key=None, format=None):
         numerical_opnames = self.filtered_opnames.exclude(waarde_n=None)
