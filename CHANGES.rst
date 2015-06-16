@@ -15,6 +15,8 @@ Changelog of lizard-efcis
 - Accepting POST in addition to GET in most of the API: this dirty hack works
   around issues with too-long URLs.
 
+- Added scatterplot endpoints.
+
 
 0.1 (2015-03-09)
 ----------------
