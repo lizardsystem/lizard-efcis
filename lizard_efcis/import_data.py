@@ -44,7 +44,7 @@ class DataImport(object):
         self.import_csv('meetnet.csv', 'meetnet')
         self.import_csv('locaties_met_meetnet.csv', 'locaties')
         self.import_csv('hdsr_biologie.csv', 'activiteit-bio')
-        
+
     def _datestr_to_date(self, datestr):
         dt = None
         try:
@@ -504,7 +504,7 @@ class DataImport(object):
                 # omit spaces
                 val_space_omitted = val_raw
                 if val_space_omitted:
-                    #val_space_omitted = val_space_omitted.replace(' ', '')
+                    # val_space_omitted = val_space_omitted.replace(' ', '')
                     val_space_omitted = val_space_omitted.strip(' ')
                 value = self._get_foreignkey_inst(
                     val_space_omitted,
@@ -518,8 +518,9 @@ class DataImport(object):
                 value = val_raw
 
             if isinstance(
-                inst._meta.get_field(mapping_field.db_field), 
-                ManyToManyField):
+                inst._meta.get_field(mapping_field.db_field),
+                ManyToManyField
+            ):
                 inst.save()
                 values = list(inst._meta.get_field(
                     mapping_field.db_field).value_from_object(inst))
@@ -540,15 +541,17 @@ class DataImport(object):
                     'alleen 1-veld. scheiding_teken: "{0}", header: "{1}"'),
             '005': 'Mapping bestaat niet. "{}"',
             '006': 'Mapping bevat het veld.',
-            '007': 'Mapping file-field "{1}" komt niet voor in csv-header "{2}".',
-            '008': 'Data Integriteit: melding: {}',
-            '009': ''}
+            '007': 'Mapping file-field "{1}" komt niet voor in '
+                   'csv-header "{2}".',
+            '008': 'Aantal kolommen in de rij nr. {0} komt niet '
+                   'overeen met het aantal headers',
+            '009': 'Data Integriteit: melding: {}',
+            '010': ''}
         result = {}
         is_valid = True
         logger.info("Validatie {}.".format(filename))
         # 001
         code = "001"
-        #filepath = os.path.join(self.data_dir, filename)
         filepath = filename
         if not os.path.isfile(filepath):
             logger.warn(
@@ -614,6 +617,13 @@ class DataImport(object):
                         mapping.scheiding_teken.join(headers))}
                     )
                     is_valid = False
+            code = '008'
+            for row in reader:
+                if len(row) != len(headers):
+                    result.update({code: roles[code].format(
+                        reader.line_num)}
+                    )
+                    is_valid = False
         #     for row in reader:
         #         code = "008"
         #         val_raw = row[
@@ -677,7 +687,6 @@ class DataImport(object):
                           activiteit=None, ignore_duplicate_key=True):
         action_log = {}
         is_imported = False
-        
         mapping = models.ImportMapping.objects.get(code=mapping_code)
         mapping_fields = mapping.mappingfield_set.all()
         filepath = filename
@@ -685,8 +694,9 @@ class DataImport(object):
             logger.warn(
                 "Interrup import {0}, is not a file '{1}'.".format(
                     mapping_code, filepath))
-            action_log.update({"WARN1": "Interrup import {0}, is not a file '{1}'.".format(
-                    mapping_code, filepath)}) 
+            action_log.update(
+                {"WARN1": "Interrup import {0}, is not a file '{1}'.".format(
+                    mapping_code, filepath)})
             return (is_imported, action_log)
 
         created = 0
@@ -709,11 +719,12 @@ class DataImport(object):
                         continue
                     else:
                         logger.error(ex.message)
-                        action_log.update({"IntegrityError%s" % count: ex.message})
+                        action_log.update(
+                            {"IntegrityError%s" % count: ex.message})
                         break
                 except Exception as ex:
                     action_log.update({"Error%s" % count: ex.message})
                     break
-                is_imported = True
+            is_imported = True
         action_log.update({"CREATED":  " %s objects." % created})
         return (is_imported, action_log)

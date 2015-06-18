@@ -38,7 +38,7 @@ class Status(models.Model):
     naam = models.CharField(unique=True, max_length=50)
 
     class Meta:
-        ordering = ['naam'] 
+        ordering = ['naam']
         verbose_name = "status"
         verbose_name_plural = "statussen"
 
@@ -483,7 +483,7 @@ class Opname(models.Model):
         verbose_name = "opname"
         verbose_name_plural = "opnames"
 
-    
+
 class ImportMapping(models.Model):
 
     tabellen = [
@@ -537,7 +537,7 @@ class ImportRun(models.Model):
         max_length=200,
         blank=True)
     uploaded_date = models.DateTimeField(
-        blank=True, 
+        blank=True,
         null=True)
     import_mapping = models.ForeignKey(
         ImportMapping,
@@ -552,6 +552,7 @@ class ImportRun(models.Model):
         Activiteit,
         blank=True,
         null=True)
+    actief = models.BooleanField(default=True)
 
     def can_run_any_action(self):
         """Check fields of import_run."""
