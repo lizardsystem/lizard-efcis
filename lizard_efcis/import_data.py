@@ -7,6 +7,8 @@ from django.conf import settings
 from django.db import models as django_models
 from django.db import IntegrityError
 from django.db.models import ManyToManyField
+from django.db import transaction
+from django.core.exceptions import ValidationError
 
 from lizard_efcis import models
 
@@ -26,6 +28,7 @@ class DataImport(object):
     '''
 
     def __init__(self):
+        self.log = False
         self.data_dir = os.path.join(
             settings.DATA_IMPORT_DIR, 'domain')
 
@@ -140,24 +143,22 @@ class DataImport(object):
         else:
             return None
 
-    def _get_wns(self, wnsoms):
-        wnses = models.WNS.objects.filter(
-            wns_oms__iexact=wnsoms)
-        if wnses.exists():
-            return wnses[0]
-        else:
-            logger.warn("WNS {} does not exist.".format(wnsoms))
-            return None
-
     def _get_foreignkey_inst(
             self, val_raw, datatype, foreignkey_field, log=False):
         class_inst = django_models.get_model('lizard_efcis', datatype)
         inst = None
         try:
-            inst = class_inst.objects.get(
-                **{foreignkey_field: val_raw})
+            if datatype == 'WNS' and foreignkey_field == 'wns_oms':
+                if self.log:
+                    logger.info("get wns %s %s" % (
+                        datatype, ''.join(val_raw.split(' '))))
+                inst = class_inst.objects.get(
+                    **{'wns_oms_space_less': ''.join(val_raw.split(' '))})
+            else:
+                inst = class_inst.objects.get(
+                    **{foreignkey_field: val_raw})
         except Exception as ex:
-            if log:
+            if self.log:
                 logger.error(
                     '{0}, Value: "{1}"'.format(ex.message, val_raw))
         return inst
@@ -511,6 +512,8 @@ class DataImport(object):
                     datatype,
                     mapping_field.foreignkey_field)
                 if value is None:
+                    if self.log:
+                        logger.error("Value is None.")
                     continue
             else:
                 if val_raw == '':
@@ -527,8 +530,10 @@ class DataImport(object):
                 values.append(value)
                 setattr(inst, mapping_field.db_field, values)
             else:
+                if self.log:
+                    logger.info("setattr %s, %s, %s." % (mapping_field.db_field, value, type(value)))
                 setattr(inst, mapping_field.db_field, value)
-        inst.save()
+
 
     def validate_csv(self, filename, mapping_code, ignore_duplicate_key=True):
         """TODO create separate function per validation."""
@@ -546,7 +551,10 @@ class DataImport(object):
             '008': 'Aantal kolommen in de rij nr. {0} komt niet '
                    'overeen met het aantal headers',
             '009': 'Data Integriteit: melding: {}',
-            '010': ''}
+            '010': 'Aantal rijen = {}',
+            '011': '{1} "{2}" niet in domain tabel.',
+        }
+
         result = {}
         is_valid = True
         logger.info("Validatie {}.".format(filename))
@@ -555,7 +563,7 @@ class DataImport(object):
         filepath = filename
         if not os.path.isfile(filepath):
             logger.warn(
-                "Interrup validatie, is not a file '{}'.".format(
+                "Stop validatie, dir is geen bestand '{}'.".format(
                     filepath))
             result.update({code: roles[code].format(filepath)})
             is_valid = False
@@ -618,35 +626,28 @@ class DataImport(object):
                     )
                     is_valid = False
             code = '008'
+            counter = 0
             for row in reader:
+                counter += 1
                 if len(row) != len(headers):
                     result.update({code: roles[code].format(
                         reader.line_num)}
                     )
                     is_valid = False
-        #     for row in reader:
-        #         code = "008"
-        #         val_raw = row[
-        #             headers.index(mapping_field.file_field)].strip(' "')
-        #         # omit spaces
-        #         val_raw = val_raw.replace(' ', '')
-        #         print (val_raw, mapping_field)
-        #         inst = self._get_foreignkey_inst(
-        #             val_raw,
-        #             mapping_field.db_datatype,
-        #             mapping_field.foreignkey_field)
-        #         if inst is None:
-        #             result.update({
-        #                 code: "{0} '{1}' niet in domain-tabel.".format(
-        #                     mapping_field.db_datatype, val_raw)})
-        #         try:
-        #             inst = django_models.get_model('lizard_efcis',
-        #                                            mapping.tabel_naam)()
-        #             self.set_data(inst, mapping_fields, row, headers)
-        #             inst.validate_unique()
-        #         except Exception as ex:
-        #             if not ignore_duplicate_key:
-        #                 result.update({code: ex.message()})
+                inst = django_models.get_model(
+                'lizard_efcis',
+                mapping.tabel_naam)()
+                self.set_data(inst, mapping_fields, row, headers)
+                result.update({'Line nr. %d' % reader.line_num: 'Data Integriteit Controlle.'})
+                try:
+                    inst.full_clean()
+                except ValidationError as e:
+                    result.update({'%d_%d' % (reader.line_num, 12): e.message})
+                    is_valid = False
+            
+            code = '010'
+            result.update({code: roles[code].format(
+                counter)})
         return (is_valid, result)
 
     def import_csv(self, filename, mapping_code,
@@ -657,7 +658,7 @@ class DataImport(object):
         filepath = os.path.join(self.data_dir, filename)
         if not os.path.isfile(filepath):
             logger.warn(
-                "Interrup import {0}, is not a file '{1}'.".format(
+                "Stop import {0}, dit is geen file '{1}'.".format(
                     mapping_code, filepath))
             return
 
@@ -687,19 +688,14 @@ class DataImport(object):
                           activiteit=None, ignore_duplicate_key=True):
         action_log = {}
         is_imported = False
+        
         mapping = models.ImportMapping.objects.get(code=mapping_code)
         mapping_fields = mapping.mappingfield_set.all()
         filepath = filename
-        if not os.path.isfile(filepath):
-            logger.warn(
-                "Interrup import {0}, is not a file '{1}'.".format(
-                    mapping_code, filepath))
-            action_log.update(
-                {"WARN1": "Interrup import {0}, is not a file '{1}'.".format(
-                    mapping_code, filepath)})
-            return (is_imported, action_log)
 
         created = 0
+        opnames_bulk = []
+        bulk_size = 500
         with open(filepath, 'rb') as f:
             reader = csv.reader(f, delimiter=str(mapping.scheiding_teken))
             # read headers
@@ -709,22 +705,47 @@ class DataImport(object):
                 count += 1
                 inst = django_models.get_model('lizard_efcis',
                                                mapping.tabel_naam)()
-                if activiteit and hasattr(inst.__class__, 'activiteit'):
-                    inst.activiteit = activiteit
                 try:
                     self.set_data(inst, mapping_fields, row, headers)
-                    created = created + 1
+                    if hasattr(inst.__class__, 'activiteit') and not hasattr(inst, 'activiteit'):
+                        setattr(inst, 'activiteit', activiteit)
+                    if mapping.tabel_naam == 'Opname':
+                        opnames_bulk.append(inst)
+                        if len(opnames_bulk) >= bulk_size:
+                            models.Opname.objects.bulk_create(opnames_bulk)
+                            created += len(opnames_bulk)
+                            opnames_bulk = []
+                    else:
+                        inst.save()
+                        created += 1
                 except IntegrityError as ex:
                     if ignore_duplicate_key:
+                        if self.log:
+                            logger.error(ex.message)
                         continue
                     else:
                         logger.error(ex.message)
-                        action_log.update(
-                            {"IntegrityError%s" % count: ex.message})
+                        action_log.update({"IntegrityError%s" % count: ex.message})
                         break
                 except Exception as ex:
                     action_log.update({"Error%s" % count: ex.message})
+                    logger.error("error8 %s %s." % (ex.message, inst.wns.id))
                     break
+            if len(opnames_bulk) > 0:
+                created += self.save_opnames_bulk(opnames_bulk, action_log)
             is_imported = True
         action_log.update({"CREATED":  " %s objects." % created})
         return (is_imported, action_log)
+
+    def save_opnames_bulk(self, opnames_bulk, action_log):
+        count = 0
+        try:
+            models.Opname.objects.bulk_create(opnames_bulk)
+            count = len(opnames_bulk)
+        except IntegrityError as ex:
+            logger.error(ex.message)
+            action_log.update({"IntegrityError%s" % count: ex.message})
+        except Exception as ex:
+            action_log.update({"Error%s" % count: ex.message})
+            logger.error(ex.message)
+        return count

@@ -69,6 +69,7 @@ def import_data(username, importrun=None, *args, **options):
     all active automatic import_runs"""
     import_runs = []
     data_import = DataImport()
+    data_import.log = False
     if importrun:
         import_runs.append(importrun)
     else:
@@ -84,11 +85,6 @@ def import_data(username, importrun=None, *args, **options):
             import_run.import_mapping.code,
             activiteit=import_run.activiteit
         )
-        print ('result for %s %s %s' % (
-            import_run.attachment.path,
-            import_run.import_mapping.code,
-            import_run.activiteit
-        ))
         for code, message in result[1].iteritems():
             action_log += '%s: %s\n' % (code, message)
         action_log += 'Eind import, %s.\n' % (
