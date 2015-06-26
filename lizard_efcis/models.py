@@ -229,7 +229,7 @@ class Locatie(models.Model):
         return self.loc_oms
 
     def photo_url(self):
-        if not self.loc_id in locations_with_photo():
+        if self.loc_id not in locations_with_photo():
             return
         return settings.MEDIA_URL + 'photos/' + self.loc_id + '.jpg'
 
