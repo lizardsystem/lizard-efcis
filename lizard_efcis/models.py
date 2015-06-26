@@ -3,12 +3,14 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import os
 from datetime import datetime
+import glob
+import os
 
+from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point
-from django.conf import settings
+from django.core.cache import cache
 
 from lizard_efcis import utils
 
@@ -22,6 +24,23 @@ def get_attachment_path(instance, filename):
     return os.path.join(
         settings.UPLOAD_DIR,
         "{0}_{1}".format(prefix, filename))
+
+
+def locations_with_photo():
+    CACHE_KEY = 'EFCIS_PHOTO_LOCATION_IDS_5'
+    result = cache.get(CACHE_KEY)
+    if result is None:
+        filepaths = glob.glob(os.path.join(
+            settings.MEDIA_ROOT,
+            'photos',
+            '*.jpg'))
+        filenames = [os.path.basename(filepath)
+                     for filepath in filepaths]
+        result = [os.path.splitext(filename)[0]
+                  for filename in filenames]
+        cache.set(CACHE_KEY, result)
+        # By default, caching happens for 5 minutes.
+    return result
 
 
 class Status(models.Model):
@@ -38,7 +57,7 @@ class Status(models.Model):
     naam = models.CharField(unique=True, max_length=50)
 
     class Meta:
-        ordering = ['naam'] 
+        ordering = ['naam']
         verbose_name = "status"
         verbose_name_plural = "statussen"
 
@@ -208,6 +227,11 @@ class Locatie(models.Model):
 
     def __unicode__(self):
         return self.loc_oms
+
+    def photo_url(self):
+        if not self.loc_id in locations_with_photo():
+            return
+        return settings.MEDIA_URL + 'photos/' + self.loc_id + '.jpg'
 
 
 class ParameterGroep(models.Model):
@@ -483,7 +507,7 @@ class Opname(models.Model):
         verbose_name = "opname"
         verbose_name_plural = "opnames"
 
-    
+
 class ImportMapping(models.Model):
 
     tabellen = [
@@ -537,7 +561,7 @@ class ImportRun(models.Model):
         max_length=200,
         blank=True)
     uploaded_date = models.DateTimeField(
-        blank=True, 
+        blank=True,
         null=True)
     import_mapping = models.ForeignKey(
         ImportMapping,
