@@ -307,13 +307,13 @@ class MapAPI(FilteredOpnamesAPIView):
                 values = [opname['waarde_n'] for opname in opnames_per_locatie]
 
                 boxplot_data = {'mean': np.mean(values),
-                         'median': np.median(values),
-                         'min': np.min(values),
-                         'max': np.max(values),
-                         'q1': np.percentile(values, 25),
-                         'q3': np.percentile(values, 75),
-                         'p10': np.percentile(values, 10),
-                         'p90': np.percentile(values, 90)}
+                                'median': np.median(values),
+                                'min': np.min(values),
+                                'max': np.max(values),
+                                'q1': np.percentile(values, 25),
+                                'q3': np.percentile(values, 75),
+                                'p10': np.percentile(values, 10),
+                                'p90': np.percentile(values, 90)}
 
                 if not opnames_per_locatie:
                     continue
