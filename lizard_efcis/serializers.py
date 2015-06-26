@@ -142,7 +142,7 @@ class OpnameDetailSerializer(OpnameSerializer):
         read_only=True,
         source='wns.wns_code')
 
-    
+
     def get_validatiestatus(self, obj):
         return 'ok'
 
@@ -150,7 +150,7 @@ class OpnameDetailSerializer(OpnameSerializer):
         meetnetten = obj.locatie.meetnet.all().values_list(
             'code', flat=True)
         return ', '.join(meetnetten)
-        
+
     class Meta:
         model = models.Opname
         fields = ('wns_oms', 'wns_code', 'activiteit', 'loc_id',
@@ -211,6 +211,6 @@ class MapSerializer(gis_serializers.GeoFeatureModelSerializer):
 
     class Meta:
         model = models.Locatie
-        fields = ('id', 'loc_id', 'loc_oms', 'color_value', 'latest_value', 
-            'latest_datetime', 'boxplot_data')
+        fields = ('id', 'loc_id', 'loc_oms', 'color_value', 'latest_value',
+                  'latest_datetime', 'boxplot_data')
         geo_field = 'geo_punt_1'
