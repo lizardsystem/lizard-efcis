@@ -212,5 +212,5 @@ class MapSerializer(gis_serializers.GeoFeatureModelSerializer):
     class Meta:
         model = models.Locatie
         fields = ('id', 'loc_id', 'loc_oms', 'color_value', 'latest_value',
-                  'latest_datetime', 'boxplot_data')
+                  'latest_datetime', 'boxplot_data', 'photo_url')
         geo_field = 'geo_punt_1'
