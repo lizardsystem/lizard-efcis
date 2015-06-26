@@ -17,6 +17,10 @@ Changelog of lizard-efcis
 
 - Added scatterplot endpoints.
 
+- Looking for photos with filenames (minus ``.jpg``) that match a Location's
+  ``loc_id`` field. The photos should be placed in a ``photos/`` subdirectory
+  of the ``MEDIA_ROOT``.
+
 
 0.1 (2015-03-09)
 ----------------
