@@ -1,4 +1,3 @@
-import numpy as np
 from rest_framework import pagination
 from rest_framework import serializers
 from rest_framework_gis import serializers as gis_serializers
@@ -8,6 +7,7 @@ from lizard_efcis import models
 
 class ParameterGroepSerializer(serializers.HyperlinkedModelSerializer):
     text = serializers.CharField(source='code')
+
     class Meta:
         model = models.ParameterGroep
         fields = ('id', 'code', 'children', 'text')
@@ -22,6 +22,7 @@ class ParameterSerializer(serializers.HyperlinkedModelSerializer):
 
 class MeetnetSerializer(serializers.HyperlinkedModelSerializer):
     text = serializers.CharField(source='code')
+
     class Meta:
         model = models.Meetnet
         fields = ('id', 'code', 'children', 'text')
@@ -142,7 +143,6 @@ class OpnameDetailSerializer(OpnameSerializer):
         read_only=True,
         source='wns.wns_code')
 
-    
     def get_validatiestatus(self, obj):
         return 'ok'
 
@@ -150,7 +150,7 @@ class OpnameDetailSerializer(OpnameSerializer):
         meetnetten = obj.locatie.meetnet.all().values_list(
             'code', flat=True)
         return ', '.join(meetnetten)
-        
+
     class Meta:
         model = models.Opname
         fields = ('wns_oms', 'wns_code', 'activiteit', 'loc_id',
@@ -158,7 +158,7 @@ class OpnameDetailSerializer(OpnameSerializer):
                   'detectiegrens', 'par_code',
                   'par_oms',
                   'validatiestatus',
-                  'datum', 'tijd', 'meetnet','x1', 'y1', 'x2', 'y2',
+                  'datum', 'tijd', 'meetnet', 'x1', 'y1', 'x2', 'y2',
                   'waterlichaam', 'watertype', 'status_krw',
                   'activiteit_type', 'uitvoerende',
                   'act_oms', 'met_mafa', 'met_mafy', 'met_fyt',
@@ -211,6 +211,6 @@ class MapSerializer(gis_serializers.GeoFeatureModelSerializer):
 
     class Meta:
         model = models.Locatie
-        fields = ('id', 'loc_id', 'loc_oms', 'color_value', 'latest_value', 
-            'latest_datetime', 'boxplot_data')
+        fields = ('id', 'loc_id', 'loc_oms', 'color_value', 'latest_value',
+                  'latest_datetime', 'boxplot_data', 'photo_url')
         geo_field = 'geo_punt_1'
