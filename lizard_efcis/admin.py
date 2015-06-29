@@ -11,34 +11,34 @@ from lizard_efcis import models
 from lizard_efcis import tasks
 
 
-def validate_data(modeladmin, request, queryset):
+def check_file(modeladmin, request, queryset):
 
     for import_run in queryset:
         can_run, warn_messages = import_run.can_run_any_action()
         if not can_run:
             messages.warning(
                 request,
-                "Validatie van '%s' NIET uitgevoerd: '%s'." %
+                "Controle van '%s' NIET uitgevoerd: '%s'." %
                 (import_run.name, ', '.join(warn_messages)))
             continue
         if settings.CELERY_MIN_FILE_SIZE < (
                 import_run.attachment.size / 1024 / 1024):
-            task_result = tasks.validate.delay(
+            task_result = tasks.check_file.delay(
                 request.user.get_full_name(),
                 import_run=import_run)
             messages.success(
                 request,
-                "Validatie wordt uitgevoerd op achtergrond, "
+                "Controle wordt uitgevoerd op achtergrond, "
                 "want het bestand is te groot '%s', status '%s'." % (
                     import_run.name, task_result.status))
         else:
-            tasks.validate(
+            tasks.check_file(
                 request.user.get_full_name(),
                 import_run=import_run)
             messages.success(
                 request,
-                "Validatie van '%s' is uitgevoerd." % import_run.name)
-validate_data.short_description = "Valideer geselecteerde imports"
+                "Controle van '%s' is uitgevoerd." % import_run.name)
+check_file.short_description = "Controleer geselecteerde imports"
 
 
 def import_csv(modeladmin, request, queryset):
@@ -88,7 +88,7 @@ class ImportRunAdmin(admin.ModelAdmin):
                     'imported']
     list_filter = ['type_run', 'uploaded_by']
     search_fields = ['name', 'uploaded_by', 'attachment', 'activiteit']
-    actions = [validate_data, import_csv]
+    actions = [check_file, import_csv]
     readonly_fields = ['validated', 'imported']
 
 

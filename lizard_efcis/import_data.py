@@ -11,6 +11,7 @@ from django.db import transaction
 from django.core.exceptions import ValidationError
 
 from lizard_efcis import models
+from lizard_efcis import utils
 
 logger = logging.getLogger(__name__)
 
@@ -533,122 +534,137 @@ class DataImport(object):
                 if self.log:
                     logger.info("setattr %s, %s, %s." % (mapping_field.db_field, value, type(value)))
                 setattr(inst, mapping_field.db_field, value)
+    
+    def save_action_log(self, import_run, message): 
+        import_run.action_log = utils.add_text_to_top(
+                import_run.action_log,
+                message)
+        import_run.save(force_update=True, update_fields=['action_log'])
 
-
-    def validate_csv(self, filename, mapping_code, ignore_duplicate_key=True):
+    def check_csv(self, import_run, datetime_format, ignore_duplicate_key=True):
         """TODO create separate function per validation."""
-        roles = {
-            '001': 'Het bestand bestaat niet. "{}"',
-            '002': 'Bestand is leeg. "{}"',
-            '003': ('Scheidingsteken moet 1-character string zijn. '
-                    'mapping_code: "{0}, scheiding_teken: "{1}"'),
-            '004': ('Scheidingsteken is onjuist of het header bevat '
-                    'alleen 1-veld. scheiding_teken: "{0}", header: "{1}"'),
-            '005': 'Mapping bestaat niet. "{}"',
-            '006': 'Mapping bevat het veld.',
-            '007': 'Mapping file-field "{1}" komt niet voor in '
-                   'csv-header "{2}".',
-            '008': 'Aantal kolommen in de rij nr. {0} komt niet '
-                   'overeen met het aantal headers',
-            '009': 'Data Integriteit: melding: {}',
-            '010': 'Aantal rijen = {}',
-            '011': '{1} "{2}" niet in domain tabel.',
-        }
+        filepath = import_run.attachment.path
+        mapping_code = import_run.import_mapping.code
 
-        result = {}
         is_valid = True
-        logger.info("Validatie {}.".format(filename))
-        # 001
-        code = "001"
-        filepath = filename
+        logger.info("File check {}.".format(filepath))
         if not os.path.isfile(filepath):
             logger.warn(
                 "Stop validatie, dir is geen bestand '{}'.".format(
                     filepath))
-            result.update({code: roles[code].format(filepath)})
+            message = "%s: %s %s.\n" % (
+                datetime.now().strftime(datetime_format),
+                "Het bestand bestaat niet",
+                filepath)
+            self.save_action_log(import_run, message)
             is_valid = False
-        # 005
-        code = "005"
+        
+        # check mapping not None
         mappings = models.ImportMapping.objects.filter(code=mapping_code)
         mapping = None
         if mappings.exists():
             mapping = mappings[0]
         else:
-            result.update({code: roles[code].format(mapping_code)})
+            message = "%s: %s %s.\n" % (
+                datetime.now().strftime(datetime_format),
+                "Mapping bestaat niet",
+                mapping_code)
+            self.save_action_log(import_run, message)
             is_valid = False
 
-        if result:
-            return (is_valid, result)
+        if not is_valid:
+            return is_valid
 
-        # 006
-        code = "006"
+        # Check or mapping contains fields
         mapping_fields = mapping.mappingfield_set.all()
         if mapping_fields.count() <= 0:
-            result.update({code: roles[code]})
+            message = "%s: %s %s.\n" % (
+                datetime.now().strftime(datetime_format),
+                "Geen veld in mapping",
+                mapping_code)
+            self.save_action_log(import_run, message)
             is_valid = False
-        # 003
-        code = "003"
+        
+        # Check delimeter
         if not mapping.scheiding_teken or len(mapping.scheiding_teken) > 1:
-            result.update({code: roles[code].format(
-                mapping_code, mapping.scheiding_teken)})
+            message = "%s: %s %s.\n" % (
+                datetime.now().strftime(datetime_format),
+                "Scheidingsteken moet 1-character string zijn i.p.v.",
+                mapping.scheiding_teken)
+            self.save_action_log(import_run, message)
             is_valid = False
 
-        if result:
-            return (is_valid, result)
+        if not is_valid:
+            return is_valid
 
-        # 002, 004
+        # check headers
         with open(filepath, 'rb') as f:
             reader = csv.reader(f, delimiter=str(mapping.scheiding_teken))
             headers = reader.next()
-            code = "002"
             if not headers:
-                result.update({code: roles[code].format(filepath)})
+                message = "%s: %s %s.\n" % (
+                    datetime.now().strftime(datetime_format),
+                    "Bestand is leeg",
+                    filepath)
+                self.save_action_log(import_run, message)
                 is_valid = False
-            code = "004"
             if headers and len(headers) <= 1:
-                result.update({code: roles[code].format(
-                    mapping.scheiding_teken, headers[0])})
+                message = "%s: %s %s.\n" % (
+                    datetime.now().strftime(datetime_format),
+                    "Scheidingsteken is onjuist of het header bevat "
+                    "alleen 1 veld",
+                    headers[0])
+                self.save_action_log(import_run, message)
                 is_valid = False
 
-        if result:
-            return (is_valid, result)
+        if not is_valid:
+            return is_valid
 
-        # 007, 008
-        code = "007"
+        # check data integrity
         with open(filepath, 'rb') as f:
             reader = csv.reader(f, delimiter=str(mapping.scheiding_teken))
             headers = reader.next()
             for mapping_field in mapping_fields:
                 if mapping_field.file_field not in headers:
-                    result.update({code: roles[code].format(
-                        mapping_field.file_field,
-                        mapping.scheiding_teken.join(headers))}
-                    )
+                    message = "%s: %s %s.\n" % (
+                        datetime.now().strftime(datetime_format),
+                        "CSV-header bevat geen veld",
+                        mapping_field.file_field)
+                    self.save_action_log(import_run, message)
                     is_valid = False
-            code = '008'
             counter = 0
             for row in reader:
                 counter += 1
                 if len(row) != len(headers):
-                    result.update({code: roles[code].format(
-                        reader.line_num)}
-                    )
+                    message = "%s: regelnr.: %d, %s.\n" % (
+                        datetime.now().strftime(datetime_format),
+                        "Aantal kolommen komt niet overeen met het aantal headers",
+                        reader.line_num)
+                    self.save_action_log(import_run, message)
                     is_valid = False
                 inst = django_models.get_model(
                 'lizard_efcis',
                 mapping.tabel_naam)()
                 self.set_data(inst, mapping_fields, row, headers)
-                result.update({'Line nr. %d' % reader.line_num: 'Data Integriteit Controlle.'})
+                if hasattr(inst.__class__, 'activiteit') and not hasattr(inst, 'activiteit'):
+                    setattr(inst, 'activiteit', import_run.activiteit)
                 try:
                     inst.full_clean()
                 except ValidationError as e:
-                    result.update({'%d_%d' % (reader.line_num, 12): e.message})
+                    message = "%s:  regelnr.: %d, Foutmeldingen - %s\n" % (
+                        datetime.now().strftime(datetime_format),
+                        reader.line_num,
+                        ", ".join(["%s: %s" % (k, ", ".join(v)) for k, v in e.message_dict.iteritems()])
+                    )
+                    self.save_action_log(import_run, message)
                     is_valid = False
             
-            code = '010'
-            result.update({code: roles[code].format(
-                counter)})
-        return (is_valid, result)
+            message = "%s: %s %d.\n" % (
+                datetime.now().strftime(datetime_format),
+                "Aantal rijen",
+                counter)
+            self.save_action_log(import_run, message)
+        return is_valid
 
     def import_csv(self, filename, mapping_code,
                    activiteit=None, ignore_duplicate_key=True):
