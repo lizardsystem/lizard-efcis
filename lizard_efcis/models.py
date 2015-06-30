@@ -629,6 +629,7 @@ class Opname(models.Model):
     import_run = models.ForeignKey(
         ImportRun,
         db_index=True,
+        related_name='opnames',
         null=True,
         blank=True
     )
