@@ -449,51 +449,6 @@ class WNS(models.Model):
         verbose_name_plural = "waarnemingssoorten (WNS)"
 
 
-class Opname(models.Model):
-
-    datum = models.DateField(
-        db_index=True)
-    tijd = models.TimeField(
-        null=True,
-        blank=True,
-        db_index=True)
-    waarde_n = models.FloatField(
-        null=True,
-        blank=True,
-        db_index=True)
-    waarde_a = models.CharField(
-        max_length=255,
-        db_index=True,
-        null=True,
-        blank=True)
-    activiteit = models.ForeignKey(
-        Activiteit,
-        related_name='opnames')
-    wns = models.ForeignKey(
-        WNS,
-        related_name='opnames',
-        db_index=True)
-    locatie = models.ForeignKey(
-        Locatie,
-        related_name='opnames',
-        db_index=True)
-    detect = models.ForeignKey(
-        Detectiegrens,
-        null=True,
-        blank=True)
-
-    class Meta:
-        unique_together = ((
-            'datum',
-            'tijd',
-            'wns',
-            'locatie')
-        )
-        ordering = ['wns_id', 'locatie_id', 'datum', 'tijd']
-        verbose_name = "opname"
-        verbose_name_plural = "opnames"
-
-
 class ImportMapping(models.Model):
 
     tabellen = [
@@ -637,3 +592,55 @@ class MappingField(models.Model):
         ordering = ['db_field']
         verbose_name = "mappingveld"
         verbose_name_plural = "mappingvelden"
+
+
+class Opname(models.Model):
+
+    datum = models.DateField(
+        db_index=True)
+    tijd = models.TimeField(
+        null=True,
+        blank=True,
+        db_index=True)
+    waarde_n = models.FloatField(
+        null=True,
+        blank=True,
+        db_index=True)
+    waarde_a = models.CharField(
+        max_length=255,
+        db_index=True,
+        null=True,
+        blank=True)
+    activiteit = models.ForeignKey(
+        Activiteit,
+        related_name='opnames')
+    wns = models.ForeignKey(
+        WNS,
+        related_name='opnames',
+        db_index=True)
+    locatie = models.ForeignKey(
+        Locatie,
+        related_name='opnames',
+        db_index=True)
+    detect = models.ForeignKey(
+        Detectiegrens,
+        null=True,
+        blank=True)
+    import_run = models.ForeignKey(
+        ImportRun,
+        db_index=True,
+        null=True,
+        blank=True
+    )
+
+    class Meta:
+        unique_together = ((
+            'datum',
+            'tijd',
+            'wns',
+            'locatie')
+        )
+        ordering = ['wns_id', 'locatie_id', 'datum', 'tijd']
+        verbose_name = "opname"
+        verbose_name_plural = "opnames"
+

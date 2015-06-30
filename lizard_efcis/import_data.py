@@ -545,35 +545,10 @@ class DataImport(object):
         """TODO create separate function per validation."""
         filepath = import_run.attachment.path
         mapping_code = import_run.import_mapping.code
-
+        mapping = import_run.import_mapping
         is_valid = True
-        logger.info("File check {}.".format(filepath))
-        if not os.path.isfile(filepath):
-            logger.warn(
-                "Stop validatie, dir is geen bestand '{}'.".format(
-                    filepath))
-            message = "%s: %s %s.\n" % (
-                datetime.now().strftime(datetime_format),
-                "Het bestand bestaat niet",
-                filepath)
-            self.save_action_log(import_run, message)
-            is_valid = False
-        
-        # check mapping not None
-        mappings = models.ImportMapping.objects.filter(code=mapping_code)
-        mapping = None
-        if mappings.exists():
-            mapping = mappings[0]
-        else:
-            message = "%s: %s %s.\n" % (
-                datetime.now().strftime(datetime_format),
-                "Mapping bestaat niet",
-                mapping_code)
-            self.save_action_log(import_run, message)
-            is_valid = False
 
-        if not is_valid:
-            return is_valid
+        logger.info("File check {}.".format(filepath))
 
         # Check or mapping contains fields
         mapping_fields = mapping.mappingfield_set.all()
@@ -700,14 +675,14 @@ class DataImport(object):
         logger.info(
             'End import: created={}.'.format(created))
 
-    def manual_import_csv(self, filename, mapping_code,
-                          activiteit=None, ignore_duplicate_key=True):
-        action_log = {}
-        is_imported = False
+    def manual_import_csv(self, import_run, datetime_format, ignore_duplicate_key=True):      
         
-        mapping = models.ImportMapping.objects.get(code=mapping_code)
+        is_imported = False
+        filepath = import_run.attachment.path
+        mapping_code = import_run.import_mapping.code
+        mapping = import_run.import_mapping
+        activiteit = import_run.activiteit
         mapping_fields = mapping.mappingfield_set.all()
-        filepath = filename
 
         created = 0
         opnames_bulk = []
@@ -723,9 +698,9 @@ class DataImport(object):
                                                mapping.tabel_naam)()
                 try:
                     self.set_data(inst, mapping_fields, row, headers)
-                    if hasattr(inst.__class__, 'activiteit') and not hasattr(inst, 'activiteit'):
-                        setattr(inst, 'activiteit', activiteit)
                     if mapping.tabel_naam == 'Opname':
+                        setattr(inst, 'import_run', import_run)
+                        setattr(inst, 'activiteit', activiteit)
                         opnames_bulk.append(inst)
                         if len(opnames_bulk) >= bulk_size:
                             models.Opname.objects.bulk_create(opnames_bulk)
@@ -738,20 +713,37 @@ class DataImport(object):
                     if ignore_duplicate_key:
                         if self.log:
                             logger.error(ex.message)
+                            message = "%s: %s.\n" % (
+                                datetime.now().strftime(datetime_format),
+                                ex.message
+                            )
+                            self.save_action_log(import_run, message)
                         continue
                     else:
                         logger.error(ex.message)
-                        action_log.update({"IntegrityError%s" % count: ex.message})
+                        message = "%s: %s.\n" % (
+                            datetime.now().strftime(datetime_format),
+                            ex.message
+                        )
+                        self.save_action_log(import_run, message)
                         break
                 except Exception as ex:
-                    action_log.update({"Error%s" % count: ex.message})
-                    logger.error("error8 %s %s." % (ex.message, inst.wns.id))
+                    logger.error("%s." % ex.message)
+                    message = "%s: %s.\n" % (
+                        datetime.now().strftime(datetime_format),
+                        ex.message
+                    )
+                    self.save_action_log(import_run, message)
                     break
             if len(opnames_bulk) > 0:
                 created += self.save_opnames_bulk(opnames_bulk, action_log)
-            is_imported = True
-        action_log.update({"CREATED":  " %s objects." % created})
-        return (is_imported, action_log)
+        is_imported = True
+        message = "%s: Created %d objects.\n" % (
+            datetime.now().strftime(datetime_format),
+            created
+        )
+        self.save_action_log(import_run, message)
+        return is_imported
 
     def save_opnames_bulk(self, opnames_bulk, action_log):
         count = 0
