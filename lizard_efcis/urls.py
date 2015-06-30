@@ -32,6 +32,12 @@ urlpatterns = patterns(
     url(r'^boxplots/(?P<key>[^/]+)/$',
         views.BoxplotAPI.as_view(),
         name='efcis-boxplot'),
+    url(r'^scatterplots/(?P<axis1_key>[^/]+)/$',
+        views.ScatterplotSecondAxisAPI.as_view(),
+        name='efcis-scatterplot-second-axis'),
+    url(r'^scatterplots/(?P<axis1_key>[^/]+)/(?P<axis2_key>[^/]+)/$',
+        views.ScatterplotGraphAPI.as_view(),
+        name='efcis-scatterplot-graph'),
 
     url(r'^parametergroeps/$',
         views.ParameterGroepAPI.as_view(),

@@ -15,6 +15,12 @@ Changelog of lizard-efcis
 - Accepting POST in addition to GET in most of the API: this dirty hack works
   around issues with too-long URLs.
 
+- Added scatterplot endpoints.
+
+- Looking for photos with filenames (minus ``.jpg``) that match a Location's
+  ``loc_id`` field. The photos should be placed in a ``photos/`` subdirectory
+  of the ``MEDIA_ROOT``.
+
 
 0.1 (2015-03-09)
 ----------------

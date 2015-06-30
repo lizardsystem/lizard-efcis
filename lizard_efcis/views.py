@@ -11,6 +11,7 @@ from django.core.paginator import EmptyPage
 from django.core.paginator import PageNotAnInteger
 from django.core.paginator import Paginator
 
+from django.db.models import Count
 from django.db.models import Max
 from django.db.models import Min
 from django.db.models import Q
@@ -306,13 +307,13 @@ class MapAPI(FilteredOpnamesAPIView):
                 values = [opname['waarde_n'] for opname in opnames_per_locatie]
 
                 boxplot_data = {'mean': np.mean(values),
-                         'median': np.median(values),
-                         'min': np.min(values),
-                         'max': np.max(values),
-                         'q1': np.percentile(values, 25),
-                         'q3': np.percentile(values, 75),
-                         'p10': np.percentile(values, 10),
-                         'p90': np.percentile(values, 90)}
+                                'median': np.median(values),
+                                'min': np.min(values),
+                                'max': np.max(values),
+                                'q1': np.percentile(values, 25),
+                                'q3': np.percentile(values, 75),
+                                'p10': np.percentile(values, 10),
+                                'p90': np.percentile(values, 90)}
 
                 if not opnames_per_locatie:
                     continue
@@ -524,6 +525,11 @@ class GraphsAPI(FilteredOpnamesAPIView):
                         kwargs={'key': key},
                         format=format,
                         request=self.request),
+                    'scatterplot-second-axis-url': reverse(
+                        'efcis-scatterplot-second-axis',
+                        kwargs={'axis1_key': key},
+                        format=format,
+                        request=self.request),
                 }
             lines.append(line)
 
@@ -593,3 +599,119 @@ class BoxplotAPI(FilteredOpnamesAPIView):
                 'boxplot_data': boxplot_data,
                 'id': key}
         return Response(line)
+
+
+class ScatterplotSecondAxisAPI(FilteredOpnamesAPIView):
+    """API to return second axis lines for a single graph."""
+
+    def get(self, request, axis1_key=None, format=None):
+        numerical_opnames = self.filtered_opnames.exclude(waarde_n=None)
+        wns_code, loc_id = axis1_key.split(GRAPH_KEY_SEPARATOR)
+        our_opnames = numerical_opnames.filter(
+            wns__wns_code=wns_code, locatie__loc_id=loc_id)
+        points = our_opnames.values(
+            'wns__wns_code',
+            'wns__wns_oms',
+            'wns__parameter__par_code',
+            'wns__eenheid__eenheid',
+            'locatie__loc_oms',
+            'locatie__loc_id',
+            'datum',
+            'tijd')
+        points = list(points)
+        first = points[0]
+
+        dates = [point['datum'] for point in points]
+        opnames_with_correct_date = numerical_opnames.filter(
+            datum__in=dates)
+        lines_with_correct_dates = opnames_with_correct_date.values(
+            'wns__wns_code',
+            'wns__wns_oms',
+            'wns__parameter__par_code',
+            'wns__eenheid__eenheid',
+            'locatie__loc_oms',
+            'locatie__loc_id').exclude(
+                wns__wns_code=wns_code, locatie__loc_id=loc_id).annotate(
+                    Count('datum')).order_by('-datum__count')
+        desired_number_of_points = len(points) * 0.5
+        # ^^^ At least 50% matching points.
+        lines_with_correct_dates = [
+            line for line in lines_with_correct_dates
+            if line['datum__count'] > desired_number_of_points]
+        second_axis_lines = []
+        for line in lines_with_correct_dates:
+            key = '%s%s%s' % (line['wns__wns_code'],
+                              GRAPH_KEY_SEPARATOR,
+                              line['locatie__loc_id'])
+            second_axis_lines.append(
+                {'wns': line['wns__wns_oms'],
+                 'location': line['locatie__loc_oms'],
+                 'unit': line['wns__eenheid__eenheid'],
+                 'url': reverse('efcis-scatterplot-graph',
+                                kwargs={'axis1_key': axis1_key,
+                                        'axis2_key': key},
+                                format=format,
+                                request=self.request),
+                 'id': key})
+
+        line = {'wns': first['wns__wns_oms'],
+                'location': first['locatie__loc_oms'],
+                'unit': first['wns__eenheid__eenheid'],
+                'second_axis_lines': second_axis_lines,
+                'id': axis1_key}
+
+        return Response(line)
+
+
+class ScatterplotGraphAPI(FilteredOpnamesAPIView):
+    """API to return scatterplot x/y data for two axes."""
+
+    def get(self, request, axis1_key=None, axis2_key=None, format=None):
+        numerical_opnames = self.filtered_opnames.exclude(waarde_n=None)
+        wns_code1, loc_id1 = axis1_key.split(GRAPH_KEY_SEPARATOR)
+        wns_code2, loc_id2 = axis2_key.split(GRAPH_KEY_SEPARATOR)
+        our_opnames1 = numerical_opnames.filter(
+            wns__wns_code=wns_code1, locatie__loc_id=loc_id1).values(
+                'wns__wns_oms',
+                'wns__parameter__par_code',
+                'wns__eenheid__eenheid',
+                'locatie__loc_oms',
+                'datum',
+                'waarde_n')
+        our_opnames2 = numerical_opnames.filter(
+            wns__wns_code=wns_code2, locatie__loc_id=loc_id2).values(
+                'wns__wns_oms',
+                'wns__parameter__par_code',
+                'wns__eenheid__eenheid',
+                'locatie__loc_oms',
+                'datum',
+                'waarde_n')
+        dates = [opname['datum'] for opname in our_opnames1]
+
+        points = []
+        for date in dates:
+            x_candidates = [opname for opname in our_opnames1
+                            if opname['datum']==date]
+            y_candidates = [opname for opname in our_opnames2
+                            if opname['datum']==date]
+            if not (x_candidates and y_candidates):
+                continue
+            x = x_candidates[0]['waarde_n']
+            y = y_candidates[0]['waarde_n']
+            points.append({'x': x, 'y': y})
+
+        first_x = our_opnames1[0]
+        first_y = our_opnames2[0]
+        result = {
+            'x_wns': first_x['wns__wns_oms'],
+            'x_location': first_x['locatie__loc_oms'],
+            'x_unit': first_x['wns__eenheid__eenheid'],
+            'x_id': axis1_key,
+
+            'y_wns': first_y['wns__wns_oms'],
+            'y_location': first_y['locatie__loc_oms'],
+            'y_unit': first_y['wns__eenheid__eenheid'],
+            'y_id': axis2_key,
+
+            'points': points}
+        return Response(result)
