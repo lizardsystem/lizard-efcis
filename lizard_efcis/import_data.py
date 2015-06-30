@@ -154,7 +154,7 @@ class DataImport(object):
                     logger.info("get wns %s %s" % (
                         datatype, ''.join(val_raw.split(' '))))
                 inst = class_inst.objects.get(
-                    **{'wns_oms_space_less': ''.join(val_raw.split(' '))})
+                    **{'wns_oms_space_less__iexact': ''.join(val_raw.split(' '))})
             else:
                 inst = class_inst.objects.get(
                     **{foreignkey_field: val_raw})
