@@ -13,7 +13,7 @@ from lizard_efcis.import_data import DataImport
 
 def validate_data(modeladmin, request, queryset):
     data_import = DataImport()
-    
+
     for import_run in queryset:
         can_run, warn_messages = import_run.can_run_any_action()
         if not can_run:
@@ -205,6 +205,12 @@ class ParameterGroepAdmin(admin.ModelAdmin):
 
 @admin.register(models.Parameter)
 class Parameter(admin.ModelAdmin):
+    search_fields = ['par_code',
+                    'par_oms',
+                    'casnummer',
+                    'datum_status',
+                    'status',
+                    'parametergroep']
     list_display = ['par_code',
                     'par_oms',
                     'casnummer',
