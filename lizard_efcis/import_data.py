@@ -701,11 +701,13 @@ class DataImport(object):
                     if mapping.tabel_naam == 'Opname':
                         setattr(inst, 'import_run', import_run)
                         setattr(inst, 'activiteit', activiteit)
-                        opnames_bulk.append(inst)
-                        if len(opnames_bulk) >= bulk_size:
-                            models.Opname.objects.bulk_create(opnames_bulk)
-                            created += len(opnames_bulk)
-                            opnames_bulk = []
+                        inst.save()
+                        created += 1
+                        #opnames_bulk.append(inst)
+                        #if len(opnames_bulk) >= bulk_size:
+                        #    models.Opname.objects.bulk_create(opnames_bulk)
+                        #    created += len(opnames_bulk)
+                        #    opnames_bulk = []
                     else:
                         inst.save()
                         created += 1
@@ -735,8 +737,8 @@ class DataImport(object):
                     )
                     self.save_action_log(import_run, message)
                     break
-            if len(opnames_bulk) > 0:
-                created += self.save_opnames_bulk(opnames_bulk, action_log)
+            #if len(opnames_bulk) > 0:
+            #    created += self.save_opnames_bulk(opnames_bulk, action_log)
         is_imported = True
         message = "%s: Created %d objects.\n" % (
             datetime.now().strftime(datetime_format),
