@@ -442,6 +442,10 @@ class WNS(models.Model):
         max_length=255,
         null=True,
         blank=True)
+    wns_oms_space_less = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True) 
     parameter = models.ForeignKey(Parameter, null=True, blank=True)
     eenheid = models.ForeignKey(Eenheid, null=True, blank=True)
     hoedanigheid = models.ForeignKey(
@@ -458,54 +462,15 @@ class WNS(models.Model):
     def __unicode__(self):
         return self.wns_code
 
+    def save(self, *args, **kwargs):
+        if self.wns_oms:
+            self.wns_oms_space_less = "".join(
+                self.wns_oms.split(' '))
+        super(WNS, self).save(*args, **kwargs)
+        
     class Meta:
         verbose_name = "waarnemingssoort (WNS)"
         verbose_name_plural = "waarnemingssoorten (WNS)"
-
-
-class Opname(models.Model):
-
-    datum = models.DateField(
-        db_index=True)
-    tijd = models.TimeField(
-        null=True,
-        blank=True,
-        db_index=True)
-    waarde_n = models.FloatField(
-        null=True,
-        blank=True,
-        db_index=True)
-    waarde_a = models.CharField(
-        max_length=255,
-        db_index=True,
-        null=True,
-        blank=True)
-    activiteit = models.ForeignKey(
-        Activiteit,
-        related_name='opnames')
-    wns = models.ForeignKey(
-        WNS,
-        related_name='opnames',
-        db_index=True)
-    locatie = models.ForeignKey(
-        Locatie,
-        related_name='opnames',
-        db_index=True)
-    detect = models.ForeignKey(
-        Detectiegrens,
-        null=True,
-        blank=True)
-
-    class Meta:
-        unique_together = ((
-            'datum',
-            'tijd',
-            'wns',
-            'locatie')
-        )
-        ordering = ['wns_id', 'locatie_id', 'datum', 'tijd']
-        verbose_name = "opname"
-        verbose_name_plural = "opnames"
 
 
 class ImportMapping(models.Model):
@@ -515,7 +480,8 @@ class ImportMapping(models.Model):
         ('Locatie', 'Locatie'),
         ('ParameterGroep', 'ParameterGroep'),
         ('Meetnet', 'Meetnet'),
-        ('Activiteit', 'Activiteit')
+        ('Activiteit', 'Activiteit'),
+        ('WNS', 'WNS'),
     ]
     code = models.CharField(max_length=50, unique=True)
     omschrijving = models.TextField(null=True, blank=True)
@@ -576,6 +542,7 @@ class ImportRun(models.Model):
         Activiteit,
         blank=True,
         null=True)
+    actief = models.BooleanField(default=True)
 
     def can_run_any_action(self):
         """Check fields of import_run."""
@@ -649,3 +616,55 @@ class MappingField(models.Model):
         ordering = ['db_field']
         verbose_name = "mappingveld"
         verbose_name_plural = "mappingvelden"
+
+
+class Opname(models.Model):
+
+    datum = models.DateField(
+        db_index=True)
+    tijd = models.TimeField(
+        null=True,
+        blank=True,
+        db_index=True)
+    waarde_n = models.FloatField(
+        null=True,
+        blank=True,
+        db_index=True)
+    waarde_a = models.CharField(
+        max_length=255,
+        db_index=True,
+        null=True,
+        blank=True)
+    activiteit = models.ForeignKey(
+        Activiteit,
+        related_name='opnames')
+    wns = models.ForeignKey(
+        WNS,
+        related_name='opnames',
+        db_index=True)
+    locatie = models.ForeignKey(
+        Locatie,
+        related_name='opnames',
+        db_index=True)
+    detect = models.ForeignKey(
+        Detectiegrens,
+        null=True,
+        blank=True)
+    import_run = models.ForeignKey(
+        ImportRun,
+        db_index=True,
+        related_name='opnames',
+        null=True,
+        blank=True
+    )
+
+    class Meta:
+        unique_together = ((
+            'datum',
+            'tijd',
+            'wns',
+            'locatie')
+        )
+        ordering = ['wns_id', 'locatie_id', 'datum', 'tijd']
+        verbose_name = "opname"
+        verbose_name_plural = "opnames"

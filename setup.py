@@ -11,6 +11,7 @@ long_description = '\n\n'.join([
 install_requires = [
     'Django',
     'Markdown',
+    'celery',
     'django-celery',
     'django-compressor',
     'django-extensions',
@@ -37,7 +38,8 @@ tests_require = [
 
 setup(name='lizard-efcis',
       version=version,
-      description="Lizard application for Ecological and Physico-Chemical data.",
+      description="Lizard application for Ecological"
+                  " and Physico-Chemical data.",
       long_description=long_description,
       # Get strings from http://www.python.org/pypi?%3Aaction=list_classifiers
       classifiers=['Programming Language :: Python',
