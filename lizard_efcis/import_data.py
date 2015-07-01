@@ -701,16 +701,8 @@ class DataImport(object):
                     if mapping.tabel_naam == 'Opname':
                         setattr(inst, 'import_run', import_run)
                         setattr(inst, 'activiteit', activiteit)
-                        inst.save()
-                        created += 1
-                        #opnames_bulk.append(inst)
-                        #if len(opnames_bulk) >= bulk_size:
-                        #    models.Opname.objects.bulk_create(opnames_bulk)
-                        #    created += len(opnames_bulk)
-                        #    opnames_bulk = []
-                    else:
-                        inst.save()
-                        created += 1
+                    inst.save()
+                    created += 1
                 except IntegrityError as ex:
                     if ignore_duplicate_key:
                         if self.log:
@@ -737,8 +729,6 @@ class DataImport(object):
                     )
                     self.save_action_log(import_run, message)
                     break
-            #if len(opnames_bulk) > 0:
-            #    created += self.save_opnames_bulk(opnames_bulk, action_log)
         is_imported = True
         message = "%s: Created %d objects.\n" % (
             datetime.now().strftime(datetime_format),
@@ -746,16 +736,3 @@ class DataImport(object):
         )
         self.save_action_log(import_run, message)
         return is_imported
-
-    def save_opnames_bulk(self, opnames_bulk, action_log):
-        count = 0
-        try:
-            models.Opname.objects.bulk_create(opnames_bulk)
-            count = len(opnames_bulk)
-        except IntegrityError as ex:
-            logger.error(ex.message)
-            action_log.update({"IntegrityError%s" % count: ex.message})
-        except Exception as ex:
-            action_log.update({"Error%s" % count: ex.message})
-            logger.error(ex.message)
-        return count
