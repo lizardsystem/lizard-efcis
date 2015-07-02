@@ -316,7 +316,7 @@ class Parameter(models.Model):
     parametergroep = models.ForeignKey(ParameterGroep, null=True)
 
     def __unicode__(self):
-        return self.par_code
+        return ' '.join([self.par_code, self.par_oms])
 
     class Meta:
         ordering = ['par_code']
