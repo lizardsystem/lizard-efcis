@@ -95,6 +95,7 @@ class Meetnet(models.Model):
 
 
 class StatusKRW(models.Model):
+    # Note: this used to be 'KRW watertype status', hence the name.
 
     code = models.CharField(max_length=50, unique=True)
     omschrijving = models.TextField(null=True, blank=True)
@@ -107,8 +108,8 @@ class StatusKRW(models.Model):
 
     class Meta:
         ordering = ['code']
-        verbose_name = "KRW watertype status"
-        verbose_name_plural = "KRW watertype statussen"
+        verbose_name = "watertype status"
+        verbose_name_plural = "watertype statussen"
 
     def __unicode__(self):
         return self.code
@@ -156,7 +157,7 @@ class Waterlichaam(models.Model):
         null=True,
         blank=True,
         related_name="waterlichamen",
-        verbose_name="status")
+        verbose_name="status watertype")
 
     class Meta:
         ordering = ['wl_code']
