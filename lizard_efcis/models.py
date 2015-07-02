@@ -168,12 +168,12 @@ class Locatie(models.Model):
 
     loc_id = models.CharField(
         max_length=50,
-        help_text="Locatiecode",
+        verbose_name="Locatiecode",
         unique=True)
     loc_oms = models.TextField(
         null=True,
         blank=True,
-        help_text="Locatieomschrijving")
+        verbose_name="Locatieomschrijving")
     x1 = models.FloatField(
         null=True,
         blank=True)
@@ -204,12 +204,12 @@ class Locatie(models.Model):
         Watertype,
         null=True,
         blank=True,
-        help_text="KRW Watertype")
+        verbose_name="KRW Watertype")
     status_krw = models.ForeignKey(
         StatusKRW,
         null=True,
         blank=True,
-        help_text="Status KRW Watertype")
+        verbose_name="Status KRW Watertype")
     meetnet = models.ManyToManyField(Meetnet, null=True, blank=True)
     status_fc = models.CharField(
         max_length=255,
@@ -516,11 +516,11 @@ class ImportMapping(models.Model):
     tabel_naam = models.CharField(
         max_length=255,
         choices=tabellen,
-        help_text="Import tabel")
+        verbose_name="Import tabel")
     scheiding_teken = models.CharField(
         max_length=3,
         default=";",
-        help_text="Veld scheidingsteken.")
+        verbose_name="Veld scheidingsteken.")
 
     class Meta:
         ordering = ['tabel_naam']
