@@ -174,12 +174,28 @@ class Locatie(models.Model):
         null=True,
         blank=True,
         help_text="Locatieomschrijving")
-    x1 = models.FloatField(null=True, blank=True)
-    y1 = models.FloatField(null=True, blank=True)
-    x2 = models.FloatField(null=True, blank=True)
-    y2 = models.FloatField(null=True, blank=True)
-    geo_punt1 = models.PointField(srid=4326, null=True, blank=True)
-    geo_punt2 = models.PointField(srid=4326, null=True, blank=True)
+    x1 = models.FloatField(
+        null=True,
+        blank=True)
+    y1 = models.FloatField(
+        null=True,
+        blank=True)
+    x2 = models.FloatField(
+        null=True,
+        blank=True)
+    y2 = models.FloatField(
+        null=True,
+        blank=True)
+    geo_punt1 = models.PointField(
+        srid=4326,
+        null=True,
+        blank=True,
+        editable=False)
+    geo_punt2 = models.PointField(
+        srid=4326,
+        null=True,
+        blank=True,
+        editable=False)
     waterlichaam = models.ForeignKey(
         Waterlichaam,
         blank=True,
