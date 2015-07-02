@@ -89,6 +89,23 @@ class DataImport(object):
             return statuses[0]
         return None
 
+    def _get_wns(self, parameter, eenheid, hoednigheid, compartiment):
+        **options = {
+            'parameter__iexact': parameter,
+            'eenheid__iexact': eenheid,
+            'hoedanigheid__iexact': hoedanigheid,
+            'compartiment__iexact': compartiment}
+        try:
+            return models.WNS.objects.get(options)
+        except models.WNS.DoesNotExist as ex:
+            logger.error("WNS %s[%s][%s][%s] niet aanwezig." % (
+                parameter,
+                eenheid,
+                hoedanigheid,
+                compartiment
+            )
+        return None
+
     def _get_parameter(self, parameter):
         parameters = models.Parameter.objects.filter(
             par_code__iexact=parameter)
