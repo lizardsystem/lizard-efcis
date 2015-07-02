@@ -204,10 +204,7 @@ class ParameterGroepAdmin(admin.ModelAdmin):
 class Parameter(admin.ModelAdmin):
     search_fields = ['par_code',
                     'par_oms',
-                    'casnummer',
-                    'datum_status',
-                    'status',
-                    'parametergroep']
+                    'casnummer']
     list_display = ['par_code',
                     'par_oms',
                     'casnummer',
