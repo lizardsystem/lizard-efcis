@@ -174,8 +174,7 @@ class OpnameAdmin(admin.ModelAdmin):
                     'locatie',
                     'waarde_n',
                     'waarde_a',
-                    'datum',
-                    'tijd']
+                    'datum']
     search_fields = ['wns__wns_oms',
                      'locatie__loc_oms']
     list_filter = ['datum']
