@@ -150,10 +150,6 @@ class Waterlichaam(models.Model):
         null=True,
         blank=True)
     wl_oms = models.TextField(null=True, blank=True)
-    status = models.CharField(
-        max_length=100,
-        null=True,
-        blank=True)
     status_krw = models.ForeignKey(
         # Note: "status krw" means "status krw watertype".
         StatusKRW,

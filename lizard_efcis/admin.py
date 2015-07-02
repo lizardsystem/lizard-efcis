@@ -234,9 +234,9 @@ class WaterlichaamAdmin(admin.ModelAdmin):
                     'wl_naam',
                     'wl_type',
                     'wl_oms',
-                    'status']
+                    'status_krw']
     list_filter = ['wl_type',
-                   'status']
+                   'status_krw']
     search_fields = ['wl_code',
                      'wl_naam']
 
