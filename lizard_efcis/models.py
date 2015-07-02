@@ -495,7 +495,7 @@ class WNS(models.Model):
     status = models.ForeignKey(Status, null=True, blank=True)
 
     def __unicode__(self):
-        return self.wns_code
+        return ' '.join([self.wns_code, self.wns_oms])
 
     def save(self, *args, **kwargs):
         if self.wns_oms:
