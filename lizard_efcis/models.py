@@ -168,12 +168,12 @@ class Locatie(models.Model):
 
     loc_id = models.CharField(
         max_length=50,
-        verbose_name="Locatiecode",
+        verbose_name="locatiecode",
         unique=True)
     loc_oms = models.TextField(
         null=True,
         blank=True,
-        verbose_name="Locatieomschrijving")
+        verbose_name="locatieomschrijving")
     x1 = models.FloatField(
         null=True,
         blank=True)
@@ -204,12 +204,14 @@ class Locatie(models.Model):
         Watertype,
         null=True,
         blank=True,
-        verbose_name="KRW Watertype")
+        verbose_name="KRW watertype")
     status_krw = models.ForeignKey(
+        # Note: "status krw" means "status krw watertype".
+        # For BBB, we keep the foreign key as StatusKRW...
         StatusKRW,
         null=True,
         blank=True,
-        verbose_name="Status KRW Watertype")
+        verbose_name="status watertype")
     meetnet = models.ManyToManyField(Meetnet, null=True, blank=True)
     status_fc = models.CharField(
         max_length=255,
