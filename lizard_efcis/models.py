@@ -400,29 +400,25 @@ class Activiteit(models.Model):
         max_length=50,
         null=True,
         blank=True)
-    act_oms = models.TextField(null=True, blank=True)
-    met_mafa = models.CharField(
-        max_length=255,
+    act_oms = models.TextField(
         null=True,
         blank=True)
-    met_mafy = models.CharField(
-        max_length=255,
+    met_mafa = models.TextField(
         null=True,
         blank=True)
-    met_fyt = models.CharField(
-        max_length=255,
+    met_mafy = models.TextField(
         null=True,
         blank=True)
-    met_vis = models.CharField(
-        max_length=255,
+    met_fyt = models.TextField(
         null=True,
         blank=True)
-    met_fc = models.CharField(
-        max_length=255,
+    met_vis = models.TextField(
         null=True,
         blank=True)
-    met_toets = models.CharField(
-        max_length=255,
+    met_fc = models.TextField(
+        null=True,
+        blank=True)
+    met_toets = models.TextField(
         null=True,
         blank=True)
 
@@ -445,7 +441,7 @@ class WNS(models.Model):
     wns_oms_space_less = models.CharField(
         max_length=255,
         null=True,
-        blank=True) 
+        blank=True)
     parameter = models.ForeignKey(Parameter, null=True, blank=True)
     eenheid = models.ForeignKey(Eenheid, null=True, blank=True)
     hoedanigheid = models.ForeignKey(
@@ -467,7 +463,7 @@ class WNS(models.Model):
             self.wns_oms_space_less = "".join(
                 self.wns_oms.split(' '))
         super(WNS, self).save(*args, **kwargs)
-        
+
     class Meta:
         verbose_name = "waarnemingssoort (WNS)"
         verbose_name_plural = "waarnemingssoorten (WNS)"
