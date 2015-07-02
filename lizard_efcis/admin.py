@@ -191,6 +191,7 @@ class WNSAdmin(admin.ModelAdmin):
                      'wns_oms',
                      'parameter__par_code',
                      'parameter__par_oms']
+    raw_id_fields = ['parameter']
     list_select_related = ['parameter__code', 'eenheid__eenheid']
 
 
