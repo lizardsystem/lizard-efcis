@@ -161,7 +161,7 @@ class Waterlichaam(models.Model):
         verbose_name_plural = "waterlichamen"
 
     def __unicode__(self):
-        return self.wl_code
+        return ' '.join([self.wl_code, self.wl_naam])
 
 
 class Locatie(models.Model):
