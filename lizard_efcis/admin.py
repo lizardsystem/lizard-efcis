@@ -265,8 +265,15 @@ class ActiviteitAdmin(admin.ModelAdmin):
                     'met_fyt',
                     'met_vis',
                     'met_fc',
-                    'met_toets']
+                    'met_toets',
+                    'uitvoerende']
     list_filter = ['act_type',
                    'uitvoerende']
     search_fields = ['activiteit',
                      'act_oms']
+
+
+@admin.register(models.Uitvoerende)
+class UitvoerendeAdmin(admin.ModelAdmin):
+    list_display = ['name']
+    search_fields = ['name']

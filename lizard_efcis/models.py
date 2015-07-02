@@ -379,6 +379,21 @@ class Detectiegrens(models.Model):
         verbose_name_plural = "detectiegrenzen"
 
 
+class Uitvoerende(models.Model):
+
+    name = models.CharField(
+        max_length=255,
+        unique=True)
+
+    def __unicode__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = "uitvoerende"
+        verbose_name_plural = "uitvoerenden"
+
+
 class Activiteit(models.Model):
 
     T0 = ""
@@ -396,10 +411,11 @@ class Activiteit(models.Model):
         max_length=10,
         choices=TYPE_CHOICES,
         default=T1)
-    uitvoerende = models.CharField(
-        max_length=50,
+    uitvoerende = models.ForeignKey(
+        Uitvoerende,
         null=True,
-        blank=True)
+        blank=True,
+        related_name='activiteiten')
     act_oms = models.TextField(
         null=True,
         blank=True)

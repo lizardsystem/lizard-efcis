@@ -21,6 +21,8 @@ Changelog of lizard-efcis
   ``loc_id`` field. The photos should be placed in a ``photos/`` subdirectory
   of the ``MEDIA_ROOT``.
 
+- Added 'Uitvoerende' model, related to activity.
+
 
 0.1 (2015-03-09)
 ----------------
