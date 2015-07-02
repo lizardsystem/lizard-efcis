@@ -107,8 +107,8 @@ class StatusKRW(models.Model):
 
     class Meta:
         ordering = ['code']
-        verbose_name = "KRW status"
-        verbose_name_plural = "KRW statussen"
+        verbose_name = "KRW watertype status"
+        verbose_name_plural = "KRW watertype statussen"
 
     def __unicode__(self):
         return self.code
