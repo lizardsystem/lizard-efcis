@@ -211,6 +211,7 @@ class Locatie(models.Model):
         StatusKRW,
         null=True,
         blank=True,
+        related_name="locaties",
         verbose_name="status watertype")
     meetnet = models.ManyToManyField(Meetnet, null=True, blank=True)
     status_fc = models.CharField(
