@@ -519,11 +519,8 @@ class WNS(models.Model):
     wns_oms = models.CharField(
         max_length=255,
         null=True,
-        blank=True)
-    wns_oms_space_less = models.CharField(
-        max_length=255,
-        null=True,
-        blank=True)
+        blank=True,
+        editable=False)
     parameter = models.ForeignKey(Parameter, null=True, blank=True)
     eenheid = models.ForeignKey(Eenheid, null=True, blank=True)
     hoedanigheid = models.ForeignKey(
@@ -545,9 +542,12 @@ class WNS(models.Model):
         return ' '.join([self.wns_code, self.wns_oms])
 
     def save(self, *args, **kwargs):
-        if self.wns_oms:
-            self.wns_oms_space_less = "".join(
-                self.wns_oms.split(' '))
+        wns_oms = "%s[%s][%s][%s]" % (
+            self.parameter.par_code,
+            self.eenheid.eenheid,
+            self.hoedanigheid.hoedanigheid,
+            self.compartiment.compartiment)
+        self.wns_oms = wns_oms.replace(' ', '')
         super(WNS, self).save(*args, **kwargs)
 
     class Meta:
