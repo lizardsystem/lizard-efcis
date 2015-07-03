@@ -13,17 +13,9 @@ from django.contrib.gis.geos import Point
 from django.core.cache import cache
 
 from lizard_efcis import utils
-
-# Validation states
-VALIDATED = 1
-VALIDATED_HIDDEN = 2
-UNRELIABLE = 3
-NOT_VALIDATED = 4
-VALIDATION_CHOICES = (
-    (VALIDATED, "Gevalideerd"),
-    (VALIDATED_HIDDEN, "Gevalideerd - niet tonen"),
-    (UNRELIABLE, "Onbetrouwbaar"),
-    (NOT_VALIDATED, "Niet gevalideerd"))
+from lizard_efcis.manager import FilteredOpnamesManager
+from lizard_efcis.manager import NOT_VALIDATED
+from lizard_efcis.manager import VALIDATION_CHOICES
 
 
 def get_attachment_path(instance, filename):
@@ -758,6 +750,8 @@ class Opname(models.Model):
         help_text=("(TODO) Alleen opnames met status 'Gevalideerd' zijn " +
                    "voor iedereen zichtbaar")
     )
+
+    objects = FilteredOpnamesManager()
 
     class Meta:
         unique_together = ((

@@ -17,6 +17,7 @@ install_requires = [
     'django-extensions',
     'django-hstore',
     'django-nose',
+    'django-tls',
     'djangorestframework >= 3.0.4',
     'djangorestframework-csv',
     'djangorestframework-gis >= 0.8',
