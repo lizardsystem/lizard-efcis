@@ -162,8 +162,9 @@ class LocatieAdmin(admin.ModelAdmin):
                      'loc_oms']
     list_filter = ['waterlichaam',
                    'watertype',
-                   'status_fc',
-                   'status_bio']
+                   'fc_status',
+                   'bio_status']
+    filter_horizontal = ['meetnet']
 
 
 @admin.register(models.Meetnet)
@@ -279,3 +280,15 @@ class ActiviteitAdmin(admin.ModelAdmin):
 class UitvoerendeAdmin(admin.ModelAdmin):
     list_display = ['name']
     search_fields = ['name']
+
+
+@admin.register(models.BioStatus)
+class BioStatusAdmin(admin.ModelAdmin):
+    list_display = ['naam']
+    search_fields = ['naam']
+
+
+@admin.register(models.FCStatus)
+class FCStatusAdmin(admin.ModelAdmin):
+    list_display = ['naam']
+    search_fields = ['naam']
