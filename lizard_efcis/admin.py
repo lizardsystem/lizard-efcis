@@ -197,6 +197,7 @@ class WNSAdmin(admin.ModelAdmin):
                      'parameter__par_oms']
     raw_id_fields = ['parameter']
     list_select_related = ['parameter__code', 'eenheid__eenheid']
+    list_filter = ['wns_status']
 
 
 @admin.register(models.ParameterGroep)

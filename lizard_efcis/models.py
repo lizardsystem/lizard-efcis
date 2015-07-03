@@ -65,6 +65,19 @@ class Status(models.Model):
         return self.naam
 
 
+class WNSStatus(models.Model):
+
+    naam = models.CharField(unique=True, max_length=50)
+
+    class Meta:
+        ordering = ['naam']
+        verbose_name = "WNS status"
+        verbose_name_plural = "WNS statussen"
+
+    def __unicode__(self):
+        return self.naam
+
+
 class Meetnet(models.Model):
     code = models.CharField(max_length=255)
     parent = models.ForeignKey('self', null=True)
@@ -492,7 +505,11 @@ class WNS(models.Model):
         null=True,
         blank=True)
     datum_status = models.DateField(null=True, blank=True)
-    status = models.ForeignKey(Status, null=True, blank=True)
+    wns_status = models.ForeignKey(
+        WNSStatus,
+        verbose_name="WNS status",
+        null=True,
+        blank=True)
 
     def __unicode__(self):
         return ' '.join([self.wns_code, self.wns_oms])
