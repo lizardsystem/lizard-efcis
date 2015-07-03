@@ -78,6 +78,32 @@ class WNSStatus(models.Model):
         return self.naam
 
 
+class FCStatus(models.Model):
+
+    naam = models.CharField(unique=True, max_length=50)
+
+    class Meta:
+        ordering = ['naam']
+        verbose_name = "fysisch/chemische status"
+        verbose_name_plural = "fysisch/chemische statussen"
+
+    def __unicode__(self):
+        return self.naam
+
+
+class BioStatus(models.Model):
+
+    naam = models.CharField(unique=True, max_length=50)
+
+    class Meta:
+        ordering = ['naam']
+        verbose_name = "biologische status"
+        verbose_name_plural = "biologische statussen"
+
+    def __unicode__(self):
+        return self.naam
+
+
 class Meetnet(models.Model):
     code = models.CharField(max_length=255)
     parent = models.ForeignKey('self', null=True)
