@@ -58,8 +58,8 @@ class Status(models.Model):
 
     class Meta:
         ordering = ['naam']
-        verbose_name = "status"
-        verbose_name_plural = "statussen"
+        verbose_name = "TWN status"
+        verbose_name_plural = "TWN statussen"
 
     def __unicode__(self):
         return self.naam
