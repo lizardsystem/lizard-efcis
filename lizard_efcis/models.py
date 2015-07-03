@@ -217,6 +217,7 @@ class Locatie(models.Model):
         Waterlichaam,
         blank=True,
         null=True)
+    meetnet = models.ManyToManyField(Meetnet, null=True, blank=True)
     watertype = models.ForeignKey(
         Watertype,
         null=True,
@@ -230,7 +231,6 @@ class Locatie(models.Model):
         blank=True,
         related_name="locaties",
         verbose_name="status watertype")
-    meetnet = models.ManyToManyField(Meetnet, null=True, blank=True)
     status_fc = models.CharField(
         max_length=255,
         null=True,
