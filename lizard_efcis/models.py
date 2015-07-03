@@ -14,6 +14,17 @@ from django.core.cache import cache
 
 from lizard_efcis import utils
 
+# Validation states
+VALIDATED = 1
+VALIDATED_HIDDEN = 2
+UNRELIABLE = 3
+NOT_VALIDATED = 4
+VALIDATION_CHOICES = (
+    (VALIDATED, "Gevalideerd"),
+    (VALIDATED_HIDDEN, "Gevalideerd - niet tonen"),
+    (UNRELIABLE, "Onbetrouwbaar"),
+    (NOT_VALIDATED, "Niet gevalideerd"))
+
 
 def get_attachment_path(instance, filename):
     dt = datetime.now()
@@ -738,6 +749,14 @@ class Opname(models.Model):
         related_name='opnames',
         null=True,
         blank=True
+    )
+    validation_state = models.IntegerField(
+        choices=VALIDATION_CHOICES,
+        default=NOT_VALIDATED,
+        blank=False,
+        verbose_name="validatiestatus",
+        help_text=("(TODO) Alleen opnames met status 'Gevalideerd' zijn " +
+                   "voor iedereen zichtbaar")
     )
 
     class Meta:
