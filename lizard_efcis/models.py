@@ -265,6 +265,18 @@ class Locatie(models.Model):
         max_length=255,
         null=True,
         blank=True)
+    fc_status = models.ForeignKey(
+        FCStatus,
+        null=True,
+        blank=True,
+        related_name="locaties",
+        verbose_name="fysisch/chemische status")
+    bio_status = models.ForeignKey(
+        BioStatus,
+        null=True,
+        blank=True,
+        related_name="locaties",
+        verbose_name="biologische status")
     objects = models.GeoManager()
 
     def save(self, *args, **kwargs):
