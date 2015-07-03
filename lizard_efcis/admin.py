@@ -179,10 +179,12 @@ class OpnameAdmin(admin.ModelAdmin):
                     'locatie',
                     'waarde_n',
                     'waarde_a',
-                    'datum']
+                    'datum',
+                    'validation_state']
     search_fields = ['wns__wns_oms',
                      'locatie__loc_oms']
-    list_filter = ['datum']
+    list_filter = ['datum',
+                   'validation_state']
 
 
 @admin.register(models.WNS)
