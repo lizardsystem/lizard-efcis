@@ -257,14 +257,6 @@ class Locatie(models.Model):
         blank=True,
         related_name="locaties",
         verbose_name="status watertype")
-    status_fc = models.CharField(
-        max_length=255,
-        null=True,
-        blank=True)
-    status_bio = models.CharField(
-        max_length=255,
-        null=True,
-        blank=True)
     fc_status = models.ForeignKey(
         FCStatus,
         null=True,
