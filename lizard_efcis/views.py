@@ -269,13 +269,15 @@ class MapAPI(FilteredOpnamesAPIView):
 
     def get(self, request, format=None):
         numerical_opnames = self.filtered_opnames.exclude(waarde_n=None)
-        opnames = numerical_opnames.values(
-            'locatie', 'wns', 'datum', 'tijd', 'waarde_n')
+        opnames = numerical_opnames.values('locatie', 'wns').order_by()
+        # ^^^ Note: unordered for speed reasons.
         relevant_locatie_ids = list(set(
             [opname['locatie'] for opname in opnames]))
+        locaties = models.Locatie.objects.filter(id__in=relevant_locatie_ids)
         relevant_wns_ids = list(set(
             [opname['wns'] for opname in opnames]))
-
+        color_by_fields = models.WNS.objects.filter(
+            pk__in=relevant_wns_ids).values('id', 'wns_oms')
 
         latest_values = {}  # Latest value per location.
         color_values = {}  # Latest value converted to 0-100 scale.
@@ -285,18 +287,19 @@ class MapAPI(FilteredOpnamesAPIView):
         min_value = None
         max_value = None
         color_by_name = None
+
         if self.color_by:
-
             color_by_name = models.WNS.objects.get(pk=self.color_by).wns_oms
-            min_max = models.Opname.objects.filter(
-                wns=self.color_by).aggregate(
-                Min('waarde_n'), Max('waarde_n'))
+            # Re-fetch numerical opnames, now including values
+            numerical_opnames = self.filtered_opnames.exclude(waarde_n=None)
+            opnames_for_color_by = numerical_opnames.filter(
+                wns=self.color_by).values(
+                    'locatie', 'datum', 'tijd', 'waarde_n')
 
-            min_value = min_max['waarde_n__min']
-            max_value = min_max['waarde_n__max']
+            values = [item['waarde_n'] for item in opnames_for_color_by]
+            min_value = min(values)
+            max_value = max(values)
             difference = max_value - min_value
-            opnames_for_color_by = [opname for opname in opnames
-                                    if opname['wns'] == self.color_by]
 
             def _key(opname):
                 return opname['locatie']
@@ -333,7 +336,6 @@ class MapAPI(FilteredOpnamesAPIView):
                 color_values[locatie] = color_value
                 boxplot_values[locatie] = boxplot_data
 
-        locaties = models.Locatie.objects.filter(id__in=relevant_locatie_ids)
         serializer = serializers.MapSerializer(
             locaties,
             many=True,
@@ -343,10 +345,7 @@ class MapAPI(FilteredOpnamesAPIView):
                      'boxplot_values': boxplot_values})
         result = serializer.data
 
-        color_by_fields = models.WNS.objects.filter(
-            pk__in=relevant_wns_ids).values('id', 'wns_oms')
         result['color_by_fields'] = color_by_fields
-
         result['min_value'] = min_value
         result['max_value'] = max_value
         result['color_by_name'] = color_by_name
@@ -429,13 +428,15 @@ class OpnamesAPI(FilteredOpnamesAPIView):
         if page_size not in [None, '']:
             ITEMS_PER_PAGE = page_size
 
-        filtered_opnames = filtered_opnames.select_related(
-            'locatie__loc_id',
-            'locatie__loc_oms',
-            'wns__wns_oms',
-            'activiteit__activiteit',
-            'detect__teken',
-            'wns__parameter__par_oms',
+        filtered_opnames = filtered_opnames.prefetch_related(
+            'locatie',
+            'wns',
+            'activiteit',
+            'detect',
+            'wns__parameter',
+            'wns__eenheid',
+            'wns__hoedanigheid',
+            'wns__compartiment',
             )
 
         if self.get_or_post_param('format') == 'csv':
@@ -497,7 +498,7 @@ class GraphsAPI(FilteredOpnamesAPIView):
     """API to return available graph lines."""
 
     def get(self, request, format=None):
-        numerical_opnames = self.filtered_opnames.exclude(waarde_n=None)
+        numerical_opnames = self.filtered_opnames.exclude(waarde_n=None).order_by()
         all_points = numerical_opnames.values(
             'wns__wns_code', 'wns__wns_oms', 'wns__parameter__par_code',
             'wns__eenheid__eenheid',
@@ -508,6 +509,8 @@ class GraphsAPI(FilteredOpnamesAPIView):
                                GRAPH_KEY_SEPARATOR,
                                point['locatie__loc_id'])
 
+        all_points = list(all_points)
+        all_points.sort(key=_key)
         lines = []
         for key, group in groupby(all_points, _key):
             points = list(group)

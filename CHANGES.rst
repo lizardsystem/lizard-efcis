@@ -32,6 +32,8 @@ Changelog of lizard-efcis
 - Added security: Opnames that are not validated aren't shown to
   non-maintainers. "Thread local storage" is used for that.
 
+- Huge (5x+) speed increase for the most expensive queries.
+
 
 0.1 (2015-03-09)
 ----------------
