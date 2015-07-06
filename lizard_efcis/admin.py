@@ -163,7 +163,10 @@ class LocatieAdmin(admin.ModelAdmin):
     list_filter = ['waterlichaam',
                    'watertype',
                    'fc_status',
-                   'bio_status']
+                   'bio_status',
+                   'landgebruik',
+                   'afvoergebied',
+                   'grondsoort']
     filter_horizontal = ['meetnet']
 
 

@@ -139,8 +139,13 @@ class Meetnet(models.Model):
 class StatusKRW(models.Model):
     # Note: this used to be 'KRW watertype status', hence the name.
 
-    code = models.CharField(max_length=50, unique=True)
-    omschrijving = models.TextField(null=True, blank=True)
+    code = models.CharField(
+        verbose_name="status watertype",
+        max_length=50,
+        unique=True)
+    omschrijving = models.TextField(
+        null=True,
+        blank=True)
     datum_begin = models.DateField(null=True, blank=True)
     datum_eind = models.DateField(null=True, blank=True)
     datum_status = models.CharField(
@@ -183,12 +188,16 @@ class Watertype(models.Model):
 
 class Waterlichaam(models.Model):
 
-    wl_code = models.CharField(max_length=20)
+    wl_code = models.CharField(
+        verbose_name="code",
+        max_length=20)
     wl_naam = models.CharField(
+        verbose_name="naam",
         max_length=255,
         null=True,
         blank=True)
     wl_type = models.CharField(
+        verbose_name="type",
         max_length=10,
         null=True,
         blank=True)
@@ -214,12 +223,12 @@ class Locatie(models.Model):
 
     loc_id = models.CharField(
         max_length=50,
-        verbose_name="locatiecode",
+        verbose_name="code locatie",
         unique=True)
     loc_oms = models.TextField(
         null=True,
         blank=True,
-        verbose_name="locatieomschrijving")
+        verbose_name="omschrijving")
     x1 = models.FloatField(
         null=True,
         blank=True)
@@ -272,6 +281,18 @@ class Locatie(models.Model):
         blank=True,
         related_name="locaties",
         verbose_name="biologische status")
+    landgebruik = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True)
+    afvoergebied = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True)
+    grondsoort = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True)
     objects = models.GeoManager()
 
     def save(self, *args, **kwargs):
@@ -306,6 +327,7 @@ class Locatie(models.Model):
 class ParameterGroep(models.Model):
 
     code = models.CharField(
+        verbose_name="parametergroepnaam",
         unique=True,
         max_length=255
     )
@@ -350,13 +372,19 @@ class ParameterGroep(models.Model):
 
 class Parameter(models.Model):
 
-    par_code = models.CharField(max_length=30)
+    par_code = models.CharField(
+        verbose_name="code",
+        max_length=30)
     par_oms = models.CharField(
+        verbose_name="omschrijving",
         max_length=255,
         null=True,
         blank=True)
     casnummer = models.CharField(
-        max_length=30, null=True, blank=True)
+        verbose_name="CAS-nummer",
+        max_length=30,
+        null=True,
+        blank=True)
     datum_status = models.DateField(null=True, blank=True)
     status = models.ForeignKey(Status, null=True, blank=True)
     parametergroep = models.ForeignKey(ParameterGroep, null=True)
@@ -373,7 +401,10 @@ class Parameter(models.Model):
 class Eenheid(models.Model):
 
     eenheid = models.CharField(max_length=20, unique=True)
-    eenheid_oms = models.TextField(null=True, blank=True)
+    eenheid_oms = models.TextField(
+        verbose_name="omschrijving",
+        null=True,
+        blank=True)
     dimensie = models.CharField(
         max_length=20,
         null=True,
@@ -398,7 +429,10 @@ class Eenheid(models.Model):
 class Hoedanigheid(models.Model):
 
     hoedanigheid = models.CharField(max_length=20, unique=True)
-    hoed_oms = models.TextField(null=True, blank=True)
+    hoed_oms = models.TextField(
+        verbose_name="omschriving",
+        null=True,
+        blank=True)
     hoedanigheidgroep = models.CharField(
         max_length=30,
         null=True,
@@ -418,7 +452,10 @@ class Hoedanigheid(models.Model):
 class Compartiment(models.Model):
 
     compartiment = models.CharField(max_length=20, unique=True)
-    comp_oms = models.TextField(null=True, blank=True)
+    comp_oms = models.TextField(
+        verbose_name="omschrijving",
+        null=True,
+        blank=True)
     compartimentgroep = models.CharField(
         max_length=30,
         null=True,
@@ -478,6 +515,7 @@ class Activiteit(models.Model):
     activiteit = models.CharField(max_length=50, unique=True)
     act_type = models.CharField(
         max_length=10,
+        verbose_name="type activiteit",
         choices=TYPE_CHOICES,
         default=T1)
     uitvoerende = models.ForeignKey(
@@ -486,24 +524,31 @@ class Activiteit(models.Model):
         blank=True,
         related_name='activiteiten')
     act_oms = models.TextField(
+        verbose_name="omschrijving",
         null=True,
         blank=True)
     met_mafa = models.TextField(
+        verbose_name="methode macrofauna",
         null=True,
         blank=True)
     met_mafy = models.TextField(
+        verbose_name="methode macrofyten",
         null=True,
         blank=True)
     met_fyt = models.TextField(
+        verbose_name="methode fytoplankton",
         null=True,
         blank=True)
     met_vis = models.TextField(
+        verbose_name="methode vissen",
         null=True,
         blank=True)
     met_fc = models.TextField(
+        verbose_name="methode fysisch-chemisch",
         null=True,
         blank=True)
     met_toets = models.TextField(
+        verbose_name="methode toetsing",
         null=True,
         blank=True)
 
@@ -518,8 +563,12 @@ class Activiteit(models.Model):
 
 class WNS(models.Model):
 
-    wns_code = models.CharField(max_length=30, unique=True)
+    wns_code = models.CharField(
+        verbose_name="code WNS",
+        max_length=30,
+        unique=True)
     wns_oms = models.CharField(
+        verbose_name="omschrijving",
         max_length=255,
         null=True,
         blank=True,
