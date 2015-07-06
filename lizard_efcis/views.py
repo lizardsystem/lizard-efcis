@@ -269,8 +269,6 @@ class MapAPI(FilteredOpnamesAPIView):
 
     def get(self, request, format=None):
         numerical_opnames = self.filtered_opnames.exclude(waarde_n=None)
-        # opnames = numerical_opnames.values(
-        #     'locatie', 'wns', 'datum', 'tijd', 'waarde_n')
         opnames = numerical_opnames.values('locatie', 'wns').order_by()
         # ^^^ Note: unordered for speed reasons.
         relevant_locatie_ids = list(set(
