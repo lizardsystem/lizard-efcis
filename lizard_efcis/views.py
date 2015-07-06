@@ -500,7 +500,7 @@ class GraphsAPI(FilteredOpnamesAPIView):
     """API to return available graph lines."""
 
     def get(self, request, format=None):
-        numerical_opnames = self.filtered_opnames.exclude(waarde_n=None)
+        numerical_opnames = self.filtered_opnames.exclude(waarde_n=None).order_by()
         all_points = numerical_opnames.values(
             'wns__wns_code', 'wns__wns_oms', 'wns__parameter__par_code',
             'wns__eenheid__eenheid',
@@ -511,6 +511,8 @@ class GraphsAPI(FilteredOpnamesAPIView):
                                GRAPH_KEY_SEPARATOR,
                                point['locatie__loc_id'])
 
+        all_points = list(all_points)
+        all_points.sort(key=_key)
         lines = []
         for key, group in groupby(all_points, _key):
             points = list(group)
