@@ -670,8 +670,12 @@ class ImportRun(models.Model):
     action_log = models.TextField(
         null=True,
         blank=True)
-    validated = models.BooleanField(default=False)
-    imported = models.BooleanField(default=False)
+    validated = models.BooleanField(
+        verbose_name="gecontroleerd",
+        default=False)
+    imported = models.BooleanField(
+        verbose_name="geïmporteerd",
+        default=False)
     activiteit = models.ForeignKey(
         Activiteit,
         blank=True,
