@@ -436,6 +436,10 @@ class OpnamesAPI(FilteredOpnamesAPIView):
             'activiteit__activiteit',
             'detect__teken',
             'wns__parameter__par_oms',
+            'wns__eenheid__eenheid',
+            'wns__eenheid__eenheid_oms',
+            'wns__hoedanigheid__hoed_oms',
+            'wns__compartiment__comp_oms',
             )
 
         if self.get_or_post_param('format') == 'csv':
