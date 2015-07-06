@@ -154,7 +154,7 @@ class DataImport(object):
                     logger.info("get wns %s %s" % (
                         datatype, ''.join(val_raw.split(' '))))
                 inst = class_inst.objects.get(
-                    **{'wns_oms_space_less__iexact': ''.join(val_raw.split(' '))})
+                    wns_oms__iexact=''.join(val_raw.split(' ')))
             else:
                 inst = class_inst.objects.get(
                     **{foreignkey_field: val_raw})
@@ -534,8 +534,8 @@ class DataImport(object):
                 if self.log:
                     logger.info("setattr %s, %s, %s." % (mapping_field.db_field, value, type(value)))
                 setattr(inst, mapping_field.db_field, value)
-    
-    def save_action_log(self, import_run, message): 
+
+    def save_action_log(self, import_run, message):
         import_run.action_log = utils.add_text_to_top(
                 import_run.action_log,
                 message)
@@ -559,7 +559,7 @@ class DataImport(object):
                 mapping_code)
             self.save_action_log(import_run, message)
             is_valid = False
-        
+
         # Check delimeter
         if not mapping.scheiding_teken or len(mapping.scheiding_teken) > 1:
             message = "%s: %s %s.\n" % (
@@ -633,7 +633,7 @@ class DataImport(object):
                     )
                     self.save_action_log(import_run, message)
                     is_valid = False
-            
+
             message = "%s: %s %d.\n" % (
                 datetime.now().strftime(datetime_format),
                 "Aantal rijen",
@@ -675,8 +675,8 @@ class DataImport(object):
         logger.info(
             'End import: created={}.'.format(created))
 
-    def manual_import_csv(self, import_run, datetime_format, ignore_duplicate_key=True):      
-        
+    def manual_import_csv(self, import_run, datetime_format, ignore_duplicate_key=True):
+
         is_imported = False
         filepath = import_run.attachment.path
         mapping_code = import_run.import_mapping.code

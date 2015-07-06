@@ -13,6 +13,9 @@ from django.contrib.gis.geos import Point
 from django.core.cache import cache
 
 from lizard_efcis import utils
+from lizard_efcis.manager import FilteredOpnamesManager
+from lizard_efcis.manager import NOT_VALIDATED
+from lizard_efcis.manager import VALIDATION_CHOICES
 
 
 def get_attachment_path(instance, filename):
@@ -58,8 +61,47 @@ class Status(models.Model):
 
     class Meta:
         ordering = ['naam']
-        verbose_name = "status"
-        verbose_name_plural = "statussen"
+        verbose_name = "TWN status"
+        verbose_name_plural = "TWN statussen"
+
+    def __unicode__(self):
+        return self.naam
+
+
+class WNSStatus(models.Model):
+
+    naam = models.CharField(unique=True, max_length=50)
+
+    class Meta:
+        ordering = ['naam']
+        verbose_name = "WNS status"
+        verbose_name_plural = "WNS statussen"
+
+    def __unicode__(self):
+        return self.naam
+
+
+class FCStatus(models.Model):
+
+    naam = models.CharField(unique=True, max_length=50)
+
+    class Meta:
+        ordering = ['naam']
+        verbose_name = "fysisch/chemische status"
+        verbose_name_plural = "fysisch/chemische statussen"
+
+    def __unicode__(self):
+        return self.naam
+
+
+class BioStatus(models.Model):
+
+    naam = models.CharField(unique=True, max_length=50)
+
+    class Meta:
+        ordering = ['naam']
+        verbose_name = "biologische status"
+        verbose_name_plural = "biologische statussen"
 
     def __unicode__(self):
         return self.naam
@@ -95,9 +137,15 @@ class Meetnet(models.Model):
 
 
 class StatusKRW(models.Model):
+    # Note: this used to be 'KRW watertype status', hence the name.
 
-    code = models.CharField(max_length=50, unique=True)
-    omschrijving = models.TextField(null=True, blank=True)
+    code = models.CharField(
+        verbose_name="status watertype",
+        max_length=50,
+        unique=True)
+    omschrijving = models.TextField(
+        null=True,
+        blank=True)
     datum_begin = models.DateField(null=True, blank=True)
     datum_eind = models.DateField(null=True, blank=True)
     datum_status = models.CharField(
@@ -107,8 +155,8 @@ class StatusKRW(models.Model):
 
     class Meta:
         ordering = ['code']
-        verbose_name = "KRW status"
-        verbose_name_plural = "KRW statussen"
+        verbose_name = "watertype status"
+        verbose_name_plural = "watertype statussen"
 
     def __unicode__(self):
         return self.code
@@ -140,20 +188,27 @@ class Watertype(models.Model):
 
 class Waterlichaam(models.Model):
 
-    wl_code = models.CharField(max_length=20)
+    wl_code = models.CharField(
+        verbose_name="code",
+        max_length=20)
     wl_naam = models.CharField(
+        verbose_name="naam",
         max_length=255,
         null=True,
         blank=True)
     wl_type = models.CharField(
+        verbose_name="type",
         max_length=10,
         null=True,
         blank=True)
     wl_oms = models.TextField(null=True, blank=True)
-    status = models.CharField(
-        max_length=100,
+    status_krw = models.ForeignKey(
+        # Note: "status krw" means "status krw watertype".
+        StatusKRW,
         null=True,
-        blank=True)
+        blank=True,
+        related_name="waterlichamen",
+        verbose_name="status watertype")
 
     class Meta:
         ordering = ['wl_code']
@@ -161,45 +216,80 @@ class Waterlichaam(models.Model):
         verbose_name_plural = "waterlichamen"
 
     def __unicode__(self):
-        return self.wl_code
+        return ' '.join([self.wl_code, self.wl_naam])
 
 
 class Locatie(models.Model):
 
     loc_id = models.CharField(
         max_length=50,
-        help_text="Locatiecode",
+        verbose_name="code locatie",
         unique=True)
     loc_oms = models.TextField(
         null=True,
         blank=True,
-        help_text="Locatieomschrijving")
-    x1 = models.FloatField(null=True, blank=True)
-    y1 = models.FloatField(null=True, blank=True)
-    x2 = models.FloatField(null=True, blank=True)
-    y2 = models.FloatField(null=True, blank=True)
-    geo_punt1 = models.PointField(srid=4326, null=True, blank=True)
-    geo_punt2 = models.PointField(srid=4326, null=True, blank=True)
+        verbose_name="omschrijving")
+    x1 = models.FloatField(
+        null=True,
+        blank=True)
+    y1 = models.FloatField(
+        null=True,
+        blank=True)
+    x2 = models.FloatField(
+        null=True,
+        blank=True)
+    y2 = models.FloatField(
+        null=True,
+        blank=True)
+    geo_punt1 = models.PointField(
+        srid=4326,
+        null=True,
+        blank=True,
+        editable=False)
+    geo_punt2 = models.PointField(
+        srid=4326,
+        null=True,
+        blank=True,
+        editable=False)
     waterlichaam = models.ForeignKey(
         Waterlichaam,
         blank=True,
         null=True)
+    meetnet = models.ManyToManyField(Meetnet, null=True, blank=True)
     watertype = models.ForeignKey(
         Watertype,
         null=True,
         blank=True,
-        help_text="KRW Watertype")
+        verbose_name="KRW watertype")
     status_krw = models.ForeignKey(
+        # Note: "status krw" means "status krw watertype".
+        # For BBB, we keep the foreign key as StatusKRW...
         StatusKRW,
         null=True,
         blank=True,
-        help_text="Status KRW Watertype")
-    meetnet = models.ManyToManyField(Meetnet, null=True, blank=True)
-    status_fc = models.CharField(
+        related_name="locaties",
+        verbose_name="status watertype")
+    fc_status = models.ForeignKey(
+        FCStatus,
+        null=True,
+        blank=True,
+        related_name="locaties",
+        verbose_name="fysisch/chemische status")
+    bio_status = models.ForeignKey(
+        BioStatus,
+        null=True,
+        blank=True,
+        related_name="locaties",
+        verbose_name="biologische status")
+    landgebruik = models.CharField(
         max_length=255,
         null=True,
         blank=True)
-    status_bio = models.CharField(
+    afvoergebied = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True)
+    grondsoort = models.CharField(
         max_length=255,
         null=True,
         blank=True)
@@ -237,6 +327,7 @@ class Locatie(models.Model):
 class ParameterGroep(models.Model):
 
     code = models.CharField(
+        verbose_name="parametergroepnaam",
         unique=True,
         max_length=255
     )
@@ -281,19 +372,25 @@ class ParameterGroep(models.Model):
 
 class Parameter(models.Model):
 
-    par_code = models.CharField(max_length=30)
+    par_code = models.CharField(
+        verbose_name="code",
+        max_length=30)
     par_oms = models.CharField(
+        verbose_name="omschrijving",
         max_length=255,
         null=True,
         blank=True)
     casnummer = models.CharField(
-        max_length=30, null=True, blank=True)
+        verbose_name="CAS-nummer",
+        max_length=30,
+        null=True,
+        blank=True)
     datum_status = models.DateField(null=True, blank=True)
     status = models.ForeignKey(Status, null=True, blank=True)
     parametergroep = models.ForeignKey(ParameterGroep, null=True)
 
     def __unicode__(self):
-        return self.par_code
+        return ' '.join([self.par_code, self.par_oms])
 
     class Meta:
         ordering = ['par_code']
@@ -304,7 +401,10 @@ class Parameter(models.Model):
 class Eenheid(models.Model):
 
     eenheid = models.CharField(max_length=20, unique=True)
-    eenheid_oms = models.TextField(null=True, blank=True)
+    eenheid_oms = models.TextField(
+        verbose_name="omschrijving",
+        null=True,
+        blank=True)
     dimensie = models.CharField(
         max_length=20,
         null=True,
@@ -329,7 +429,10 @@ class Eenheid(models.Model):
 class Hoedanigheid(models.Model):
 
     hoedanigheid = models.CharField(max_length=20, unique=True)
-    hoed_oms = models.TextField(null=True, blank=True)
+    hoed_oms = models.TextField(
+        verbose_name="omschriving",
+        null=True,
+        blank=True)
     hoedanigheidgroep = models.CharField(
         max_length=30,
         null=True,
@@ -349,7 +452,10 @@ class Hoedanigheid(models.Model):
 class Compartiment(models.Model):
 
     compartiment = models.CharField(max_length=20, unique=True)
-    comp_oms = models.TextField(null=True, blank=True)
+    comp_oms = models.TextField(
+        verbose_name="omschrijving",
+        null=True,
+        blank=True)
     compartimentgroep = models.CharField(
         max_length=30,
         null=True,
@@ -379,6 +485,21 @@ class Detectiegrens(models.Model):
         verbose_name_plural = "detectiegrenzen"
 
 
+class Uitvoerende(models.Model):
+
+    name = models.CharField(
+        max_length=255,
+        unique=True)
+
+    def __unicode__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = "uitvoerende"
+        verbose_name_plural = "uitvoerenden"
+
+
 class Activiteit(models.Model):
 
     T0 = ""
@@ -394,35 +515,40 @@ class Activiteit(models.Model):
     activiteit = models.CharField(max_length=50, unique=True)
     act_type = models.CharField(
         max_length=10,
+        verbose_name="type activiteit",
         choices=TYPE_CHOICES,
         default=T1)
-    uitvoerende = models.CharField(
-        max_length=50,
+    uitvoerende = models.ForeignKey(
+        Uitvoerende,
+        null=True,
+        blank=True,
+        related_name='activiteiten')
+    act_oms = models.TextField(
+        verbose_name="omschrijving",
         null=True,
         blank=True)
-    act_oms = models.TextField(null=True, blank=True)
-    met_mafa = models.CharField(
-        max_length=255,
+    met_mafa = models.TextField(
+        verbose_name="methode macrofauna",
         null=True,
         blank=True)
-    met_mafy = models.CharField(
-        max_length=255,
+    met_mafy = models.TextField(
+        verbose_name="methode macrofyten",
         null=True,
         blank=True)
-    met_fyt = models.CharField(
-        max_length=255,
+    met_fyt = models.TextField(
+        verbose_name="methode fytoplankton",
         null=True,
         blank=True)
-    met_vis = models.CharField(
-        max_length=255,
+    met_vis = models.TextField(
+        verbose_name="methode vissen",
         null=True,
         blank=True)
-    met_fc = models.CharField(
-        max_length=255,
+    met_fc = models.TextField(
+        verbose_name="methode fysisch-chemisch",
         null=True,
         blank=True)
-    met_toets = models.CharField(
-        max_length=255,
+    met_toets = models.TextField(
+        verbose_name="methode toetsing",
         null=True,
         blank=True)
 
@@ -437,15 +563,16 @@ class Activiteit(models.Model):
 
 class WNS(models.Model):
 
-    wns_code = models.CharField(max_length=30, unique=True)
+    wns_code = models.CharField(
+        verbose_name="code WNS",
+        max_length=30,
+        unique=True)
     wns_oms = models.CharField(
+        verbose_name="omschrijving",
         max_length=255,
         null=True,
-        blank=True)
-    wns_oms_space_less = models.CharField(
-        max_length=255,
-        null=True,
-        blank=True) 
+        blank=True,
+        editable=False)
     parameter = models.ForeignKey(Parameter, null=True, blank=True)
     eenheid = models.ForeignKey(Eenheid, null=True, blank=True)
     hoedanigheid = models.ForeignKey(
@@ -457,17 +584,24 @@ class WNS(models.Model):
         null=True,
         blank=True)
     datum_status = models.DateField(null=True, blank=True)
-    status = models.ForeignKey(Status, null=True, blank=True)
+    wns_status = models.ForeignKey(
+        WNSStatus,
+        verbose_name="WNS status",
+        null=True,
+        blank=True)
 
     def __unicode__(self):
-        return self.wns_code
+        return ' '.join([self.wns_code, self.wns_oms])
 
     def save(self, *args, **kwargs):
-        if self.wns_oms:
-            self.wns_oms_space_less = "".join(
-                self.wns_oms.split(' '))
+        wns_oms = "%s[%s][%s][%s]" % (
+            self.parameter.par_code,
+            self.eenheid.eenheid,
+            self.hoedanigheid.hoedanigheid,
+            self.compartiment.compartiment)
+        self.wns_oms = wns_oms.replace(' ', '')
         super(WNS, self).save(*args, **kwargs)
-        
+
     class Meta:
         verbose_name = "waarnemingssoort (WNS)"
         verbose_name_plural = "waarnemingssoorten (WNS)"
@@ -488,11 +622,11 @@ class ImportMapping(models.Model):
     tabel_naam = models.CharField(
         max_length=255,
         choices=tabellen,
-        help_text="Import tabel")
+        verbose_name="Import tabel")
     scheiding_teken = models.CharField(
         max_length=3,
         default=";",
-        help_text="Veld scheidingsteken.")
+        verbose_name="Veld scheidingsteken.")
 
     class Meta:
         ordering = ['tabel_naam']
@@ -657,6 +791,16 @@ class Opname(models.Model):
         null=True,
         blank=True
     )
+    validation_state = models.IntegerField(
+        choices=VALIDATION_CHOICES,
+        default=NOT_VALIDATED,
+        blank=False,
+        verbose_name="validatiestatus",
+        help_text=("(TODO) Alleen opnames met status 'Gevalideerd' zijn " +
+                   "voor iedereen zichtbaar")
+    )
+
+    objects = FilteredOpnamesManager()
 
     class Meta:
         unique_together = ((
