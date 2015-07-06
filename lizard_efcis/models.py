@@ -548,16 +548,24 @@ class ImportRun(models.Model):
         """Check fields of import_run."""
         can_run = True
         messages = []
-        if not self.import_mapping:
-            messages.append("geen mapping")
-            can_run = False
+        file_ext = None
         if not self.attachment:
             messages.append("geen bestand")
             can_run = False
-        if self.attachment and not os.path.isfile(self.attachment.path):
-            messages.append(
-                "het bestand '%s' is niet "
-                "aanwezig." % self.attachment.path)
+        else:
+            if not os.path.isfile(self.attachment.path):
+                messages.append(
+                    "het bestand '%s' is niet "
+                    "aanwezig." % self.attachment.path)
+                can_run = False
+            file_ext = os.path.splitext(self.attachment.file.name)[1]
+            if file_ext not in ['.xml', '.csv']:
+                messages.append(
+                    "de bestandextensie '%s' is niet "
+                    "toegestaan." % file_ext)
+                can_run = False
+        if not self.import_mapping and file_ext != '.xml':
+            messages.append("geen mapping")
             can_run = False
         if not self.activiteit:
             messages.append("geen activiteit")

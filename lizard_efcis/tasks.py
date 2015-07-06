@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+import os
 from datetime import datetime
 from celery import shared_task
 
@@ -35,8 +36,12 @@ def check_file(username, import_run=None, *args, **options):
             "Start controle", 
             username))
         import_run.save(force_update=True, update_fields=['action_log'])
-        result = data_import.check_csv(
-            import_run, datetime_format)
+        if os.path.splitext(import_run.attachment.file.name)[1] == '.xml':
+            result = data_import.check_xml(
+                import_run, datetime_format)
+        else:
+            result = data_import.check_csv(
+                import_run, datetime_format)
         
         import_run.action_log = utils.add_text_to_top(
             import_run.action_log,
@@ -77,8 +82,12 @@ def import_data(username, importrun=None, *args, **options):
             "Start import", 
             username))
         import_run.save(force_update=True, update_fields=['action_log'])
-        result = data_import.manual_import_csv(
-            import_run, datetime_format)
+        if os.path.splitext(import_run.attachment.file.name)[1] == '.xml':
+            result = data_import.manual_import_xml(
+                import_run, datetime_format)
+        else:
+            result = data_import.manual_import_csv(
+                import_run, datetime_format)
         
         import_run.action_log = utils.add_text_to_top(
             import_run.action_log,
