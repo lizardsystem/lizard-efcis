@@ -172,11 +172,11 @@ class FilteredOpnamesAPIView(APIView):
         if start_date:
             start_datetime = str_to_datetime(start_date)
             if start_datetime:
-                opnames = opnames.filter(datum__gt=start_datetime)
+                opnames = opnames.filter(datum__gte=start_datetime)
         if end_date:
             end_datetime = str_to_datetime(end_date)
             if end_datetime:
-                opnames = opnames.filter(datum__lt=end_datetime)
+                opnames = opnames.filter(datum__lte=end_datetime)
 
         # Locations: parameter and parametergroep should be additive, not
         # restrictive.
