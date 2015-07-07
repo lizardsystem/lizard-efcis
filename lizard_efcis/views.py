@@ -296,9 +296,11 @@ class MapAPI(FilteredOpnamesAPIView):
                 wns=self.color_by).values(
                     'locatie', 'datum', 'tijd', 'waarde_n')
 
-            values = [item['waarde_n'] for item in opnames_for_color_by]
-            min_value = min(values)
-            max_value = max(values)
+            min_max = models.Opname.objects.filter(
+                wns=self.color_by).aggregate(
+                    Min('waarde_n'), Max('waarde_n'))
+            min_value = min_max['waarde_n__min']
+            max_value = min_max['waarde_n__max']
             difference = max_value - min_value
 
             def _key(opname):
