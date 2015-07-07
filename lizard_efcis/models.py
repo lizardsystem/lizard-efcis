@@ -445,7 +445,7 @@ class WNS(models.Model):
     wns_oms_space_less = models.CharField(
         max_length=255,
         null=True,
-        blank=True) 
+        blank=True)
     parameter = models.ForeignKey(Parameter, null=True, blank=True)
     eenheid = models.ForeignKey(Eenheid, null=True, blank=True)
     hoedanigheid = models.ForeignKey(
@@ -467,7 +467,7 @@ class WNS(models.Model):
             self.wns_oms_space_less = "".join(
                 self.wns_oms.split(' '))
         super(WNS, self).save(*args, **kwargs)
-        
+
     class Meta:
         verbose_name = "waarnemingssoort (WNS)"
         verbose_name_plural = "waarnemingssoorten (WNS)"
@@ -544,27 +544,50 @@ class ImportRun(models.Model):
         null=True)
     actief = models.BooleanField(default=True)
 
+    @property
+    def has_attachment_file(self):
+        if not self.attachment:
+            return False
+        if not os.path.isfile(self.attachment.path):
+            return False
+        return True
+
+    @property
+    def has_csv_attachment(self):
+        if self.has_attachment_file:
+            file_ext = os.path.splitext(self.attachment.file.name)[1]
+            if file_ext == '.csv':
+                return True
+        return False
+
+    @property
+    def has_xml_attachment(self):
+        if self.has_attachment_file:
+            file_ext = os.path.splitext(self.attachment.file.name)[1]
+            if file_ext == '.xml':
+                return True
+        return False
+
     def can_run_any_action(self):
         """Check fields of import_run."""
         can_run = True
         messages = []
-        file_ext = None
-        if not self.attachment:
-            messages.append("geen bestand")
-            can_run = False
-        else:
+        if self.attachment:
             if not os.path.isfile(self.attachment.path):
                 messages.append(
                     "het bestand '%s' is niet "
                     "aanwezig." % self.attachment.path)
                 can_run = False
-            file_ext = os.path.splitext(self.attachment.file.name)[1]
-            if file_ext not in ['.xml', '.csv']:
+            if not (self.has_csv_attachment or self.has_xml_attachment):
                 messages.append(
-                    "de bestandextensie '%s' is niet "
-                    "toegestaan." % file_ext)
+                    "de bestandextensie is geen "
+                    ".csv of .xml")
                 can_run = False
-        if not self.import_mapping and file_ext != '.xml':
+        else:
+            messages.append("geen bestand")
+            can_run = False
+
+        if not self.import_mapping and self.has_csv_attachment:
             messages.append("geen mapping")
             can_run = False
         if not self.activiteit:

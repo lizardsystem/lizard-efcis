@@ -173,7 +173,8 @@ class DataImport(object):
                     logger.info("get wns %s %s" % (
                         datatype, ''.join(val_raw.split(' '))))
                 inst = class_inst.objects.get(
-                    **{'wns_oms_space_less__iexact': ''.join(val_raw.split(' '))})
+                    **{'wns_oms_space_less__iexact': ''.join(
+                        val_raw.split(' '))})
             else:
                 inst = class_inst.objects.get(
                     **{foreignkey_field: val_raw})
@@ -500,7 +501,7 @@ class DataImport(object):
                 wns.save()
         logger.info('End WNS import: updated={0}, '
                     'created={1}.'.format(updated, created))
-                    
+
     def set_data(self, inst, mapping, row, headers):
         """Set values to model instance. """
         for mapping_field in mapping:
@@ -551,10 +552,11 @@ class DataImport(object):
                 setattr(inst, mapping_field.db_field, values)
             else:
                 if self.log:
-                    logger.info("setattr %s, %s, %s." % (mapping_field.db_field, value, type(value)))
+                    logger.info("setattr %s, %s, %s." % (
+                        mapping_field.db_field, value, type(value)))
                 setattr(inst, mapping_field.db_field, value)
-    
-    def save_action_log(self, import_run, message): 
+
+    def save_action_log(self, import_run, message):
         import_run.action_log = utils.add_text_to_top(
                 import_run.action_log,
                 message)
@@ -578,7 +580,7 @@ class DataImport(object):
                 mapping_code)
             self.save_action_log(import_run, message)
             is_valid = False
-        
+
         # Check delimeter
         if not mapping.scheiding_teken or len(mapping.scheiding_teken) > 1:
             message = "%s: %s %s.\n" % (
@@ -632,13 +634,14 @@ class DataImport(object):
                 if len(row) != len(headers):
                     message = "%s: regelnr.: %d, %s.\n" % (
                         datetime.now().strftime(datetime_format),
-                        "Aantal kolommen komt niet overeen met het aantal headers",
+                        "Aantal kolommen komt niet overeen "
+                        "met het aantal headers",
                         reader.line_num)
                     self.save_action_log(import_run, message)
                     is_valid = False
                 inst = django_models.get_model(
-                'lizard_efcis',
-                mapping.tabel_naam)()
+                    'lizard_efcis',
+                    mapping.tabel_naam)()
                 self.set_data(inst, mapping_fields, row, headers)
                 if hasattr(inst.__class__, 'activiteit') and not hasattr(inst, 'activiteit'):
                     setattr(inst, 'activiteit', import_run.activiteit)
@@ -652,7 +655,7 @@ class DataImport(object):
                     )
                     self.save_action_log(import_run, message)
                     is_valid = False
-            
+
             message = "%s: %s %d.\n" % (
                 datetime.now().strftime(datetime_format),
                 "Aantal rijen",
@@ -694,8 +697,8 @@ class DataImport(object):
         logger.info(
             'End import: created={}.'.format(created))
 
-    def manual_import_csv(self, import_run, datetime_format, ignore_duplicate_key=True):      
-        
+    def manual_import_csv(self, import_run, datetime_format, ignore_duplicate_key=True):
+
         is_imported = False
         filepath = import_run.attachment.path
         mapping = import_run.import_mapping
@@ -752,68 +755,64 @@ class DataImport(object):
         )
         self.save_action_log(import_run, message)
         return is_imported
-    
 
     def check_xml(self, import_run, datetime_format, ignore_dublicate_key=True):
 
         filepath = import_run.attachment.path
-        #filepath = self.filepath
         activiteit = import_run.activiteit
         counter = 0
         is_valid = True
+        umaquo_parser = None
         try:
             umaquo_parser = Parser(filepath)
             umaquo_parser.parse()
-            
-            # file contains waardereekstijden
-            if umaquo_parser.waardereekstijden <= 0:
-                message = "%s: Geen waaardereekstijden gevonden, gezocht met '%s'\n" % (
-                    datetime.now().strftime(datetime_format),
-                    umaquo_parser.WAARDEREEKSTIJD_XPATH
-                )
-                self.save_action_log(import_run, message)
-                is_valid = False
-                return is_valid
-
-            for waardereekstijd in umaquo_parser.waardereekstijden.values():
-                print (umaquo_parser.get_locatie_id(waardereekstijd))
-                counter += 1
-                tijdserie = umaquo_parser.get_tijdserie(waardereekstijd)
-                opname = models.Opname()
-                opname.datum = tijdserie[0]
-                opname.tijd = tijdserie[1]
-                opname.datum = datetime.strptime(
-                    tijdserie[0], '%Y-%m-%d')
-                opname.tijd = datetime.strptime(
-                    tijdserie[1],'%H:%M:%S')
-                opname.waarde_n = tijdserie[2]
-                opname.wns = self._get_foreignkey_inst(
-                    umaquo_parser.get_wns_oms(waardereekstijd),
-                    'WNS',
-                    'wns_oms')
-                opname.locatie = self._get_foreignkey_inst(
-                    umaquo_parser.get_locatie_id(waardereekstijd),
-                    'Locatie',
-                    'loc_id')
-                opname.activiteit = activiteit
-                print (umaquo_parser.get_locatie_id(waardereekstijd))
-                try:
-                    opname.full_clean()
-                except ValidationError as e:
-                    message = "%s:  regelnr.: %d, Foutmeldingen - %s\n" % (
-                        datetime.now().strftime(datetime_format),
-                        waardereekstijd.sourceline,
-                        ", ".join(["%s: %s" % (k, ", ".join(v)) for k, v in e.message_dict.iteritems()])
-                    )
-                    self.save_action_log(import_run, message)
-                    is_valid = False
         except XMLSyntaxError as ex:
             message = "%s:  Foutmeldingen - %s\n" % (
                 datetime.now().strftime(datetime_format),
                 ex.message
             )
             self.save_action_log(import_run, message)
+            return False
+
+        if umaquo_parser.waardereekstijden <= 0:
+            message = "%s: Geen waaardereekstijden gevonden, gezocht met '%s'\n" % (
+                datetime.now().strftime(datetime_format),
+                umaquo_parser.WAARDEREEKSTIJD_XPATH
+            )
+            self.save_action_log(import_run, message)
             is_valid = False
+            return is_valid
+
+        for waardereekstijd in umaquo_parser.waardereekstijden.values():
+            print (umaquo_parser.get_locatie_id(waardereekstijd))
+            counter += 1
+            tijdserie = umaquo_parser.get_tijdserie(waardereekstijd)
+            opname = models.Opname()
+            opname.datum = datetime.strptime(
+                tijdserie[0], '%Y-%m-%d')
+            opname.tijd = datetime.strptime(
+                tijdserie[1], '%H:%M:%S')
+            opname.waarde_n = tijdserie[2]
+            opname.wns = self._get_foreignkey_inst(
+                umaquo_parser.get_wns_oms(waardereekstijd),
+                'WNS',
+                'wns_oms')
+            opname.locatie = self._get_foreignkey_inst(
+                umaquo_parser.get_locatie_id(waardereekstijd),
+                'Locatie',
+                'loc_id')
+            opname.activiteit = activiteit
+            print (umaquo_parser.get_locatie_id(waardereekstijd))
+            try:
+                opname.full_clean()
+            except ValidationError as e:
+                message = "%s:  regelnr.: %d, Foutmeldingen - %s\n" % (
+                    datetime.now().strftime(datetime_format),
+                    waardereekstijd.sourceline,
+                    ", ".join(["%s: %s" % (k, ", ".join(v)) for k, v in e.message_dict.iteritems()])
+                )
+                self.save_action_log(import_run, message)
+                is_valid = False
 
         message = "%s: %s %d.\n" % (
             datetime.now().strftime(datetime_format),
@@ -821,7 +820,7 @@ class DataImport(object):
             counter)
         self.save_action_log(import_run, message)
         return is_valid
-    
+
     def manual_import_xml(self, import_run, datetime_format, ignore_dublicate_key=True):
 
         is_imported = False
@@ -836,7 +835,7 @@ class DataImport(object):
             opname.datum = datetime.strptime(
                         tijdserie[0], '%Y-%m-%d')
             opname.tijd = datetime.strptime(
-                        tijdserie[1],'%H:%M:%S')
+                        tijdserie[1], '%H:%M:%S')
             opname.waarde_n = tijdserie[2]
             opname.wns = self._get_foreignkey_inst(
                 umaquo_parser.get_wns_oms(waardereekstijd),

@@ -4,15 +4,12 @@ from lxml import etree
 
 class Parser(object):
 
-    
     WAARDEREEKSTIJD_XPATH = '//gml:FeatureCollection/gml:featureMembers/umam:WaardeReeksTijd'
     MONSTER_OBJECT_XPATH = '//gml:FeatureCollection/gml:featureMembers/umam:MonsterObject'
-    MEET_OBJECT_XPATH = '//gml:FeatureCollection/gml:featureMembers/umam:MeetObject'
 
     DATUM_XPATH = 'umam:reekswaarde/umam:TijdWaarde/umam:beginTijd/umam:DatumTijdDataType/umam:datum'
     TIJD_XPATH = 'umam:reekswaarde/umam:TijdWaarde/umam:beginTijd/umam:DatumTijdDataType/umam:tijd'
     NUMERIEKE_WAARDE_XPATH = 'umam:reekswaarde/umam:TijdWaarde/umam:numeriekeWaarde/umam:WaardeDataType/umam:getalswaarde'
-
 
     def __init__(self, filepath, *args, **kwargs):
         self.namespaces = {
@@ -21,39 +18,37 @@ class Parser(object):
             'xlink': 'http://www.w3.org/1999/xlink',
         }
         self.filepath = filepath
-        self.meetobjects = {}
         self.monsterobjects = {}
         self.waardereekstijden = {}
-
-    def check_file(self):
-        if not os.path.isfile(self.filepath):
-            return (False, "%s - is geen bestand")
-        return (True, '')
 
     def parse(self):
         tree = None
         parser = etree.XMLParser(ns_clean=True)
         tree = etree.parse(self.filepath, parser)
-        
-        for meetobject in tree.xpath(Parser.MEET_OBJECT_XPATH, namespaces=self.namespaces):
-            self.meetobjects.update({
-                meetobject.get('{%s}id' % self.namespaces.get('gml')): meetobject})
-        for monsterobject in tree.xpath(Parser.MONSTER_OBJECT_XPATH, namespaces=self.namespaces):
-            self.monsterobjects.update({
-                monsterobject.get('{%s}id' % self.namespaces.get('gml')): monsterobject})
-        for reeks in tree.xpath(Parser.WAARDEREEKSTIJD_XPATH, namespaces=self.namespaces):
-            self.waardereekstijden.update({
-                reeks.get('{%s}id' % self.namespaces.get('gml')): reeks})
+
+        for monsterobject in tree.xpath(
+                Parser.MONSTER_OBJECT_XPATH,
+                namespaces=self.namespaces):
+            monsterobjectid = monsterobject.get(
+                '{%s}id' % self.namespaces.get('gml'))
+            self.monsterobjects[monsterobjectid] = monsterobject
+        for reeks in tree.xpath(
+                Parser.WAARDEREEKSTIJD_XPATH,
+                namespaces=self.namespaces):
+            waardereekstijdid = reeks.get(
+                '{%s}id' % self.namespaces.get('gml'))
+            self.waardereekstijden[waardereekstijdid] = reeks
 
     def get_text_part(self, text, partindex):
         text_parts = text.split(';')
         if len(text_parts) > partindex:
             return text_parts[0]
         return text
-            
+
     def get_compartiment(self, monsterobject):
         """
-        Retrieve text of first compartiment-element.
+        Retrieve first part of the text of
+        first compartiment-element.
         Arguments:
            monsterobject - etree xml-objects found
            by tag 'umam:MonsterObject'
@@ -61,13 +56,14 @@ class Parser(object):
         compartiments = monsterobject.xpath(
             'umam:compartiment',
             namespaces=self.namespaces)
-        for compartiment in compartiments:
-            return self.get_text_part(compartiment.text, 0)
+        if compartiments:
+            return self.get_text_part(compartiments[0].text, 0)
         return None
 
     def get_eenheid(self, waardereekstijd):
         """
-        Retrieve text of firts eenheid-element.
+        Retrieve first part of the text of
+        first eenheid-element.
         Arguments:
            waardereekstijd - etree xml-objects found
            by tag 'umam:WaardereeksTijd'
@@ -75,13 +71,14 @@ class Parser(object):
         eenheden = waardereekstijd.xpath(
             'umam:eenheid',
             namespaces=self.namespaces)
-        for eenheid in eenheden:
-            return self.get_text_part(eenheid.text, 0)
+        if eenheden:
+            return self.get_text_part(eenheden[0].text, 0)
         return None
 
     def get_hoedanigheid(self, waardereekstijd):
         """
-        Retrieve text of firts hoedanigheid-element.
+        Retrieve first part of the text of
+        first hoedanigheid-element.
         Arguments:
            waardereekstijd - etree xml-objects found
            by tag 'umam:WaardereeksTijd'
@@ -89,18 +86,19 @@ class Parser(object):
         hoedanigheden = waardereekstijd.xpath(
             'umam:hoedanigheid',
             namespaces=self.namespaces)
-        for hoedanigheid in hoedanigheden:
-            return self.get_text_part(hoedanigheid.text, 0)
+        if hoedanigheden:
+            return self.get_text_part(hoedanigheden[0].text, 0)
         return None
 
     def get_parameter(self, waardereekstijd):
         """
-        Retrieve text of firts parameter-element.
+        Retrieve first part of the text of 
+        first parameter-element.
         Arguments:
            waardereekstijd - etree xml-objects found
            by tag 'umam:WaardereeksTijd'
         """
-        parameters =  [parameter for parameter in waardereekstijd.iterdescendants(
+        parameters = [parameter for parameter in waardereekstijd.iterdescendants(
             '{%s}parameter' % self.namespaces['umam'])]
         parameter_values = []
         for parameter in parameters:
@@ -111,9 +109,9 @@ class Parser(object):
                 return self.get_text_part(value, 0)
         return None
 
-    def get_hoortbijmonstrobject_id(self, waardereekstijd):
+    def get_hoortbijmonsterobject_id(self, waardereekstijd):
         """
-        Retrieve related monsterobjectid of firts 
+        Retrieve related monsterobjectid of first 
         hoortBijMonsterObject-element.
         Arguments:
            waardereekstijd - etree xml-objects found
@@ -122,8 +120,8 @@ class Parser(object):
         hoortbijmonsterobjects = waardereekstijd.xpath(
             'umam:hoortBijMonsterObject',
             namespaces=self.namespaces)
-        for hoortbijmonsterobject in hoortbijmonsterobjects:
-            monsterobjectid = hoortbijmonsterobject.get(
+        if hoortbijmonsterobjects:
+            monsterobjectid = hoortbijmonsterobjects[0].get(
                 '{%s}href' % self.namespaces.get('xlink'))
             monsterobjectid = monsterobjectid.replace('#', '')
             return monsterobjectid
@@ -131,9 +129,9 @@ class Parser(object):
 
     def get_hoortbijmeetobject_id(self, monsterobject):
         """
-        Retrieve related meetobjectid of firts 
+        Retrieve related meetobjectid of first
         hoortBijMeetObject-element.
-        Meetobejctsid is a locatieid. 
+        Meetobejctsid is a locatieId.
         Arguments:
            monsterobject - etree xml-objects found
            by tag 'umam:MonsterObjects'
@@ -141,8 +139,8 @@ class Parser(object):
         hoortbijmeetobjects = monsterobject.xpath(
             'umam:hoortBijMeetObject',
             namespaces=self.namespaces)
-        for hoortbijmeetobject in hoortbijmeetobjects:
-            meetobjectid = hoortbijmeetobject.get(
+        if hoortbijmeetobjects:
+            meetobjectid = hoortbijmeetobjects[0].get(
                 '{%s}href' % self.namespaces.get('xlink'))
             meetobjectid = meetobjectid.replace('#', '')
             return meetobjectid
@@ -171,7 +169,7 @@ class Parser(object):
         eenheid = self.get_eenheid(waardereekstijd)
         hoedanigheid = self.get_hoedanigheid(waardereekstijd)
 
-        monsterobjectid = self.get_hoortbijmonstrobject_id(waardereekstijd)
+        monsterobjectid = self.get_hoortbijmonsterobject_id(waardereekstijd)
         compartiment = self.get_compartiment(
             self.monsterobjects.get(monsterobjectid))
 
@@ -182,7 +180,7 @@ class Parser(object):
             compartiment)
 
     def get_locatie_id(self, waardereekstijd):
-        monsterobjectid = self.get_hoortbijmonstrobject_id(
+        monsterobjectid = self.get_hoortbijmonsterobject_id(
             waardereekstijd)
         meetobjectid = self.get_hoortbijmeetobject_id(
                 self.monsterobjects.get(monsterobjectid))
@@ -194,10 +192,10 @@ class Parser(object):
             eenheid = self.get_eenheid(waardereekstijd)
             hoedanigheid = self.get_hoedanigheid(waardereekstijd)
 
-            monsterobjectid = self.get_hoortbijmonstrobject_id(waardereekstijd)
+            monsterobjectid = self.get_hoortbijmonsterobject_id(waardereekstijd)
             compartiment = self.get_compartiment(
                 self.monsterobjects.get(monsterobjectid))
-            
+
             meetobjectid = self.get_hoortbijmeetobject_id(
                 self.monsterobjects.get(monsterobjectid))
             print ('%s[%s][%s][%s], %s, %s' % (
