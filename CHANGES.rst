@@ -21,6 +21,19 @@ Changelog of lizard-efcis
   ``loc_id`` field. The photos should be placed in a ``photos/`` subdirectory
   of the ``MEDIA_ROOT``.
 
+- Added 'Uitvoerende' model, related to activity.
+
+- Admin improvements: better filtering, better string representations.
+
+- Added several status domain tables, replacing string fields. Some status
+  tables have been moved around and/or renamed (mostly only by editing
+  ``verbose_name``, btw).
+
+- Added security: Opnames that are not validated aren't shown to
+  non-maintainers. "Thread local storage" is used for that.
+
+- Huge (5x+) speed increase for the most expensive queries.
+
 
 0.1 (2015-03-09)
 ----------------

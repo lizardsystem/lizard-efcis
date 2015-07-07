@@ -87,7 +87,11 @@ class ImportRunAdmin(admin.ModelAdmin):
                     'validated',
                     'imported']
     list_filter = ['type_run', 'uploaded_by']
-    search_fields = ['name', 'uploaded_by', 'attachment', 'activiteit']
+    search_fields = ['name',
+                     'uploaded_by',
+                     'attachment',
+                     'activiteit']
+    raw_id_fields = ['activiteit']
     actions = [check_file, import_file]
     readonly_fields = ['validated', 'imported']
 
@@ -158,8 +162,12 @@ class LocatieAdmin(admin.ModelAdmin):
                      'loc_oms']
     list_filter = ['waterlichaam',
                    'watertype',
-                   'status_fc',
-                   'status_bio']
+                   'fc_status',
+                   'bio_status',
+                   'landgebruik',
+                   'afvoergebied',
+                   'grondsoort']
+    filter_horizontal = ['meetnet']
 
 
 @admin.register(models.Meetnet)
@@ -175,10 +183,11 @@ class OpnameAdmin(admin.ModelAdmin):
                     'waarde_n',
                     'waarde_a',
                     'datum',
-                    'tijd']
+                    'validation_state']
     search_fields = ['wns__wns_oms',
                      'locatie__loc_oms']
-    list_filter = ['datum']
+    list_filter = ['datum',
+                   'validation_state']
 
 
 @admin.register(models.WNS)
@@ -192,7 +201,9 @@ class WNSAdmin(admin.ModelAdmin):
                      'wns_oms',
                      'parameter__par_code',
                      'parameter__par_oms']
+    raw_id_fields = ['parameter']
     list_select_related = ['parameter__code', 'eenheid__eenheid']
+    list_filter = ['wns_status']
 
 
 @admin.register(models.ParameterGroep)
@@ -203,6 +214,9 @@ class ParameterGroepAdmin(admin.ModelAdmin):
 
 @admin.register(models.Parameter)
 class Parameter(admin.ModelAdmin):
+    search_fields = ['par_code',
+                    'par_oms',
+                    'casnummer']
     list_display = ['par_code',
                     'par_oms',
                     'casnummer',
@@ -228,9 +242,9 @@ class WaterlichaamAdmin(admin.ModelAdmin):
                     'wl_naam',
                     'wl_type',
                     'wl_oms',
-                    'status']
+                    'status_krw']
     list_filter = ['wl_type',
-                   'status']
+                   'status_krw']
     search_fields = ['wl_code',
                      'wl_naam']
 
@@ -259,8 +273,27 @@ class ActiviteitAdmin(admin.ModelAdmin):
                     'met_fyt',
                     'met_vis',
                     'met_fc',
-                    'met_toets']
+                    'met_toets',
+                    'uitvoerende']
     list_filter = ['act_type',
                    'uitvoerende']
     search_fields = ['activiteit',
                      'act_oms']
+
+
+@admin.register(models.Uitvoerende)
+class UitvoerendeAdmin(admin.ModelAdmin):
+    list_display = ['name']
+    search_fields = ['name']
+
+
+@admin.register(models.BioStatus)
+class BioStatusAdmin(admin.ModelAdmin):
+    list_display = ['naam']
+    search_fields = ['naam']
+
+
+@admin.register(models.FCStatus)
+class FCStatusAdmin(admin.ModelAdmin):
+    list_display = ['naam']
+    search_fields = ['naam']

@@ -54,13 +54,26 @@ class OpnameSerializer(serializers.HyperlinkedModelSerializer):
     hoed_oms = serializers.CharField(
         read_only=True,
         source='wns.hoedanigheid.hoed_oms')
-    validatiestatus = serializers.SerializerMethodField()
     par_oms = serializers.CharField(
         read_only=True,
         source='wns.parameter.par_oms')
 
+    validatiestatus = serializers.SerializerMethodField()
+    grondsoort = serializers.CharField(
+        read_only=True,
+        source='locatie.grondsoord')
+    landgebruik = serializers.CharField(
+        read_only=True,
+        source='locatie.landgebruik')
+    afvoergebied = serializers.CharField(
+        read_only=True,
+        source='locatie.afvoergebied')
+    watertype = serializers.CharField(
+        read_only=True,
+        source='locatie.watertype.code')
+
     def get_validatiestatus(self, obj):
-        return 'Gevalideerd'
+        return obj.get_validation_state_display()
 
     class Meta:
         model = models.Opname
@@ -70,7 +83,12 @@ class OpnameSerializer(serializers.HyperlinkedModelSerializer):
                   'datum', 'tijd',
                   'par_oms',
                   'validatiestatus',
-                  'eenheid_oms', 'hoed_oms', 'comp_oms')
+                  'eenheid_oms', 'hoed_oms', 'comp_oms',
+                  'grondsoort',
+                  'landgebruik',
+                  'afvoergebied',
+                  'watertype',
+                  )
 
 
 class OpnameDetailSerializer(OpnameSerializer):
@@ -80,7 +98,6 @@ class OpnameDetailSerializer(OpnameSerializer):
     par_oms = serializers.CharField(
         read_only=True,
         source='wns.parameter.par_oms')
-    validatiestatus = serializers.SerializerMethodField()
     x1 = serializers.CharField(
         read_only=True,
         source='locatie.x1')
@@ -142,9 +159,19 @@ class OpnameDetailSerializer(OpnameSerializer):
     wns_code = serializers.CharField(
         read_only=True,
         source='wns.wns_code')
+    validatiestatus = serializers.SerializerMethodField()
+    grondsoort = serializers.CharField(
+        read_only=True,
+        source='locatie.grondsoord')
+    landgebruik = serializers.CharField(
+        read_only=True,
+        source='locatie.landgebruik')
+    afvoergebied = serializers.CharField(
+        read_only=True,
+        source='locatie.afvoergebied')
 
     def get_validatiestatus(self, obj):
-        return 'ok'
+        return obj.get_validation_state_display()
 
     def get_meetnet(self, obj):
         meetnetten = obj.locatie.meetnet.all().values_list(
@@ -164,7 +191,12 @@ class OpnameDetailSerializer(OpnameSerializer):
                   'act_oms', 'met_mafa', 'met_mafy', 'met_fyt',
                   'met_vis', 'met_fc', 'met_toets', 'eenheid',
                   'eenheid_oms', 'hoedanigheid', 'hoed_oms',
-                  'compartiment', 'comp_oms')
+                  'compartiment', 'comp_oms',
+                  'grondsoort',
+                  'landgebruik',
+                  'afvoergebied',
+                  'watertype',
+        )
 
 
 class PaginatedOpnameSerializer(pagination.BasePaginationSerializer):
