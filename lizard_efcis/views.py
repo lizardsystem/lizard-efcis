@@ -260,7 +260,6 @@ class MapAPI(FilteredOpnamesAPIView):
 
     """
 
-
     @cached_property
     def color_by(self):
         from_query_param = self.get_or_post_param('color_by')
@@ -328,7 +327,8 @@ class MapAPI(FilteredOpnamesAPIView):
                 latest_value = values[-1]
                 latest_values[locatie] = latest_value
                 latest_opname = opnames_per_locatie[-1]
-                latest_datetime = '%sT%s.000Z' % (latest_opname['datum'], latest_opname['tijd'])
+                latest_datetime = '%sT%s.000Z' % (latest_opname['datum'],
+                                                  latest_opname['tijd'])
                 latest_datetimes[locatie] = latest_datetime
                 if difference:
                     color_value = round(
@@ -432,6 +432,7 @@ class OpnamesAPI(FilteredOpnamesAPIView):
 
         filtered_opnames = filtered_opnames.prefetch_related(
             'locatie',
+            'locatie__watertype',
             'wns',
             'activiteit',
             'detect',
@@ -500,7 +501,8 @@ class GraphsAPI(FilteredOpnamesAPIView):
     """API to return available graph lines."""
 
     def get(self, request, format=None):
-        numerical_opnames = self.filtered_opnames.exclude(waarde_n=None).order_by()
+        numerical_opnames = self.filtered_opnames.exclude(
+            waarde_n=None).order_by()
         all_points = numerical_opnames.values(
             'wns__wns_code', 'wns__wns_oms', 'wns__parameter__par_code',
             'wns__eenheid__eenheid',
@@ -536,7 +538,7 @@ class GraphsAPI(FilteredOpnamesAPIView):
                         kwargs={'axis1_key': key},
                         format=format,
                         request=self.request),
-                }
+            }
             lines.append(line)
 
         return Response(lines)
@@ -697,9 +699,9 @@ class ScatterplotGraphAPI(FilteredOpnamesAPIView):
         points = []
         for date in dates:
             x_candidates = [opname for opname in our_opnames1
-                            if opname['datum']==date]
+                            if opname['datum'] == date]
             y_candidates = [opname for opname in our_opnames2
-                            if opname['datum']==date]
+                            if opname['datum'] == date]
             if not (x_candidates and y_candidates):
                 continue
             x = x_candidates[0]['waarde_n']
