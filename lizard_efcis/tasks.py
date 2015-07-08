@@ -7,6 +7,7 @@ from lizard_efcis.import_data import DataImport
 from lizard_efcis.models import ImportRun
 from lizard_efcis import utils
 
+
 @shared_task
 def add(x, y):
     return x + y
@@ -31,13 +32,23 @@ def check_file(username, import_run=None, *args, **options):
         import_run.action_log = utils.add_text_to_top(
             import_run.action_log,
             "%s %s %s.\n" % (
-            datetime.now().strftime(datetime_format),
-            "Start controle", 
-            username))
+                datetime.now().strftime(datetime_format),
+                "Start controle",
+                username))
         import_run.save(force_update=True, update_fields=['action_log'])
-        result = data_import.check_csv(
-            import_run, datetime_format)
-        
+        if import_run.has_xml_attachment:
+            result = data_import.check_xml(
+                import_run, datetime_format)
+        elif import_run.has_csv_attachment:
+            result = data_import.check_csv(
+                import_run, datetime_format)
+        else:
+            import_run.action_log = utils.add_text_to_top(
+                import_run.action_log,
+                "%s %s.\n" % (
+                    datetime.now().strftime(datetime_format),
+                    "Niet uitgevoerd, bestandsextentie is geen .csv of .xml"))
+            continue
         import_run.action_log = utils.add_text_to_top(
             import_run.action_log,
             "%s %s: %s.\n" % (
@@ -73,13 +84,23 @@ def import_data(username, importrun=None, *args, **options):
         import_run.action_log = utils.add_text_to_top(
             import_run.action_log,
             "%s %s %s.\n" % (
-            datetime.now().strftime(datetime_format),
-            "Start import", 
-            username))
+                datetime.now().strftime(datetime_format),
+                "Start import",
+                username))
         import_run.save(force_update=True, update_fields=['action_log'])
-        result = data_import.manual_import_csv(
-            import_run, datetime_format)
-        
+        if import_run.has_xml_attachment:
+            result = data_import.manual_import_xml(
+                import_run, datetime_format)
+        elif import_run.has_csv_attachment:
+            result = data_import.manual_import_csv(
+                import_run, datetime_format)
+        else:
+            import_run.action_log = utils.add_text_to_top(
+                import_run.action_log,
+                "%s %s.\n" % (
+                    datetime.now().strftime(datetime_format),
+                    "Niet uitgevoerd, bestandsextentie is geen .csv of .xml"))
+            continue
         import_run.action_log = utils.add_text_to_top(
             import_run.action_log,
             "%s %s: %s.\n" % (
