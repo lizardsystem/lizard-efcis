@@ -22,6 +22,8 @@ install_requires = [
     'djangorestframework-csv',
     'djangorestframework-gis >= 0.8',
     'gunicorn',
+    'lxml',
+    'numpy',
     'pyproj',
     'python-memcached',
     'raven',
