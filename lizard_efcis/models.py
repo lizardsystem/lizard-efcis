@@ -628,7 +628,7 @@ class ImportMapping(models.Model):
         verbose_name="Veld scheidingsteken.")
 
     class Meta:
-        ordering = ['tabel_naam']
+        ordering = ['tabel_naam', 'code']
         verbose_name = "importmapping"
         verbose_name_plural = "importmappings"
 
