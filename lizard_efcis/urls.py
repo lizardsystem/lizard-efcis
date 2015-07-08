@@ -58,6 +58,12 @@ urlpatterns = patterns(
     url(r'^export-formats/$',
         views.ExportFormatsAPI.as_view(),
         name='efcis-export-formats'),
+    url(r'^export-csv/$',
+        views.ExportCSVView.as_view(),
+        name='efcis-export-csv'),
+    url(r'^export-xml/$',
+        views.ExportXMLView.as_view(),
+        name='efcis-export-xml'),
 
     url(r'^meetnetten/$',
         views.MeetnetAPI.as_view(),

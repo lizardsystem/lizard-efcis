@@ -734,9 +734,21 @@ class ExportFormatsAPI(APIView):
 
     def get(self, request, format=None):
         result = []
-        base_url = 'todo'
+        base_url = reverse('efcis-export-csv', request=request)
         for import_mapping in models.ImportMapping.objects.all():
             url = base_url + '?import_mapping_id=%s' % import_mapping.id
             result.append({'name': import_mapping.code,
                            'url': url})
+
+        xml_url = reverse('efcis-export-xml', request=request)
+        result.append({'name': "umaquo XML",
+                       'url': xml_url})
         return Response(result)
+
+
+class ExportCSVView(FilteredOpnamesAPIView):
+    pass
+
+
+class ExportXMLView(FilteredOpnamesAPIView):
+    pass
