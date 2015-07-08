@@ -55,10 +55,20 @@ urlpatterns = patterns(
         views.MapAPI.as_view(),
         name='efcis-map'),
 
+    url(r'^export-formats/$',
+        views.ExportFormatsAPI.as_view(),
+        name='efcis-export-formats'),
+    url(r'^export-csv/(?P<import_mapping_id>[^/]+)/$',
+        views.ExportCSVView.as_view(),
+        name='efcis-export-csv'),
+    url(r'^export-xml/$',
+        views.ExportXMLView.as_view(),
+        name='efcis-export-xml'),
+
     url(r'^meetnetten/$',
         views.MeetnetAPI.as_view(),
         name='efcis-meetnet-tree'),
-    # url(r'^$', include(router.urls)),
+
     url(r'^api-auth/', include('rest_framework.urls',
                                namespace='rest_framework')),
     url(r'^admin/', include(admin.site.urls)),

@@ -19,7 +19,6 @@ install_requires = [
     'django-nose',
     'django-tls',
     'djangorestframework >= 3.0.4',
-    'djangorestframework-csv',
     'djangorestframework-gis >= 0.8',
     'gunicorn',
     'pyproj',

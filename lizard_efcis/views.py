@@ -4,29 +4,30 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from datetime import datetime
-from itertools import groupby
-import logging
-import numpy as np
+import csv
+
 from django.core.paginator import EmptyPage
 from django.core.paginator import PageNotAnInteger
 from django.core.paginator import Paginator
-
 from django.db.models import Count
 from django.db.models import Max
 from django.db.models import Min
 from django.db.models import Q
+from django.http import HttpResponse
 from django.utils.functional import cached_property
+from django.utils.text import slugify
+from itertools import groupby
+from lizard_efcis import models
+from lizard_efcis import serializers
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.decorators import api_view
+from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
-from rest_framework.settings import api_settings
 from rest_framework.views import APIView
-from rest_framework_csv.renderers import CSVRenderer
-
-from lizard_efcis import models
-from lizard_efcis import serializers
+import logging
+import numpy as np
 
 MAX_GRAPH_RESULTS = 20000
 GRAPH_KEY_SEPARATOR = '___'
@@ -72,6 +73,10 @@ def api_root(request, format=None):
             format=format),
         'parameters': reverse(
             'efcis-parameters-list',
+            request=request,
+            format=format),
+        'export formaten': reverse(
+            'efcis-export-formats',
             request=request,
             format=format),
     })
@@ -356,7 +361,6 @@ class MapAPI(FilteredOpnamesAPIView):
 
 
 class OpnamesAPI(FilteredOpnamesAPIView):
-    renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES + [CSVRenderer]
 
     def get(self, request, format=None):
         # TODO: refactor pagination stuff with djangorestframework 3.1
@@ -723,3 +727,71 @@ class ScatterplotGraphAPI(FilteredOpnamesAPIView):
 
             'points': points}
         return Response(result)
+
+
+class ExportFormatsAPI(APIView):
+    """Show available export formats (umaquo xml + various csv exports)."""
+
+    def get(self, request, format=None):
+        result = []
+        for import_mapping in models.ImportMapping.objects.all():
+            url = reverse('efcis-export-csv',
+                          request=request,
+                          kwargs={'import_mapping_id': import_mapping.id})
+            result.append({'name': import_mapping.code,
+                           'url': url})
+
+        xml_url = reverse('efcis-export-xml', request=request)
+        result.append({'name': "umaquo XML",
+                       'url': xml_url})
+        return Response(result)
+
+
+class ExportCSVView(FilteredOpnamesAPIView):
+
+    def rows(self, import_mapping):
+        """Return rows as list of lists."""
+        # TODO Alexandr: hier een methode aanroepen die dit teruggeeft.
+        return [['name', 'status'],
+                ['reinout', 'working'],
+                ]
+
+    def get(self, request, import_mapping_id=None, format=None):
+        import_mapping = models.ImportMapping.objects.get(
+            pk=import_mapping_id)
+        filename = "%s-%s.csv" % (
+            slugify(import_mapping.code),
+            datetime.now().strftime("%Y-%m-%d_%H%M"))
+        response = HttpResponse(content_type='text/csv')
+        response[
+            'Content-Disposition'] = 'attachment; filename="%s"' % filename
+        writer = csv.writer(response, dialect='excel')
+        for row in self.rows(import_mapping):
+            writer.writerow(row)
+        return response
+
+
+class UmaquoXMLRenderer(TemplateHTMLRenderer):
+    media_type = 'application/xml'
+    format = 'xml'
+    template_name = 'lizard_efcis/umaquo.xml'
+
+
+class ExportXMLView(FilteredOpnamesAPIView):
+    renderer_classes = (UmaquoXMLRenderer, )
+
+    def data(self):
+        """Return context for the renderer's template.
+
+        So: if you have 'for thingy in thingies' in your template, you need to
+        have 'thingies' in the dictionary you return here.
+        """
+        # TODO Alexandr: hier een methode aanroepen die de context voor de
+        # template teruggeeft.
+        return {'todo': ['iets', 'nog iets']}
+
+    def get(self, request, format=None):
+        filename = "umaquo-%s.csv" % datetime.now().strftime("%Y-%m-%d_%H%M")
+        headers = {'Content-Disposition': 'filename="%s"' % filename}
+        return Response(self.data(),
+                        headers=headers)
