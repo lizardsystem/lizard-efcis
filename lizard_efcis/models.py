@@ -226,7 +226,6 @@ class Locatie(models.Model):
         verbose_name="code locatie",
         unique=True)
     loc_oms = models.TextField(
-        null=True,
         blank=True,
         verbose_name="omschrijving")
     x1 = models.FloatField(

@@ -631,7 +631,7 @@ class DataImport(object):
             for row in reader:
                 counter += 1
                 if len(row) != len(headers):
-                    message = "%s: regelnr.: %d, %s.\n" % (
+                    message = "%s: regelnr.: %s, %d.\n" % (
                         datetime.now().strftime(datetime_format),
                         "Aantal kolommen komt niet overeen "
                         "met het aantal headers",
