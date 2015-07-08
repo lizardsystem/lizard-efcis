@@ -74,6 +74,10 @@ def api_root(request, format=None):
             'efcis-parameters-list',
             request=request,
             format=format),
+        'export formaten': reverse(
+            'efcis-export-formats',
+            request=request,
+            format=format),
     })
 
 
@@ -723,3 +727,10 @@ class ScatterplotGraphAPI(FilteredOpnamesAPIView):
 
             'points': points}
         return Response(result)
+
+
+class ExportFormatsAPI(APIView):
+    """Show available export formats (umaquo xml + various csv exports)."""
+
+    def get(self, request, format=None):
+        return Response({})
