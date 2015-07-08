@@ -17,8 +17,6 @@ from django.http import HttpResponse
 from django.utils.functional import cached_property
 from django.utils.text import slugify
 from itertools import groupby
-from lizard_efcis import models
-from lizard_efcis import serializers
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -28,6 +26,10 @@ from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 import logging
 import numpy as np
+
+from lizard_efcis import models
+from lizard_efcis import serializers
+from lizard_efcis import export_data
 
 MAX_GRAPH_RESULTS = 20000
 GRAPH_KEY_SEPARATOR = '___'
@@ -788,7 +790,8 @@ class ExportXMLView(FilteredOpnamesAPIView):
         """
         # TODO Alexandr: hier een methode aanroepen die de context voor de
         # template teruggeeft.
-        return {'todo': ['iets', 'nog iets']}
+        context = export_data.get_xml_context(self.filtered_opnames)
+        return context
 
     def get(self, request, format=None):
         filename = "umaquo-%s.csv" % datetime.now().strftime("%Y-%m-%d_%H%M")
