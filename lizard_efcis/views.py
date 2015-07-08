@@ -16,6 +16,7 @@ from django.db.models import Max
 from django.db.models import Min
 from django.db.models import Q
 from django.utils.functional import cached_property
+from django.utils.text import slugify
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -360,7 +361,6 @@ class MapAPI(FilteredOpnamesAPIView):
 
 
 class OpnamesAPI(FilteredOpnamesAPIView):
-    renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES + [CSVRenderer]
 
     def get(self, request, format=None):
         # TODO: refactor pagination stuff with djangorestframework 3.1
@@ -747,8 +747,37 @@ class ExportFormatsAPI(APIView):
 
 
 class ExportCSVView(FilteredOpnamesAPIView):
-    pass
+    renderer_classes = [CSVRenderer]
+
+    @cached_property
+    def import_mapping(self):
+        return models.ImportMapping.objects.get(
+            pk=self.get_or_post_param('import_mapping_id'))
+
+    def data(self):
+        """Return actual csv contents as list of dicts."""
+        return [{'name': 'Reinout',
+                 'status': 'working'},
+                {'name': 'Alexandr',
+                 'status': 'working harder'}]
+
+    def get(self, request, format=None):
+        filename = "%s-%s.csv" % (
+            slugify(self.import_mapping.code),
+            datetime.now().strftime("%Y-%m-%d_%H%M"))
+        http_headers = {'Content-Disposition': 'filename="%s"' % filename}
+        return Response(self.data(),
+                        headers=http_headers)
 
 
 class ExportXMLView(FilteredOpnamesAPIView):
-    pass
+
+    def data(self):
+        """Return actual xml (as one big string)."""
+        return '<xml>todo</xml>'
+
+    def get(self, request, format=None):
+        filename = "umaquo-%s.csv" % datetime.now().strftime("%Y-%m-%d_%H%M")
+        headers = {'Content-Disposition': 'filename="%s"' % filename}
+        return Response(self.data(),
+                        headers=headers)
