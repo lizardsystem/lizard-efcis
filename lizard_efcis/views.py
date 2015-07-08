@@ -4,19 +4,21 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from datetime import datetime
-from itertools import groupby
-import logging
-import numpy as np
+import csv
+
 from django.core.paginator import EmptyPage
 from django.core.paginator import PageNotAnInteger
 from django.core.paginator import Paginator
-
 from django.db.models import Count
 from django.db.models import Max
 from django.db.models import Min
 from django.db.models import Q
+from django.http import HttpResponse
 from django.utils.functional import cached_property
 from django.utils.text import slugify
+from itertools import groupby
+from lizard_efcis import models
+from lizard_efcis import serializers
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -24,9 +26,8 @@ from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
-from rest_framework_csv.renderers import CSVRenderer
-from lizard_efcis import models
-from lizard_efcis import serializers
+import logging
+import numpy as np
 
 MAX_GRAPH_RESULTS = 20000
 GRAPH_KEY_SEPARATOR = '___'
@@ -746,29 +747,30 @@ class ExportFormatsAPI(APIView):
 
 
 class ExportCSVView(FilteredOpnamesAPIView):
-    renderer_classes = [CSVRenderer]
 
     @cached_property
     def import_mapping(self):
         return models.ImportMapping.objects.get(
             pk=self.get_or_post_param('import_mapping_id'))
 
-    def data(self):
-        """Return actual csv contents as list of dicts."""
-        # TODO Alexandr: hier een methode aanroepen die de list van dicts
-        # teruggeeft.
-        return [{'name': 'Reinout',
-                 'status': 'working'},
-                {'name': 'Alexandr',
-                 'status': 'working harder'}]
+    def rows(self):
+        """Return rows as list of lists."""
+        # TODO Alexandr: hier een methode aanroepen die dit teruggeeft.
+        return [['name', 'status'],
+                ['reinout', 'working'],
+                ]
 
     def get(self, request, format=None):
         filename = "%s-%s.csv" % (
             slugify(self.import_mapping.code),
             datetime.now().strftime("%Y-%m-%d_%H%M"))
-        http_headers = {'Content-Disposition': 'filename="%s"' % filename}
-        return Response(self.data(),
-                        headers=http_headers)
+        response = HttpResponse(content_type='text/csv')
+        response[
+            'Content-Disposition'] = 'attachment; filename="%s"' % filename
+        writer = csv.writer(response, dialect='excel')
+        for row in self.rows():
+            writer.writerow(row)
+        return response
 
 
 class UmaquoXMLRenderer(TemplateHTMLRenderer):
