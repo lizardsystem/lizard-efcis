@@ -58,7 +58,7 @@ urlpatterns = patterns(
     url(r'^export-formats/$',
         views.ExportFormatsAPI.as_view(),
         name='efcis-export-formats'),
-    url(r'^export-csv/$',
+    url(r'^export-csv/(?P<import_mapping_id>[^/]+)/$',
         views.ExportCSVView.as_view(),
         name='efcis-export-csv'),
     url(r'^export-xml/$',

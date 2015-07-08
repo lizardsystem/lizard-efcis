@@ -734,9 +734,10 @@ class ExportFormatsAPI(APIView):
 
     def get(self, request, format=None):
         result = []
-        base_url = reverse('efcis-export-csv', request=request)
         for import_mapping in models.ImportMapping.objects.all():
-            url = base_url + '?import_mapping_id=%s' % import_mapping.id
+            url = reverse('efcis-export-csv',
+                          request=request,
+                          kwargs={'import_mapping_id': import_mapping.id})
             result.append({'name': import_mapping.code,
                            'url': url})
 
@@ -748,27 +749,24 @@ class ExportFormatsAPI(APIView):
 
 class ExportCSVView(FilteredOpnamesAPIView):
 
-    @cached_property
-    def import_mapping(self):
-        return models.ImportMapping.objects.get(
-            pk=self.get_or_post_param('import_mapping_id'))
-
-    def rows(self):
+    def rows(self, import_mapping):
         """Return rows as list of lists."""
         # TODO Alexandr: hier een methode aanroepen die dit teruggeeft.
         return [['name', 'status'],
                 ['reinout', 'working'],
                 ]
 
-    def get(self, request, format=None):
+    def get(self, request, import_mapping_id=None, format=None):
+        import_mapping = models.ImportMapping.objects.get(
+            pk=import_mapping_id)
         filename = "%s-%s.csv" % (
-            slugify(self.import_mapping.code),
+            slugify(import_mapping.code),
             datetime.now().strftime("%Y-%m-%d_%H%M"))
         response = HttpResponse(content_type='text/csv')
         response[
             'Content-Disposition'] = 'attachment; filename="%s"' % filename
         writer = csv.writer(response, dialect='excel')
-        for row in self.rows():
+        for row in self.rows(import_mapping):
             writer.writerow(row)
         return response
 
