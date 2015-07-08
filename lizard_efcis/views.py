@@ -20,12 +20,11 @@ from django.utils.text import slugify
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.decorators import api_view
+from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
-from rest_framework.settings import api_settings
 from rest_framework.views import APIView
 from rest_framework_csv.renderers import CSVRenderer
-
 from lizard_efcis import models
 from lizard_efcis import serializers
 
@@ -756,6 +755,8 @@ class ExportCSVView(FilteredOpnamesAPIView):
 
     def data(self):
         """Return actual csv contents as list of dicts."""
+        # TODO Alexandr: hier een methode aanroepen die de list van dicts
+        # teruggeeft.
         return [{'name': 'Reinout',
                  'status': 'working'},
                 {'name': 'Alexandr',
@@ -770,11 +771,24 @@ class ExportCSVView(FilteredOpnamesAPIView):
                         headers=http_headers)
 
 
+class UmaquoXMLRenderer(TemplateHTMLRenderer):
+    media_type = 'application/xml'
+    format = 'xml'
+    template_name = 'lizard_efcis/umaquo.xml'
+
+
 class ExportXMLView(FilteredOpnamesAPIView):
+    renderer_classes = (UmaquoXMLRenderer, )
 
     def data(self):
-        """Return actual xml (as one big string)."""
-        return '<xml>todo</xml>'
+        """Return context for the renderer's template.
+
+        So: if you have 'for thingy in thingies' in your template, you need to
+        have 'thingies' in the dictionary you return here.
+        """
+        # TODO Alexandr: hier een methode aanroepen die de context voor de
+        # template teruggeeft.
+        return {'todo': ['iets', 'nog iets']}
 
     def get(self, request, format=None):
         filename = "umaquo-%s.csv" % datetime.now().strftime("%Y-%m-%d_%H%M")
