@@ -41,7 +41,7 @@ def check_file(modeladmin, request, queryset):
 check_file.short_description = "Controleer geselecteerde imports"
 
 
-def import_csv(modeladmin, request, queryset):
+def import_file(modeladmin, request, queryset):
 
     for import_run in queryset:
         if not import_run.validated:
@@ -74,7 +74,7 @@ def import_csv(modeladmin, request, queryset):
             messages.success(
                 request,
                 "Import van '%s' is uitgevoerd." % import_run.name)
-import_csv.short_description = "Uitvoeren geselecteerde imports"
+import_file.short_description = "Uitvoeren geselecteerde imports"
 
 
 @admin.register(models.ImportRun)
@@ -92,7 +92,7 @@ class ImportRunAdmin(admin.ModelAdmin):
                      'attachment',
                      'activiteit']
     raw_id_fields = ['activiteit']
-    actions = [check_file, import_csv]
+    actions = [check_file, import_file]
     readonly_fields = ['validated', 'imported']
 
 

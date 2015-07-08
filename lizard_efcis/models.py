@@ -226,7 +226,6 @@ class Locatie(models.Model):
         verbose_name="code locatie",
         unique=True)
     loc_oms = models.TextField(
-        null=True,
         blank=True,
         verbose_name="omschrijving")
     x1 = models.FloatField(
@@ -629,7 +628,7 @@ class ImportMapping(models.Model):
         verbose_name="Veld scheidingsteken.")
 
     class Meta:
-        ordering = ['tabel_naam']
+        ordering = ['tabel_naam', 'code']
         verbose_name = "importmapping"
         verbose_name_plural = "importmappings"
 
@@ -682,20 +681,51 @@ class ImportRun(models.Model):
         null=True)
     actief = models.BooleanField(default=True)
 
+    @property
+    def has_attachment_file(self):
+        if not self.attachment:
+            return False
+        if not os.path.isfile(self.attachment.path):
+            return False
+        return True
+
+    @property
+    def has_csv_attachment(self):
+        if self.has_attachment_file:
+            file_ext = os.path.splitext(self.attachment.file.name)[1]
+            if file_ext == '.csv':
+                return True
+        return False
+
+    @property
+    def has_xml_attachment(self):
+        if self.has_attachment_file:
+            file_ext = os.path.splitext(self.attachment.file.name)[1]
+            if file_ext == '.xml':
+                return True
+        return False
+
     def can_run_any_action(self):
         """Check fields of import_run."""
         can_run = True
         messages = []
-        if not self.import_mapping:
-            messages.append("geen mapping")
-            can_run = False
-        if not self.attachment:
+        if self.attachment:
+            if not os.path.isfile(self.attachment.path):
+                messages.append(
+                    "het bestand '%s' is niet "
+                    "aanwezig." % self.attachment.path)
+                can_run = False
+            if not (self.has_csv_attachment or self.has_xml_attachment):
+                messages.append(
+                    "de bestandextensie is geen "
+                    ".csv of .xml")
+                can_run = False
+        else:
             messages.append("geen bestand")
             can_run = False
-        if self.attachment and not os.path.isfile(self.attachment.path):
-            messages.append(
-                "het bestand '%s' is niet "
-                "aanwezig." % self.attachment.path)
+
+        if not self.import_mapping and self.has_csv_attachment:
+            messages.append("geen mapping")
             can_run = False
         if not self.activiteit:
             messages.append("geen activiteit")

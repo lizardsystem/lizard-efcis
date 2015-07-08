@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<hoera>
+  {% for todo_item in todo %}
+    <todo>{{ todo_item }}</todo>
+  {% endfor %}
+</hoera>
