@@ -1,6 +1,10 @@
 #
+import logging
 
 from lizard_efcis import models
+
+
+logger = logging.getLogger(__name__)
 
 
 def create_compartimentid(id):
@@ -71,3 +75,40 @@ def get_xml_context(opnames):
     context['monsterobjecten'] = get_compartiments(opnames)
     context['waardereeksen'] = get_opnames(opnames)
     return context 
+
+
+def get_csv_context(queryset, import_mapping):
+    """
+    Retrieve data conform the mapping.
+    Not suitable for ManyToMany fields"""
+    context = []
+    if queryset.model.__name__ != import_mapping.tabel_naam:
+        logger.error("Wrong mapping, queryset of '%s' mapped "
+                     "to the table name '%s' in the mapping "
+                     "'%s'." % (
+                         queryset.model.__name__,
+                         import_mapping.tabel_naam,
+                         import_mapping.code))
+        return None
+                         
+    mapping_fields = import_mapping.mappingfield_set.all()
+    context.append(mapping_fields.values_list('file_field', flat=True))
+    for model_object in queryset:
+        row = []
+        for mapping_field in mapping_fields:
+            value = getattr(model_object, mapping_field.db_field, '')
+
+            datatype = mapping_field.db_datatype
+
+            if datatype == 'date' or datatype == 'time':
+                try:
+                    row.append(value.strftime(mapping_field.data_format))
+                except:
+                    continue
+            elif datatype in models.MappingField.FOREIGNKEY_MODELS:
+                row.append(getattr(value, mapping_field.foreignkey_field, ''))
+            else:
+                row.append(value)
+        context.append(row)
+    return context
+        

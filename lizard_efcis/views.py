@@ -754,9 +754,9 @@ class ExportCSVView(FilteredOpnamesAPIView):
     def rows(self, import_mapping):
         """Return rows as list of lists."""
         # TODO Alexandr: hier een methode aanroepen die dit teruggeeft.
-        return [['name', 'status'],
-                ['reinout', 'working'],
-                ]
+        context = export_data.get_csv_context(
+            self.filtered_opnames, import_mapping)
+        return context
 
     def get(self, request, import_mapping_id=None, format=None):
         import_mapping = models.ImportMapping.objects.get(
