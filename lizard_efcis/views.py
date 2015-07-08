@@ -733,4 +733,10 @@ class ExportFormatsAPI(APIView):
     """Show available export formats (umaquo xml + various csv exports)."""
 
     def get(self, request, format=None):
-        return Response({})
+        result = []
+        base_url = 'todo'
+        for import_mapping in models.ImportMapping.objects.all():
+            url = base_url + '?import_mapping_id=%s' % import_mapping.id
+            result.append({'name': import_mapping.code,
+                           'url': url})
+        return Response(result)
