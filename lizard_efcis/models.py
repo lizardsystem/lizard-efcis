@@ -324,7 +324,7 @@ class Locatie(models.Model):
         verbose_name_plural = "locaties"
 
     def __unicode__(self):
-        return self.loc_oms
+        return ' '.join([self.loc_id, self.loc_oms])
 
     def photo_url(self):
         if self.loc_id not in locations_with_photo():
