@@ -155,10 +155,10 @@ class MeetnetAPI(APIView):
 class FilteredOpnamesAPIView(APIView):
     """Base view for returning opnames, filted by GET parameters."""
 
-    def post(self, request, format=None):
+    def post(self, *args, **kwargs):
         # Dirty hack around long URLs due to long query parameters.  Note that
         # this only works for the FilteredOpnamesAPIView descendants!
-        return self.get(request, format=None)
+        return self.get(*args, **kwargs)
 
     def get_or_post_param(self, param):
         # Collary to abovementioned POST hack.
