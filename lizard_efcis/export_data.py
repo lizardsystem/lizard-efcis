@@ -92,10 +92,17 @@ def get_csv_context(queryset, import_mapping):
         return None
                          
     mapping_fields = import_mapping.mappingfield_set.all()
-    context.append(mapping_fields.values_list('file_field', flat=True))
+    headers = mapping_fields.values_list('file_field', flat=True)
+    if import_mapping.tabel_naam == 'Opname':
+        
+    context.append()
     for model_object in queryset:
         row = []
         for mapping_field in mapping_fields:
+            if mapping_field.datatype == 'WNS':
+                wns_parts = mapping_field.file_field.replace(']', '').split('[')
+                if len(wns_parts) == 4:
+                    value
             value = getattr(model_object, mapping_field.db_field, '')
 
             datatype = mapping_field.db_datatype

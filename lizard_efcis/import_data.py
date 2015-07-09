@@ -506,7 +506,16 @@ class DataImport(object):
         for mapping_field in mapping:
             value = None
             datatype = mapping_field.db_datatype
-            val_raw = row[headers.index(mapping_field.file_field)].strip(' "')
+            if datatype == 'WNS':
+                wns_parts = mapping_field.file_field.replace(']', '').split('[')
+                if len(wns_parts) == 4:
+                    val_raw = '%s[%s][%s][%s]' % (
+                        row[headers.index(wns_parts[0])].strip(' "'),
+                        row[headers.index(wns_parts[1])].strip(' "'),
+                        row[headers.index(wns_parts[2])].strip(' "'),
+                        row[headers.index(wns_parts[3])].strip(' "'))
+            if not val_raw:
+                val_raw = row[headers.index(mapping_field.file_field)].strip(' "')
             if datatype == 'date':
                 try:
                     value = datetime.strptime(
