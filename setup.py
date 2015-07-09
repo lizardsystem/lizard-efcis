@@ -21,7 +21,7 @@ install_requires = [
     'djangorestframework >= 3.0.4',
     'djangorestframework-gis >= 0.8',
     'gunicorn',
-    #'lxml',
+    'lxml',
     'numpy',
     'pyproj',
     'python-memcached',
