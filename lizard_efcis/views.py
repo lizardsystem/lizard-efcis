@@ -17,8 +17,6 @@ from django.http import HttpResponse
 from django.utils.functional import cached_property
 from django.utils.text import slugify
 from itertools import groupby
-from lizard_efcis import models
-from lizard_efcis import serializers
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -28,6 +26,10 @@ from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 import logging
 import numpy as np
+
+from lizard_efcis import models
+from lizard_efcis import serializers
+from lizard_efcis import export_data
 
 MAX_GRAPH_RESULTS = 20000
 GRAPH_KEY_SEPARATOR = '___'
@@ -752,9 +754,9 @@ class ExportCSVView(FilteredOpnamesAPIView):
     def rows(self, import_mapping):
         """Return rows as list of lists."""
         # TODO Alexandr: hier een methode aanroepen die dit teruggeeft.
-        return [['name', 'status'],
-                ['reinout', 'working'],
-                ]
+        context = export_data.get_csv_context(
+            self.filtered_opnames, import_mapping)
+        return context
 
     def get(self, request, import_mapping_id=None, format=None):
         import_mapping = models.ImportMapping.objects.get(
@@ -765,7 +767,9 @@ class ExportCSVView(FilteredOpnamesAPIView):
         response = HttpResponse(content_type='text/csv')
         response[
             'Content-Disposition'] = 'attachment; filename="%s"' % filename
-        writer = csv.writer(response, dialect='excel')
+        writer = csv.writer(response,
+                            dialect='excel',
+                            delimiter=str(import_mapping.scheiding_teken))
         for row in self.rows(import_mapping):
             writer.writerow(row)
         return response
@@ -788,7 +792,8 @@ class ExportXMLView(FilteredOpnamesAPIView):
         """
         # TODO Alexandr: hier een methode aanroepen die de context voor de
         # template teruggeeft.
-        return {'todo': ['iets', 'nog iets']}
+        context = export_data.get_xml_context(self.filtered_opnames)
+        return context
 
     def get(self, request, format=None):
         filename = "umaquo-%s.csv" % datetime.now().strftime("%Y-%m-%d_%H%M")

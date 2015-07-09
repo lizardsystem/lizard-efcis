@@ -1,6 +1,80 @@
-<?xml version="1.0"?>
-<hoera>
-  {% for todo_item in todo %}
-    <todo>{{ todo_item }}</todo>
-  {% endfor %}
-</hoera>
+<?xml version="1.0" encoding="UTF-8"?>
+<gml:FeatureCollection gml:id="id3" xmlns:umam="http://www.aquo.nl/umam2013" xmlns:gml="http://www.opengis.net/gml" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/gml http://schemas.opengis.net/gml/3.1.1/base/gml.xsd http://www.aquo.nl/umam2013 http://www.aquo.nl/Aquo/schemas/uma2013-aquon1.xsd">
+  <gml:featureMembers>
+    {% for meetobject in meetobjecten %}
+    <umam:MeetObject gml:id="{{ meetobject.id }}">
+      <umam:identificatie>{{ meetobject.id }}</umam:identificatie>
+      <umam:locatie>
+        <umam:LocatieNaam>
+          <umam:locatieNaam>{{ meetobject.locatie_naam }}</umam:locatieNaam>
+        </umam:LocatieNaam>
+      </umam:locatie>
+      <umam:geometriePunt>
+        <gml:Point>
+          <gml:pos></gml:pos>
+        </gml:Point>
+      </umam:geometriePunt>
+      {% for id in meetobject.monsterobject_ids %}
+      <umam:heeftMonsterObject xlink:type="simple" xlink:href="#{{ id }}" />
+      {% endfor %}
+    </umam:MeetObject>
+    {% endfor %}
+    {% for monsterobject in monsterobjecten %}
+    <umam:MonsterObject gml:id="{{ monsterobject.id }}">
+      <umam:identificatie>{{ monsterobject.id }}</umam:identificatie>
+      <umam:compartiment>{{ monsterobject.compartiment }}</umam:compartiment>
+      {% for id in monsterobject.waardereeks_ids %}
+      <umam:heeftWaardeReeks xlink:type="simple" xlink:href="#{{ id }}" />
+      {% endfor %}
+      <umam:hoortBijMeetObject xlink:type="simple" xlink:href="#{{ monsterobject.meetobjectid }}" />
+      <umam:ontstaanUitMonsterObject xlink:type="simple" xlink:href="" />
+    </umam:MonsterObject>
+    {% endfor %}
+    {% for waardereeks in waardereeksen %}
+    <umam:WaardeReeksTijd gml:id="{{ waardereeks.id }}">
+      <umam:identificatie>{{ waardereeks.id }}</umam:identificatie>
+      <umam:kwaliteitsElementOfParameter>
+        <umam:ParameterTyperingDataType>
+          <umam:parameterGrootheid>
+            <umam:ParameterGrootheidDataType>
+              <umam:grootheid>{{ waardereeks.grootheid }}</umam:grootheid>
+              <umam:parameter>
+                <umam:StofDataType>
+                  <umam:chemischeStof>{{ waardereeks.parameter }}</umam:chemischeStof>
+                </umam:StofDataType>
+              </umam:parameter>
+            </umam:ParameterGrootheidDataType>
+          </umam:parameterGrootheid>
+        </umam:ParameterTyperingDataType>
+      </umam:kwaliteitsElementOfParameter>
+      <umam:eenheid>{{ waardereeks.eenheid }}</umam:eenheid>
+      <umam:hoedanigheid>{{ waardereeks.hoedanigheid }}</umam:hoedanigheid>
+      <umam:waardeBepalingsMethode></umam:waardeBepalingsMethode>
+      <umam:hoortBijMonsterObject xlink:type="simple" xlink:href="{{ waardereeks.monsterobjectid }}" />
+      <umam:heeftLaboratoriumWaardereeksProces xlink:type="simple" xlink:href="#" />
+      <umam:reekswaarde>
+        <umam:TijdWaarde>
+          <umam:beginTijd>
+            <umam:DatumTijdDataType>
+              <umam:datum>{{ waardereeks.datum }}</umam:datum>
+              <umam:tijd>{{ waardereeks.tijd }}</umam:tijd>
+            </umam:DatumTijdDataType>
+          </umam:beginTijd>
+          <umam:eindTijd>
+            <umam:DatumTijdDataType>
+              <umam:datum>{{ waardereeks.datum }}</umam:datum>
+              <umam:tijd>{{ waardereeks.tijd }}</umam:tijd>
+            </umam:DatumTijdDataType>
+          </umam:eindTijd>
+          <umam:numeriekeWaarde>
+            <umam:WaardeDataType>
+              <umam:getalswaarde>{{ waardereeks.waarde }}</umam:getalswaarde>
+            </umam:WaardeDataType>
+          </umam:numeriekeWaarde>
+          <umam:kwaliteitsOordeel></umam:kwaliteitsOordeel>
+        </umam:TijdWaarde>
+      </umam:reekswaarde>
+    </umam:WaardeReeksTijd>
+    {% endfor %}
+  </gml:featureMembers>
+</gml:FeatureCollection>
