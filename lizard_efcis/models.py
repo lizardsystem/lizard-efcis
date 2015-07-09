@@ -250,6 +250,11 @@ class Locatie(models.Model):
         null=True,
         blank=True,
         editable=False)
+    area = models.PolygonField(
+        srid=4326,
+        null=True,
+        blank=True,
+        editable=False)
     waterlichaam = models.ForeignKey(
         Waterlichaam,
         blank=True,
