@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 def create_compartimentid(id):
-    return '%s.%s.%s' % (id, 'monster', 'id')    
+    return '%s.%s.%s' % (id, 'monster', 'id')
 
 
 def get_opnames(opnames):
@@ -74,7 +74,54 @@ def get_xml_context(opnames):
     context['meetobjecten'] = get_locaties(opnames)
     context['monsterobjecten'] = get_compartiments(opnames)
     context['waardereeksen'] = get_opnames(opnames)
-    return context 
+    return context
+
+
+def create_mapping_field(file_field, db_field):
+    return {
+        'db_field': db_field,
+        'file_field': file_field,
+        'db_datatype': 'CharField'}
+
+
+def retrieve_mapping_fields(import_mapping):
+    """
+    Add wns-fields: Parameter, Eenheid, Hoedanigheid, Comapartiment
+    Retunr mapping fileds as dictionary.
+    """
+    mapping_fields = import_mapping.mappingfield_set.all().values()
+    wns_fields = import_mapping.mappingfield_set.filter(
+        **{'db_datatype': 'WNS', 'file_field__contains': '['})
+    if not wns_fields:
+        return mapping_fields
+
+    tmp_mapping = []
+    for field in mapping_fields:
+        if field.get('db_datatype') == 'WNS':
+            additional_fields = field.get(
+                'file_field', '').replace(']', '').split('[')
+            if len(additional_fields) == 4:
+                tmp_mapping.append(
+                    create_mapping_field(additional_fields[0], 'par_code'))
+                tmp_mapping.append(
+                    create_mapping_field(additional_fields[1], 'eenheid'))
+                tmp_mapping.append(
+                    create_mapping_field(additional_fields[2], 'hoedanigheid'))
+                tmp_mapping.append(
+                    create_mapping_field(additional_fields[3], 'compartiment'))
+            else:
+                tmp_mapping.append(field)
+        else:
+            tmp_mapping.append(field)
+
+    return tmp_mapping
+
+
+def retrieve_headers(mapping_fields):
+    headers = []
+    for mapping_field in mapping_fields:
+        headers.append(mapping_field.get('file_field', ''))
+    return headers
 
 
 def get_csv_context(queryset, import_mapping):
@@ -90,25 +137,29 @@ def get_csv_context(queryset, import_mapping):
                          import_mapping.tabel_naam,
                          import_mapping.code))
         return None
-                         
-    mapping_fields = import_mapping.mappingfield_set.all()
-    context.append(mapping_fields.values_list('file_field', flat=True))
+
+    mapping_fields = retrieve_mapping_fields(import_mapping)
+
+    headers = retrieve_headers(mapping_fields)
+    context = [headers]
     for model_object in queryset:
         row = []
         for mapping_field in mapping_fields:
-            value = getattr(model_object, mapping_field.db_field, '')
 
-            datatype = mapping_field.db_datatype
+            value = getattr(model_object, mapping_field.get('db_field'), '')
+
+            datatype = mapping_field.get('db_datatype')
 
             if datatype == 'date' or datatype == 'time':
                 try:
-                    row.append(value.strftime(mapping_field.data_format))
+                    row.append(value.strftime(
+                        mapping_field.get('data_format')))
                 except:
                     continue
             elif datatype in models.MappingField.FOREIGNKEY_MODELS:
-                row.append(getattr(value, mapping_field.foreignkey_field, ''))
+                row.append(getattr(
+                    value, mapping_field.get('foreignkey_field'), ''))
             else:
                 row.append(value)
         context.append(row)
     return context
-        
