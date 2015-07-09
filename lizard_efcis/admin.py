@@ -162,6 +162,7 @@ class LocatieAdmin(admin.ModelAdmin):
                      'loc_oms']
     list_filter = ['waterlichaam',
                    'watertype',
+                   'is_krw_area',
                    'fc_status',
                    'bio_status',
                    'landgebruik',
@@ -186,6 +187,8 @@ class OpnameAdmin(admin.ModelAdmin):
                     'validation_state']
     search_fields = ['wns__wns_oms',
                      'locatie__loc_oms']
+    raw_id_fields = ['wns',
+                     'locatie']
     list_filter = ['datum',
                    'validation_state']
 

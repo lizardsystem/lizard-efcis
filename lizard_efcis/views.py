@@ -69,6 +69,10 @@ def api_root(request, format=None):
             'efcis-map',
             request=request,
             format=format),
+        'KRW gebieden': reverse(
+            'efcis-krw-areas',
+            request=request,
+            format=format),
         'meetnetten': reverse(
             'efcis-meetnet-tree',
             request=request,
@@ -800,3 +804,16 @@ class ExportXMLView(FilteredOpnamesAPIView):
         headers = {'Content-Disposition': 'filename="%s"' % filename}
         return Response(self.data(),
                         headers=headers)
+
+
+class KRWAreasAPI(APIView):
+    """Return KRW areas for simple display.
+    """
+
+    def get(self, request, format=None):
+        locaties = models.Locatie.objects.filter(is_krw_area=True)
+        serializer = serializers.KRWAreaSerializer(
+            locaties,
+            many=True)
+        result = serializer.data
+        return Response(result)

@@ -34,6 +34,8 @@ Changelog of lizard-efcis
 
 - Huge (5x+) speed increase for the most expensive queries.
 
+- KRW areas can now be loaded and shown.
+
 
 0.1 (2015-03-09)
 ----------------

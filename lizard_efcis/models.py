@@ -250,6 +250,15 @@ class Locatie(models.Model):
         null=True,
         blank=True,
         editable=False)
+    area = models.MultiPolygonField(
+        srid=4326,
+        null=True,
+        blank=True,
+        editable=False)
+    is_krw_area = models.BooleanField(
+        verbose_name="is KRW gebied",
+        default=False,
+        editable=False)
     waterlichaam = models.ForeignKey(
         Waterlichaam,
         blank=True,
@@ -315,7 +324,7 @@ class Locatie(models.Model):
         verbose_name_plural = "locaties"
 
     def __unicode__(self):
-        return self.loc_oms
+        return ' '.join([self.loc_id, self.loc_oms])
 
     def photo_url(self):
         if self.loc_id not in locations_with_photo():
@@ -565,6 +574,7 @@ class WNS(models.Model):
     wns_code = models.CharField(
         verbose_name="code WNS",
         max_length=30,
+        db_index=True,
         unique=True)
     wns_oms = models.CharField(
         verbose_name="omschrijving",
@@ -602,6 +612,7 @@ class WNS(models.Model):
         super(WNS, self).save(*args, **kwargs)
 
     class Meta:
+        ordering = ['wns_code']
         verbose_name = "waarnemingssoort (WNS)"
         verbose_name_plural = "waarnemingssoorten (WNS)"
 
@@ -838,7 +849,7 @@ class Opname(models.Model):
         default=NOT_VALIDATED,
         blank=False,
         verbose_name="validatiestatus",
-        help_text=("(TODO) Alleen opnames met status 'Gevalideerd' zijn " +
+        help_text=("Alleen opnames met status 'Gevalideerd' zijn " +
                    "voor iedereen zichtbaar")
     )
 
