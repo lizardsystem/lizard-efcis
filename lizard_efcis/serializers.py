@@ -277,3 +277,12 @@ class MapSerializer(gis_serializers.GeoFeatureModelSerializer):
                   'latest_datetime', 'boxplot_data', 'photo_url',
                   'is_krw_area')
         geo_field = 'geo_punt_1'
+
+
+class KRWAreaSerializer(gis_serializers.GeoFeatureModelSerializer):
+    area = gis_serializers.GeometryField()
+
+    class Meta:
+        model = models.Locatie
+        fields = ('id', 'loc_id', 'loc_oms', 'area')
+        geo_field = 'area'

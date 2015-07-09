@@ -54,6 +54,9 @@ urlpatterns = patterns(
     url(r'^map/$',
         views.MapAPI.as_view(),
         name='efcis-map'),
+    url(r'^krw-areas/$',
+        views.KRWAreasAPI.as_view(),
+        name='efcis-krw-areas'),
 
     url(r'^export-formats/$',
         views.ExportFormatsAPI.as_view(),
