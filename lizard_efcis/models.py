@@ -626,11 +626,19 @@ class ImportMapping(models.Model):
         max_length=3,
         default=";",
         verbose_name="Veld scheidingsteken.")
+    is_export = models.BooleanField(
+        default=False,
+        verbose_name="Export",
+        help_text="Mapping mag gebruikt worden voor Export.")
+    is_import = models.BooleanField(
+        default=False,
+        verbose_name="Import",
+        help_text="Mapping mag gebruikt worden voor Import.")
 
     class Meta:
         ordering = ['tabel_naam', 'code']
-        verbose_name = "importmapping"
-        verbose_name_plural = "importmappings"
+        verbose_name = "mapping"
+        verbose_name_plural = "mappings"
 
     def __unicode__(self):
         return self.code
