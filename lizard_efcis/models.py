@@ -846,3 +846,23 @@ class Opname(models.Model):
         ordering = ['wns_id', 'locatie_id', 'datum', 'tijd']
         verbose_name = "opname"
         verbose_name_plural = "opnames"
+
+    @property
+    def par_code(self):
+        if self.wns.parameter:
+            return self.wns.parameter.par_code
+
+    @property
+    def eenheid(self):
+        if self.wns.eenheid:
+            return self.wns.eenheid.eenheid
+
+    @property
+    def hoedanigheid(self):
+        if self.wns.hoedanigheid:
+            return self.wns.hoedanigheid.hoedanigheid
+
+    @property
+    def compartiment(self):
+        if self.wns.compartiment:
+            return self.wns.compartiment.compartiment
