@@ -255,6 +255,10 @@ class Locatie(models.Model):
         null=True,
         blank=True,
         editable=False)
+    is_krw_area = models.BooleanField(
+        verbose_name="is KRW gebied",
+        default=False,
+        editable=False)
     waterlichaam = models.ForeignKey(
         Waterlichaam,
         blank=True,

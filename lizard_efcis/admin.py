@@ -162,6 +162,7 @@ class LocatieAdmin(admin.ModelAdmin):
                      'loc_oms']
     list_filter = ['waterlichaam',
                    'watertype',
+                   'is_krw_area',
                    'fc_status',
                    'bio_status',
                    'landgebruik',
