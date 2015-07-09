@@ -250,7 +250,7 @@ class Locatie(models.Model):
         null=True,
         blank=True,
         editable=False)
-    area = models.PolygonField(
+    area = models.MultiPolygonField(
         srid=4326,
         null=True,
         blank=True,
@@ -570,6 +570,7 @@ class WNS(models.Model):
     wns_code = models.CharField(
         verbose_name="code WNS",
         max_length=30,
+        db_index=True,
         unique=True)
     wns_oms = models.CharField(
         verbose_name="omschrijving",
@@ -607,6 +608,7 @@ class WNS(models.Model):
         super(WNS, self).save(*args, **kwargs)
 
     class Meta:
+        ordering = ['wns_code']
         verbose_name = "waarnemingssoort (WNS)"
         verbose_name_plural = "waarnemingssoorten (WNS)"
 
@@ -835,7 +837,7 @@ class Opname(models.Model):
         default=NOT_VALIDATED,
         blank=False,
         verbose_name="validatiestatus",
-        help_text=("(TODO) Alleen opnames met status 'Gevalideerd' zijn " +
+        help_text=("Alleen opnames met status 'Gevalideerd' zijn " +
                    "voor iedereen zichtbaar")
     )
 
