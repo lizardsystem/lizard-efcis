@@ -1,3 +1,6 @@
+import json
+
+from django.contrib.gis.geos import GEOSGeometry
 from rest_framework import pagination
 from rest_framework import serializers
 from rest_framework_gis import serializers as gis_serializers
@@ -222,12 +225,39 @@ class LocatieSerializer(gis_serializers.GeoFeatureModelSerializer):
         geo_field = 'geo_punt_1'
 
 
+class JsonDict(dict):
+    # Copy/pasted from the 0.9.2+ master version of djangorestframework-gis as
+    # it isn't in 0.8 yet.
+
+    def __init__(self, data):
+        self._geojson_string = data
+        super(JsonDict, self).__init__(json.loads(data))
+
+    def __str__(self):
+        return self._geojson_string
+
+
+class GeometrySerializerMethodField(serializers.SerializerMethodField):
+    # Copy/pasted from the 0.9.2+ master version of djangorestframework-gis as
+    # it isn't in 0.8 yet.
+
+    def to_representation(self, value):
+        value = super(GeometrySerializerMethodField, self).to_representation(value)
+        return JsonDict(GEOSGeometry(value).geojson)
+
+
 class MapSerializer(gis_serializers.GeoFeatureModelSerializer):
-    geo_punt_1 = gis_serializers.GeometryField(source='geo_punt1')
+    geo_punt_1 = GeometrySerializerMethodField()
     color_value = serializers.SerializerMethodField()
     latest_value = serializers.SerializerMethodField()
     latest_datetime = serializers.SerializerMethodField()
     boxplot_data = serializers.SerializerMethodField()
+
+    def get_geo_punt_1(self, obj):
+        if obj.is_krw_area:
+            return obj.area
+        else:
+            return obj.geo_punt1
 
     def get_color_value(self, obj):
         return self.context['color_values'].get(obj.id)
@@ -244,5 +274,6 @@ class MapSerializer(gis_serializers.GeoFeatureModelSerializer):
     class Meta:
         model = models.Locatie
         fields = ('id', 'loc_id', 'loc_oms', 'color_value', 'latest_value',
-                  'latest_datetime', 'boxplot_data', 'photo_url')
+                  'latest_datetime', 'boxplot_data', 'photo_url',
+                  'is_krw_area')
         geo_field = 'geo_punt_1'
