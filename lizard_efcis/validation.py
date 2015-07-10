@@ -80,7 +80,13 @@ class StandardDeviationValidator(BaseValidator):
         # period_to_look_back: number of days back we should look at values.
 
     def find_min_max(self, wns):
-        """Return min, max tuple for the WNS."""
+        """Return min, max tuple for the WNS.
+
+        We simply validate according to existing data. We look back a certain
+        amount of time ("period to look back", specified in days) and take all
+        the already-validated values and the mean/stddev.
+
+        """
         today = datetime.date.today()
         start_date = today - datetime.timedelta(days=self.period_to_look_back)
         opnames_to_look_at = Opname.objects.filter(wns=wns,
