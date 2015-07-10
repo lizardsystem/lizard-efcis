@@ -83,6 +83,14 @@ def validate_opnames_min_max(modeladmin, request, queryset):
 validate_opnames_min_max.short_description = "Valideer volgens ingestelde min/max"
 
 
+def validate_stddev_half_year(modeladmin, request, queryset):
+    validation.StandardDeviationValidator(
+        modeladmin, request, queryset,
+        period_to_look_back=365/2).validate()
+validate_stddev_half_year.short_description = (
+    "Valideer t.o.v. waardes afgelopen halfjaar")
+
+
 def validate_stddev_1year(modeladmin, request, queryset):
     validation.StandardDeviationValidator(
         modeladmin, request, queryset,
@@ -231,6 +239,7 @@ class OpnameAdmin(admin.ModelAdmin):
     list_filter = ['datum',
                    'validation_state']
     actions = [validate_opnames_min_max,
+               validate_stddev_half_year,
                validate_stddev_1year,
                validate_stddev_2year,
                validate_stddev_5year,
