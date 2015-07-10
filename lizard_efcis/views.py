@@ -297,6 +297,7 @@ class MapAPI(FilteredOpnamesAPIView):
         min_value = None
         max_value = None
         color_by_name = None
+        is_krw_score = False
 
         if self.color_by:
             color_by_name = models.WNS.objects.get(pk=self.color_by).wns_oms
@@ -304,7 +305,13 @@ class MapAPI(FilteredOpnamesAPIView):
             numerical_opnames = self.filtered_opnames.exclude(waarde_n=None)
             opnames_for_color_by = numerical_opnames.filter(
                 wns=self.color_by).values(
-                    'locatie', 'datum', 'tijd', 'waarde_n')
+                    'locatie', 'datum', 'tijd', 'waarde_n',
+                    'activiteit__act_type')
+
+            if opnames_for_color_by:
+                is_krw_score = (
+                    opnames_for_color_by[0]['activiteit__act_type'] ==
+                    models.Activiteit.T2)
 
             min_max = models.Opname.objects.filter(
                 wns=self.color_by).aggregate(
@@ -363,6 +370,7 @@ class MapAPI(FilteredOpnamesAPIView):
         result['min_value'] = min_value
         result['max_value'] = max_value
         result['color_by_name'] = color_by_name
+        result['is_krw_score'] = is_krw_score
 
         return Response(result)
 
