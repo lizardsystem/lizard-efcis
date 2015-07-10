@@ -598,6 +598,16 @@ class WNS(models.Model):
         verbose_name="WNS status",
         null=True,
         blank=True)
+    validate_min = models.FloatField(
+        null=True,
+        blank=True,
+        verbose_name="minimum valide waarde",
+        help_text="Kan gebruikt worden voor validatie van opnames")
+    validate_max = models.FloatField(
+        null=True,
+        blank=True,
+        verbose_name="maximum valide waarde",
+        help_text="Kan gebruikt worden voor validatie van opnames")
 
     def __unicode__(self):
         return ' '.join([self.wns_code, self.wns_oms])
