@@ -96,7 +96,7 @@ def validate_stddev_2year(modeladmin, request, queryset):
         modeladmin, request, queryset,
         period_to_look_back=365 * 2).validate()
 validate_stddev_2year.short_description = (
-    "Valideer t.o.v. waardes afgelopen jaar")
+    "Valideer t.o.v. waardes afgelopen twee jaar")
 
 
 def validate_stddev_5year(modeladmin, request, queryset):
@@ -104,7 +104,7 @@ def validate_stddev_5year(modeladmin, request, queryset):
         modeladmin, request, queryset,
         period_to_look_back=365 * 5).validate()
 validate_stddev_5year.short_description = (
-    "Valideer t.o.v. waardes afgelopen jaar")
+    "Valideer t.o.v. waardes afgelopen vijf jaar")
 
 
 def validate_stddev_all(modeladmin, request, queryset):
