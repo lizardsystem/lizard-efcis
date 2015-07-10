@@ -609,6 +609,7 @@ class BoxplotAPI(FilteredOpnamesAPIView):
                         'min': np.min(values),
                         'max': np.max(values),
                         'std': np.std(values),
+                        'num_values': len(values),
                         'q1': np.percentile(values, 25),
                         'q3': np.percentile(values, 75),
                         'p10': np.percentile(values, 10),
