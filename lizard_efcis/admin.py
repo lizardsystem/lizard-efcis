@@ -9,6 +9,7 @@ from django.conf import settings
 
 from lizard_efcis import models
 from lizard_efcis import tasks
+from lizard_efcis import validation
 
 
 def check_file(modeladmin, request, queryset):
@@ -75,6 +76,11 @@ def import_file(modeladmin, request, queryset):
                 request,
                 "Import van '%s' is uitgevoerd." % import_run.name)
 import_file.short_description = "Uitvoeren geselecteerde imports"
+
+
+def validate_opnames_min_max(modeladmin, request, queryset):
+    validation.MinMaxValidator(modeladmin, request, queryset).validate()
+validate_opnames_min_max.short_description = "Valideer volgens ingestelde min/max"
 
 
 @admin.register(models.ImportRun)
@@ -191,6 +197,7 @@ class OpnameAdmin(admin.ModelAdmin):
                      'locatie']
     list_filter = ['datum',
                    'validation_state']
+    actions = [validate_opnames_min_max]
 
 
 @admin.register(models.WNS)
