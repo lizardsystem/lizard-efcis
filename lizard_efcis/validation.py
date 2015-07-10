@@ -3,11 +3,14 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 from itertools import groupby
+import datetime
 
 from django.contrib import messages
+import numpy as np
 
 from lizard_efcis.manager import VALIDATED
 from lizard_efcis.manager import UNRELIABLE
+from lizard_efcis.models import Opname
 
 
 class BaseValidator(object):
@@ -58,7 +61,7 @@ class BaseValidator(object):
 
     def find_min_max(self, wns):
         """Return min, max tuple for the WNS."""
-        return (0, 0)
+        raise NotImplementedError
 
 
 class MinMaxValidator(BaseValidator):
@@ -66,3 +69,25 @@ class MinMaxValidator(BaseValidator):
     def find_min_max(self, wns):
         """Return min, max tuple for the WNS."""
         return (wns.validate_min, wns.validate_max)
+
+
+class StandardDeviationValidator(BaseValidator):
+
+    def __init__(self, modeladmin, request, queryset, period_to_look_back):
+        super(StandardDeviationValidator, self).__init__(
+            modeladmin, request, queryset)
+        self.period_to_look_back = period_to_look_back
+        # period_to_look_back: number of days back we should look at values.
+
+    def find_min_max(self, wns):
+        """Return min, max tuple for the WNS."""
+        today = datetime.date.today()
+        start_date = today - datetime.timedelta(days=self.period_to_look_back)
+        opnames_to_look_at = Opname.objects.filter(wns=wns,
+                                                   validation_state=VALIDATED,
+                                                   datum__gte=start_date)
+        values = opnames_to_look_at.values_list('waarde_n', flat=True)
+        values = [value for value in values if value is not None]
+        mean = np.mean(values)
+        standard_deviation = np.std(values)
+        return (mean - standard_deviation, mean + standard_deviation)

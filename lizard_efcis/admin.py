@@ -83,6 +83,39 @@ def validate_opnames_min_max(modeladmin, request, queryset):
 validate_opnames_min_max.short_description = "Valideer volgens ingestelde min/max"
 
 
+def validate_stddev_1year(modeladmin, request, queryset):
+    validation.StandardDeviationValidator(
+        modeladmin, request, queryset,
+        period_to_look_back=365).validate()
+validate_stddev_1year.short_description = (
+    "Valideer t.o.v. waardes afgelopen jaar")
+
+
+def validate_stddev_2year(modeladmin, request, queryset):
+    validation.StandardDeviationValidator(
+        modeladmin, request, queryset,
+        period_to_look_back=365 * 2).validate()
+validate_stddev_2year.short_description = (
+    "Valideer t.o.v. waardes afgelopen jaar")
+
+
+def validate_stddev_5year(modeladmin, request, queryset):
+    validation.StandardDeviationValidator(
+        modeladmin, request, queryset,
+        period_to_look_back=365 * 5).validate()
+validate_stddev_5year.short_description = (
+    "Valideer t.o.v. waardes afgelopen jaar")
+
+
+def validate_stddev_all(modeladmin, request, queryset):
+    validation.StandardDeviationValidator(
+        modeladmin, request, queryset,
+        period_to_look_back=365 * 99).validate()
+validate_stddev_all.short_description = (
+    "Valideer t.o.v. alle waardes")
+
+
+
 @admin.register(models.ImportRun)
 class ImportRunAdmin(admin.ModelAdmin):
     list_display = ['name',
@@ -197,7 +230,12 @@ class OpnameAdmin(admin.ModelAdmin):
                      'locatie']
     list_filter = ['datum',
                    'validation_state']
-    actions = [validate_opnames_min_max]
+    actions = [validate_opnames_min_max,
+               validate_stddev_1year,
+               validate_stddev_2year,
+               validate_stddev_5year,
+               validate_stddev_all,
+    ]
 
 
 @admin.register(models.WNS)
