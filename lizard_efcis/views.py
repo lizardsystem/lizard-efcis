@@ -376,9 +376,9 @@ class MapAPI(FilteredOpnamesAPIView):
 class OpnamesAPI(FilteredOpnamesAPIView):
 
     def get(self, request, format=None):
-        # TODO: refactor pagination stuff with djangorestframework 3.1
         loc_id_filter = self.get_or_post_param('loc_id')
         wns_oms_filter = self.get_or_post_param('wns_oms')
+        par_oms_filter = self.get_or_post_param('par_oms')
         loc_oms_filter = self.get_or_post_param('loc_oms')
         activiteit_filter = self.get_or_post_param('activiteit')
         detectiegrens_filter = self.get_or_post_param('detectiegrens')
@@ -404,6 +404,9 @@ class OpnamesAPI(FilteredOpnamesAPIView):
         if loc_oms_filter:
             filtered_opnames = filtered_opnames.filter(
                 locatie__loc_oms__icontains=loc_oms_filter)
+        if par_oms_filter:
+            filtered_opnames = filtered_opnames.filter(
+                wns__parameter__par_oms__icontains=par_oms_filter)
         if activiteit_filter:
             filtered_opnames = filtered_opnames.filter(
                 activiteit__activiteit__icontains=activiteit_filter)
