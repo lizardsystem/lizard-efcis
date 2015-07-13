@@ -376,7 +376,6 @@ class MapAPI(FilteredOpnamesAPIView):
 class OpnamesAPI(FilteredOpnamesAPIView):
 
     def get(self, request, format=None):
-        # TODO: refactor pagination stuff with djangorestframework 3.1
         loc_id_filter = self.get_or_post_param('loc_id')
         wns_oms_filter = self.get_or_post_param('wns_oms')
         par_oms_filter = self.get_or_post_param('par_oms')
