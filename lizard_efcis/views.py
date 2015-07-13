@@ -602,6 +602,7 @@ class BoxplotAPI(FilteredOpnamesAPIView):
             'wns__wns_oms',
             'wns__parameter__par_code',
             'wns__eenheid__eenheid',
+            'locatie__loc_id',
             'locatie__loc_oms',
             'datum',
             'tijd',
@@ -621,6 +622,7 @@ class BoxplotAPI(FilteredOpnamesAPIView):
                         'p10': np.percentile(values, 10),
                         'p90': np.percentile(values, 90)}
         line = {'wns': first['wns__wns_oms'],
+                'location_id': first['locatie__loc_id'],
                 'location': first['locatie__loc_oms'],
                 'unit': first['wns__eenheid__eenheid'],
                 'boxplot_data': boxplot_data,
