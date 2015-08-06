@@ -329,10 +329,19 @@ class MapAPI(FilteredOpnamesAPIView):
                                  if opname['datum'].month in [4, 5, 6, 7, 8, 9]]
                 winter_values = [opname['waarde_n'] for opname in opnames_per_locatie
                                  if opname['datum'].month not in [4, 5, 6, 7, 8, 9]]
+                if summer_values:
+                    summer_mean = np.mean(summer_values)
+                else:
+                    # Otherwise you get a "mean of empty slice" error.
+                    summer_mean = None
+                if winter_values:
+                    winter_mean = np.mean(winter_values)
+                else:
+                    winter_mean = None
 
                 boxplot_data = {'mean': np.mean(values),
-                                'summer_mean': np.mean(summer_values),
-                                'winter_mean': np.mean(winter_values),
+                                'summer_mean': summer_mean,
+                                'winter_mean': winter_mean,
                                 'num_values': len(values),
                                 'median': np.median(values),
                                 'min': np.min(values),
