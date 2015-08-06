@@ -325,8 +325,14 @@ class MapAPI(FilteredOpnamesAPIView):
 
                 opnames_per_locatie = list(group)
                 values = [opname['waarde_n'] for opname in opnames_per_locatie]
+                summer_values = [opname['waarde_n'] for opname in opnames_per_locatie
+                                 if opname['datum'].month in [4, 5, 6, 7, 8, 9]]
+                winter_values = [opname['waarde_n'] for opname in opnames_per_locatie
+                                 if opname['datum'].month not in [4, 5, 6, 7, 8, 9]]
 
                 boxplot_data = {'mean': np.mean(values),
+                                'summer_mean': np.mean(summer_values),
+                                'winter_mean': np.mean(winter_values),
                                 'num_values': len(values),
                                 'median': np.median(values),
                                 'min': np.min(values),
