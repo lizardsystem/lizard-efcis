@@ -795,32 +795,38 @@ class DataImport(object):
             return is_valid
 
         for waardereekstijd in umaquo_parser.waardereekstijden.values():
-            print (umaquo_parser.get_locatie_id(waardereekstijd))
             counter += 1
             tijdserie = umaquo_parser.get_tijdserie(waardereekstijd)
             opname = models.Opname()
-            opname.datum = datetime.strptime(
-                tijdserie[0], '%Y-%m-%d')
-            opname.tijd = datetime.strptime(
-                tijdserie[1], '%H:%M:%S')
-            opname.waarde_n = tijdserie[2]
-            opname.wns = self._get_foreignkey_inst(
-                umaquo_parser.get_wns_oms(waardereekstijd),
-                'WNS',
-                'wns_oms')
-            opname.locatie = self._get_foreignkey_inst(
-                umaquo_parser.get_locatie_id(waardereekstijd),
-                'Locatie',
-                'loc_id')
-            opname.activiteit = activiteit
-            print (umaquo_parser.get_locatie_id(waardereekstijd))
             try:
+                opname.datum = datetime.strptime(
+                    tijdserie[0], '%Y-%m-%d')
+                opname.tijd = datetime.strptime(
+                    tijdserie[1], '%H:%M:%S')
+                opname.waarde_n = tijdserie[2]
+                opname.wns = self._get_foreignkey_inst(
+                    umaquo_parser.get_wns_oms(waardereekstijd),
+                    'WNS',
+                    'wns_oms')
+                opname.locatie = self._get_foreignkey_inst(
+                    umaquo_parser.get_locatie_id(waardereekstijd),
+                    'Locatie',
+                    'loc_id')
+                opname.activiteit = activiteit
                 opname.full_clean()
             except ValidationError as e:
                 message = "%s:  regelnr.: %d, Foutmeldingen - %s\n" % (
                     datetime.now().strftime(datetime_format),
                     waardereekstijd.sourceline,
                     ", ".join(["%s: %s" % (k, ", ".join(v)) for k, v in e.message_dict.iteritems()])
+                )
+                self.save_action_log(import_run, message)
+                is_valid = False
+            except ValueError as e:
+                message = "%s:  regelnr.: %d, Foutmeldingen - %s\n" % (
+                    datetime.now().strftime(datetime_format),
+                    waardereekstijd.sourceline,
+                    e.message
                 )
                 self.save_action_log(import_run, message)
                 is_valid = False
