@@ -621,11 +621,11 @@ class DataImport(object):
                     headers[0])
                 self.save_action_log(import_run, message)
                 is_valid = False
-
+            
         if not is_valid:
             return is_valid
 
-        # check data integrity
+        # check mapping
         with open(filepath, 'rb') as f:
             reader = csv.reader(f, delimiter=str(mapping.scheiding_teken))
             headers = reader.next()
@@ -639,6 +639,14 @@ class DataImport(object):
                         mapping_field.file_field)
                     self.save_action_log(import_run, message)
                     is_valid = False
+        
+        if not is_valid:
+            return is_valid
+
+        # check data integrity
+        with open(filepath, 'rb') as f:
+            reader = csv.reader(f, delimiter=str(mapping.scheiding_teken))
+            headers = reader.next()            
             counter = 0
             for row in reader:
                 counter += 1
