@@ -42,8 +42,8 @@ def str_to_datetime(dtstr):
     try:
         return datetime.strptime(dtstr, dtformat)
     except:
-        logger.warn("Error on formating datimestr to datetime "
-                    "{0} doesn't match {1}.".format(dtstr, dtformat))
+        logger.warn("Datetime string %r doesn't match format %s.",
+                    dtstr, dtformat)
 
 
 @api_view()
