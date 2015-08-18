@@ -4,13 +4,17 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from ftplib import FTP
+import hashlib
 import tempfile
 
 from django.core.files import File as DjangoFile
 
-from lizard_efcis.models import FTPLocation
+from lizard_efcis.models import Activiteit
+from lizard_efcis.models import ImportMapping
+from lizard_efcis.models import ImportRun
 
 DIR_IMPORTED_CORRECTLY = 'VERWERKT'
+MAPPING_NAME = 'iBever-opnames'
 
 
 def connect(ftp_location):
@@ -41,10 +45,10 @@ def django_file(ftp_connection, filename):
     See https://docs.djangoproject.com/en/1.8/topics/files/
     """
     # Make a local tempfile and copy/paste
-    fileobj, tempfilename = tempfile.mkstemp(prefix='from_ftp_',
+    dont_care, tempfilename = tempfile.mkstemp(prefix='from_ftp_',
                                              suffix='.csv')
-    ftp_connection.retrbinary(filename, open('README', 'wb').write)
-    fileobj.close()
+    ftp_connection.retrbinary('RETR %s' % filename,
+                              open(tempfilename, 'wb').write)
 
     # Create a django file, ready for feeding to a filefield
     return DjangoFile(open(tempfilename, 'rb'))
@@ -61,6 +65,59 @@ def debug_info(ftp_location):
     output.append("Importable csv files:")
     for filename in importable_filenames(ftp_connection):
         output.append("    - %s" % filename)
+
+    return '\n'.join(output)
+
+
+def handle_first_file(ftp_location):
+    output = []
+    output.append("Looking at %s" % ftp_location)
+    ftp_connection = connect(ftp_location)
+    filenames = importable_filenames(ftp_connection)
+    if not filenames:
+        output.append("Nothing to import")
+        return '\n'.join(output)
+
+    import_activity, created1 = Activiteit.objects.get_or_create(
+        activiteit="Automatische FTP import")
+    filename = filenames[0]
+    import_run, created2 = ImportRun.objects.get_or_create(
+        activiteit=import_activity,
+        name=filename)
+    if created2:
+        output.append("Nieuwe import run aangemaakt: %s" % import_run)
+    else:
+        output.append("Bestaande import run gebruikt: %s" % import_run)
+
+    import_mapping = ImportMapping.objects.get(code=MAPPING_NAME)
+    import_run.import_mapping = import_mapping
+    import_run.save()
+
+    new_attachment = django_file(ftp_connection, filename)
+    replace_attachment = False
+    if import_run.attachment:
+        old_md5_hash = hashlib.md5(import_run.attachment.read()).hexdigest()
+        new_md5_hash = hashlib.md5(new_attachment.read()).hexdigest()
+        if old_md5_hash == new_md5_hash:
+            output.append("Attachment hasn't changed.")
+        else:
+            output.append("File on ftp is different from current attachment.")
+            replace_attachment = True
+
+    if replace_attachment or not import_run.attachment:
+        import_run.attachment = new_attachment
+        import_run.save()
+        output.append("Uploaded csv as new import run attachment.")
+
+    if import_run.imported:
+        output.append("TODO: move file to %s folder" % DIR_IMPORTED_CORRECTLY)
+    elif import_run.validated:
+        output.append("File looks OK, import should run fine later on.")
+    else:
+        output.append("File hasn't been marked as valid or imported, yet.")
+    if import_run.action_log:
+        output.append("Here is the log of the import machinery:")
+        output.append(import_run.action_log)
 
     return '\n'.join(output)
 

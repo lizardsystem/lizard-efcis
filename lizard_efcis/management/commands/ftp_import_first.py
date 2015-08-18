@@ -9,8 +9,8 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = "Debug info voor de FTP locaties"
+    help = "Import the first available file per FTP connection"
 
     def handle(self, *args, **options):
         for ftp_location in FTPLocation.objects.all():
-            print(ftp_access.debug_info(ftp_location))
+            print(ftp_access.handle_first_file(ftp_location))
