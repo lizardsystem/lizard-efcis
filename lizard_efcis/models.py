@@ -895,3 +895,28 @@ class Opname(models.Model):
     def compartiment(self):
         if self.wns.compartiment:
             return self.wns.compartiment.compartiment
+
+
+class FTPLocation(models.Model):
+
+    hostname = models.CharField(
+        max_length=255)
+    username = models.CharField(
+        max_length=255)
+    password = models.CharField(
+        max_length=255)
+    directory = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Base directory (TEST or PROD, currently)")
+
+    class Meta:
+        ordering = ['hostname']
+        verbose_name = "FTP locatie voor automatische import"
+        verbose_name_plural = "FTP locaties voor automatische import"
+
+    def __unicode__(self):
+        if self.directory:
+            return 'FTP locatie %s/%s' % (self.hostname, self.directory)
+        else:
+            return 'FTP locatie %s' % self.hostname

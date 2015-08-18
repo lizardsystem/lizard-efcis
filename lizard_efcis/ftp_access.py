@@ -8,18 +8,31 @@ import tempfile
 
 from django.core.files import File as DjangoFile
 
+from lizard_efcis.models import FTPLocation
 
-def connect(host, user, password, directory=None):
+DIR_IMPORTED_CORRECTLY = 'VERWERKT'
+
+
+def connect(ftp_location):
     """Return ftp connection."""
-    ftp_connection = FTP(host)
-    ftp_connection.login(user, password)
-    if directory:
-        ftp_connection.cwd(directory)
+    ftp_connection = FTP(ftp_location.hostname)
+    ftp_connection.login(ftp_location.username, ftp_location.password)
+    if ftp_location.directory:
+        ftp_connection.cwd(ftp_location.directory)
     return ftp_connection
 
 
 def listdir(ftp_connection):
-    return ftp_connection.nlst()
+    return sorted(ftp_connection.nlst())
+
+
+def importable_filenames(ftp_connection):
+    # Idea: separate retryable_filenames for those with an attached error
+    # report?
+    filenames = listdir(ftp_connection)
+    return [filename for filename in filenames
+            if filename.startswith('iBever_')
+            and filename.endswith('.txt')]
 
 
 def django_file(ftp_connection, filename):
@@ -28,12 +41,28 @@ def django_file(ftp_connection, filename):
     See https://docs.djangoproject.com/en/1.8/topics/files/
     """
     # Make a local tempfile and copy/paste
-    fileobj, tempfilename = tempfile.mkstemp(prefix='from_ftp_')
+    fileobj, tempfilename = tempfile.mkstemp(prefix='from_ftp_',
+                                             suffix='.csv')
     ftp_connection.retrbinary(filename, open('README', 'wb').write)
     fileobj.close()
 
     # Create a django file, ready for feeding to a filefield
     return DjangoFile(open(tempfilename, 'rb'))
+
+
+def debug_info(ftp_location):
+    """Return string with information about the FTP connection."""
+    output = []
+    output.append("Looking at %s" % ftp_location)
+    ftp_connection = connect(ftp_location)
+    output.append("Directory contents:")
+    for filename in listdir(ftp_connection):
+        output.append("    - %s" % filename)
+    output.append("Importable csv files:")
+    for filename in importable_filenames(ftp_connection):
+        output.append("    - %s" % filename)
+
+    return '\n'.join(output)
 
 
 # See https://docs.djangoproject.com/en/1.8/ref/models/fields/#filefield-and-fieldfile
