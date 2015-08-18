@@ -710,6 +710,9 @@ class ImportRun(models.Model):
         null=True)
     actief = models.BooleanField(default=True)
 
+    def __unicode__(self):
+        return 'import run %s (%s)' % (self.name, self.activiteit)
+
     @property
     def has_attachment_file(self):
         if not self.attachment:
