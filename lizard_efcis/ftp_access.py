@@ -9,12 +9,14 @@ import tempfile
 
 from django.core.files import File as DjangoFile
 
+from lizard_efcis import tasks
 from lizard_efcis.models import Activiteit
 from lizard_efcis.models import ImportMapping
 from lizard_efcis.models import ImportRun
 
 DIR_IMPORTED_CORRECTLY = 'VERWERKT'
 MAPPING_NAME = 'iBever-opnames'
+IMPORT_USER = 'automatische ftp import'
 
 
 def connect(ftp_location):
@@ -106,17 +108,26 @@ def handle_first_file(ftp_location):
 
     if replace_attachment or not import_run.attachment:
         import_run.attachment = new_attachment
+        import_run.validated = False
+        import_run.imported = False
         import_run.save()
         output.append("Uploaded csv as new import run attachment.")
 
-    if import_run.imported:
-        output.append("TODO: move file to %s folder" % DIR_IMPORTED_CORRECTLY)
-    elif import_run.validated:
-        output.append("File looks OK, import should run fine later on.")
-    else:
-        output.append("File hasn't been marked as valid or imported, yet.")
+    if not import_run.validated:
+        output.append("Import run hasn't been validated yet, attempting it.")
+        tasks.check_file(IMPORT_USER, import_run=import_run)
+    import_run = ImportRun.objects.get(id=import_run.id)  # Reload
+
+    if import_run.validated and not import_run.imported:
+        output.append("Import run hasn't been imported yet, attempting it.")
+        tasks.import_data(IMPORT_USER, import_run=import_run)
+    import_run = ImportRun.objects.get(id=import_run.id)  # Reload
+
     if import_run.action_log:
         output.append("Here is the log of the import machinery:")
         output.append(import_run.action_log)
+
+    if import_run.imported:
+        output.append("TODO: move file to %s folder" % DIR_IMPORTED_CORRECTLY)
 
     return '\n'.join(output)
