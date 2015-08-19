@@ -581,7 +581,7 @@ class DataImport(object):
                 if val_raw == '':
                     val_raw = None
                 value = val_raw
-            
+
             if self.log:
                 logger.info("setattr %s, %s, %s." % (
                     mapping_field.db_field, value, type(value)))

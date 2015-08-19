@@ -78,6 +78,39 @@ def import_file(modeladmin, request, queryset):
 import_file.short_description = "Uitvoeren geselecteerde imports"
 
 
+def download_csv(self, request, queryset):
+    mapping_codes = ''
+    if queryset.model == models.Locatie:
+        mapping_code = 'locaties'
+    elif queryset.model == models.ParameterGroep:
+        mapping_code = 'paramaetergroep'
+    elif queryset.model == models.Meetnet:
+        mapping_code = 'meetnet'
+    else:
+        messages.warning(
+            request,
+            "Export voor de tabel '%s' is niet aanwezig." %
+            (queryset.model.__name__)
+        return
+
+    import_mapping = models.ImportMapping.objects.get(
+        code=mapping_code)
+
+    filename = "%s-%s.csv" % (
+        slugify(import_mapping.code),
+        datetime.now().strftime("%Y-%m-%d_%H%M"))
+    response = HttpResponse(content_type='text/csv')
+    response[
+        'Content-Disposition'] = 'attachment; filename="%s"' % filename
+    writer = csv.writer(response,
+                        dialect='excel',
+                        delimiter=str(import_mapping.scheiding_teken))
+    for row in self.rows(import_mapping):
+        writer.writerow(row)
+    return response
+download_csv.short_description = "Download CSV"
+
+
 def validate_opnames_min_max(modeladmin, request, queryset):
     validation.MinMaxValidator(modeladmin, request, queryset).validate()
 validate_opnames_min_max.short_description = "Valideer volgens ingestelde min/max"
