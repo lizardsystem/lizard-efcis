@@ -37,13 +37,13 @@ GRAPH_KEY_SEPARATOR = '___'
 logger = logging.getLogger(__name__)
 
 
-def str_to_datetime(dtstr):
+def str_to_datetime(datetime_string):
     dtformat = "%d-%m-%Y"
     try:
-        return datetime.strptime(dtstr, dtformat)
+        return datetime.strptime(datetime_string, dtformat)
     except:
-        logger.warn("Error on formating datimestr to datetime "
-                    "{0} doesn't match {1}.".format(dtstr, dtformat))
+        logger.warn("Datetime string %r doesn't match format %s.",
+                    datetime_string, dtformat)
 
 
 @api_view()
@@ -597,6 +597,10 @@ class LineAPI(FilteredOpnamesAPIView):
             'waarde_n')
 
         points = list(points)
+        if not points:
+            logger.error("Weird. No opnames found in LineAPI for key %s.",
+                         key)
+            return Response({})
         first = points[0]
         data = [{'datetime': '%sT%s.000Z' % (point['datum'],
                                              point['tijd'] or '00:00'),
