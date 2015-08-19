@@ -131,9 +131,10 @@ def handle_first_file(ftp_location):
         old_md5_hash = hashlib.md5(import_run.attachment.read()).hexdigest()
         new_md5_hash = hashlib.md5(new_attachment.read()).hexdigest()
         if old_md5_hash == new_md5_hash:
-            output.append("Attachment hasn't changed.")
+            output.append("Attachment is niet gewijzigd.")
         else:
-            output.append("File on ftp is different from current attachment.")
+            output.append(
+                "Bestand op de ftp is anders dan het huidige attachment.")
             replace_attachment = True
 
     if replace_attachment or not import_run.attachment:
@@ -141,35 +142,35 @@ def handle_first_file(ftp_location):
         import_run.validated = False
         import_run.imported = False
         import_run.save()
-        output.append("Uploaded csv as new import run attachment.")
+        output.append("CSV van ftp als nieuw import run attachment toegevoegd.")
 
     if not import_run.validated:
-        output.append("Import run hasn't been validated yet, attempting it.")
+        output.append("Import run is nog niet gecontroleerd, dat proberen we nu...")
         tasks.check_file(IMPORT_USER, import_run=import_run)
     import_run = ImportRun.objects.get(id=import_run.id)  # Reload
 
     if import_run.validated and not import_run.imported:
-        output.append("Import run hasn't been imported yet, attempting it.")
+        output.append("Import run is nog niet geimporteerd, dat proberen we nu...")
         tasks.import_data(IMPORT_USER, import_run=import_run)
     import_run = ImportRun.objects.get(id=import_run.id)  # Reload
 
     log_filename = 'efcis_importlog_' + filename
     if import_run.action_log:
-        output.append("Here is the log of the import machinery.")
+        output.append("Dit is de log van het controleren/importeren:")
         output.append(import_run.action_log_for_logfile())
         write_file(ftp_connection,
                    log_filename,
                    import_run.action_log_for_logfile())
-        output.append("(We wrote it to FTP as %s)" % log_filename)
+        output.append("(Logfile is als %s naar de ftp geschreven)" % log_filename)
 
     if import_run.imported:
         success_filename = '%s/%s' % (DIR_IMPORTED_CORRECTLY, filename)
-        output.append("Import succesful. Moving %s to %s..." % (
+        output.append("Import is gelukt. Op de ftp verplaatsen we %s naar %s..." % (
             filename, success_filename))
         move_file(ftp_connection,
                   filename,
                   success_filename)
-        output.append("Removing now-unneeded logfile %s..." % (
+        output.append("Logfile %s is niet meer nodig. We verwijderen het..." % (
             log_filename))
         delete_file(log_filename)
 
