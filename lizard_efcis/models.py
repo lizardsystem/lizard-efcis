@@ -778,6 +778,12 @@ class ImportRun(models.Model):
         text = '-------------------------------\n'
         self.action_log = utils.add_text_to_top(self.action_log, text)
 
+    def action_log_for_logfile(self):
+        """Return action log string in regular date order."""
+        lines = self.action_log.split('\n')
+        lines.reverse()
+        return '\n'.join(lines)
+
 
 class MappingField(models.Model):
 

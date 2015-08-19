@@ -125,7 +125,7 @@ def handle_first_file(ftp_location):
 
     if import_run.action_log:
         output.append("Here is the log of the import machinery:")
-        output.append(import_run.action_log)
+        output.append(import_run.action_log_for_logfile())
         # TODO: write action log to the FTP dir.
 
     if import_run.imported:
