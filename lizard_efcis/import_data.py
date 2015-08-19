@@ -501,9 +501,42 @@ class DataImport(object):
         logger.info('End WNS import: updated={0}, '
                     'created={1}.'.format(updated, created))
 
+    def check_many2many_data(self,  inst, mapping, row, headers):
+        """Check many2many value exists."""
+        for mapping_field in mapping:
+            value = row[headers.index(mapping_field.file_field)].strip(' "')
+            if value in [None, '']:
+                continue
+            if isinstance(
+                inst._meta.get_field(mapping_field.db_field),
+                ManyToManyField
+            ):
+                datatype = mapping_field.db_datatype
+                class_inst = django_models.get_model('lizard_efcis', datatype)
+                class_inst.objects.get(**{mapping_field.foreignkey_field: value})
+
+    def set_many2many_data(self, inst, mapping, row, headers):
+        for mapping_field in mapping:
+            value = row[headers.index(mapping_field.file_field)].strip(' "')
+            if value in [None, '']:
+                continue
+            if isinstance(
+                inst._meta.get_field(mapping_field.db_field),
+                ManyToManyField
+            ):
+                values = list(inst._meta.get_field(
+                    mapping_field.db_field).value_from_object(inst))
+                values.append(value)
+                setattr(inst, mapping_field.db_field, values)
+
     def set_data(self, inst, mapping, row, headers):
         """Set values to model instance. """
         for mapping_field in mapping:
+            if isinstance(
+                inst._meta.get_field(mapping_field.db_field),
+                ManyToManyField
+            ):
+                continue
             value = None
             val_raw = None
             datatype = mapping_field.db_datatype
@@ -535,7 +568,6 @@ class DataImport(object):
                 # omit spaces
                 val_space_omitted = val_raw
                 if val_space_omitted:
-                    # val_space_omitted = val_space_omitted.replace(' ', '')
                     val_space_omitted = val_space_omitted.strip(' ')
                 value = self._get_foreignkey_inst(
                     val_space_omitted,
@@ -549,26 +581,16 @@ class DataImport(object):
                 if val_raw == '':
                     val_raw = None
                 value = val_raw
-
-            if isinstance(
-                inst._meta.get_field(mapping_field.db_field),
-                ManyToManyField
-            ):
-                inst.save()
-                values = list(inst._meta.get_field(
-                    mapping_field.db_field).value_from_object(inst))
-                values.append(value)
-                setattr(inst, mapping_field.db_field, values)
-            else:
-                if self.log:
-                    logger.info("setattr %s, %s, %s." % (
-                        mapping_field.db_field, value, type(value)))
-                setattr(inst, mapping_field.db_field, value)
+            
+            if self.log:
+                logger.info("setattr %s, %s, %s." % (
+                    mapping_field.db_field, value, type(value)))
+            setattr(inst, mapping_field.db_field, value)
 
     def save_action_log(self, import_run, message):
         import_run.action_log = utils.add_text_to_top(
-                import_run.action_log,
-                message)
+            import_run.action_log,
+            message)
         import_run.save(force_update=True, update_fields=['action_log'])
 
     def check_csv(self, import_run, datetime_format, ignore_duplicate_key=True):
@@ -621,11 +643,11 @@ class DataImport(object):
                     headers[0])
                 self.save_action_log(import_run, message)
                 is_valid = False
-
+            
         if not is_valid:
             return is_valid
 
-        # check data integrity
+        # check mapping
         with open(filepath, 'rb') as f:
             reader = csv.reader(f, delimiter=str(mapping.scheiding_teken))
             headers = reader.next()
@@ -639,6 +661,14 @@ class DataImport(object):
                         mapping_field.file_field)
                     self.save_action_log(import_run, message)
                     is_valid = False
+        
+        if not is_valid:
+            return is_valid
+
+        # check data integrity
+        with open(filepath, 'rb') as f:
+            reader = csv.reader(f, delimiter=str(mapping.scheiding_teken))
+            headers = reader.next()            
             counter = 0
             for row in reader:
                 counter += 1
@@ -653,10 +683,12 @@ class DataImport(object):
                 inst = django_models.get_model(
                     'lizard_efcis',
                     mapping.tabel_naam)()
-                self.set_data(inst, mapping_fields, row, headers)
-                if hasattr(inst.__class__, 'activiteit') and not hasattr(inst, 'activiteit'):
-                    setattr(inst, 'activiteit', import_run.activiteit)
                 try:
+                    self.set_data(inst, mapping_fields, row, headers)
+                    if hasattr(inst.__class__, 'activiteit') and not hasattr(inst, 'activiteit'):
+                        setattr(inst, 'activiteit', import_run.activiteit)
+                    if isinstance(inst, models.Locatie):
+                        self.check_many2many_data(inst, mapping_fields, row, headers)
                     inst.full_clean()
                 except ValidationError as e:
                     message = "%s:  regelnr.: %d, Foutmeldingen - %s\n" % (
@@ -664,6 +696,13 @@ class DataImport(object):
                         reader.line_num,
                         ", ".join(["%s: %s" % (k, ", ".join(v)) for k, v in e.message_dict.iteritems()])
                     )
+                    self.save_action_log(import_run, message)
+                    is_valid = False
+                except Exception as e:
+                    message = "%s:  regelnr.: %d, overige foutmelding - %s\n" % (
+                        datetime.now().strftime(datetime_format),
+                        reader.line_num,
+                        e.message)
                     self.save_action_log(import_run, message)
                     is_valid = False
 
@@ -732,6 +771,9 @@ class DataImport(object):
                         setattr(inst, 'import_run', import_run)
                         setattr(inst, 'activiteit', activiteit)
                     inst.save()
+                    if isinstance(inst, models.Locatie):
+                        self.set_many2many_data(inst, mapping_fields, row, headers)
+                        inst.save()
                     created += 1
                 except IntegrityError as ex:
                     if ignore_duplicate_key:
@@ -795,32 +837,38 @@ class DataImport(object):
             return is_valid
 
         for waardereekstijd in umaquo_parser.waardereekstijden.values():
-            print (umaquo_parser.get_locatie_id(waardereekstijd))
             counter += 1
             tijdserie = umaquo_parser.get_tijdserie(waardereekstijd)
             opname = models.Opname()
-            opname.datum = datetime.strptime(
-                tijdserie[0], '%Y-%m-%d')
-            opname.tijd = datetime.strptime(
-                tijdserie[1], '%H:%M:%S')
-            opname.waarde_n = tijdserie[2]
-            opname.wns = self._get_foreignkey_inst(
-                umaquo_parser.get_wns_oms(waardereekstijd),
-                'WNS',
-                'wns_oms')
-            opname.locatie = self._get_foreignkey_inst(
-                umaquo_parser.get_locatie_id(waardereekstijd),
-                'Locatie',
-                'loc_id')
-            opname.activiteit = activiteit
-            print (umaquo_parser.get_locatie_id(waardereekstijd))
             try:
+                opname.datum = datetime.strptime(
+                    tijdserie[0], '%Y-%m-%d')
+                opname.tijd = datetime.strptime(
+                    tijdserie[1], '%H:%M:%S')
+                opname.waarde_n = tijdserie[2]
+                opname.wns = self._get_foreignkey_inst(
+                    umaquo_parser.get_wns_oms(waardereekstijd),
+                    'WNS',
+                    'wns_oms')
+                opname.locatie = self._get_foreignkey_inst(
+                    umaquo_parser.get_locatie_id(waardereekstijd),
+                    'Locatie',
+                    'loc_id')
+                opname.activiteit = activiteit
                 opname.full_clean()
             except ValidationError as e:
                 message = "%s:  regelnr.: %d, Foutmeldingen - %s\n" % (
                     datetime.now().strftime(datetime_format),
                     waardereekstijd.sourceline,
                     ", ".join(["%s: %s" % (k, ", ".join(v)) for k, v in e.message_dict.iteritems()])
+                )
+                self.save_action_log(import_run, message)
+                is_valid = False
+            except ValueError as e:
+                message = "%s:  regelnr.: %d, Foutmeldingen - %s\n" % (
+                    datetime.now().strftime(datetime_format),
+                    waardereekstijd.sourceline,
+                    e.message
                 )
                 self.save_action_log(import_run, message)
                 is_valid = False
