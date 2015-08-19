@@ -3,14 +3,19 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from datetime import datetime
+import csv
+
 from django.contrib import admin
 from django.contrib import messages
 from django.conf import settings
+from django.utils.text import slugify
+from django.http import HttpResponse
 
 from lizard_efcis import models
 from lizard_efcis import tasks
 from lizard_efcis import validation
-
+from lizard_efcis import export_data
 
 def check_file(modeladmin, request, queryset):
 
@@ -83,14 +88,16 @@ def download_csv(self, request, queryset):
     if queryset.model == models.Locatie:
         mapping_code = 'locaties'
     elif queryset.model == models.ParameterGroep:
-        mapping_code = 'paramaetergroep'
+        mapping_code = 'parametergroep-export'
     elif queryset.model == models.Meetnet:
         mapping_code = 'meetnet'
+    elif queryset.model == models.Meetnet:
+        mapping_code = 'parameter'
     else:
         messages.warning(
             request,
             "Export voor de tabel '%s' is niet aanwezig." %
-            (queryset.model.__name__)
+            (queryset.model.__name__))
         return
 
     import_mapping = models.ImportMapping.objects.get(
@@ -105,7 +112,8 @@ def download_csv(self, request, queryset):
     writer = csv.writer(response,
                         dialect='excel',
                         delimiter=str(import_mapping.scheiding_teken))
-    for row in self.rows(import_mapping):
+    rows = export_data.get_csv_context(queryset, import_mapping)
+    for row in rows:
         writer.writerow(row)
     return response
 download_csv.short_description = "Download CSV"
@@ -154,7 +162,6 @@ def validate_stddev_all(modeladmin, request, queryset):
         period_to_look_back=365 * 99).validate()
 validate_stddev_all.short_description = (
     "Valideer t.o.v. alle waardes")
-
 
 
 @admin.register(models.ImportRun)
@@ -249,12 +256,14 @@ class LocatieAdmin(admin.ModelAdmin):
                    'afvoergebied',
                    'grondsoort']
     filter_horizontal = ['meetnet']
+    actions = [download_csv]
 
 
 @admin.register(models.Meetnet)
 class MeetnetAdmin(admin.ModelAdmin):
     list_display = ['code',
                     'parent']
+    actions = [download_csv]
 
 
 @admin.register(models.Opname)
@@ -300,6 +309,7 @@ class WNSAdmin(admin.ModelAdmin):
 class ParameterGroepAdmin(admin.ModelAdmin):
     list_display = ['code',
                     'parent']
+    actions = [download_csv]
 
 
 @admin.register(models.Parameter)
@@ -315,6 +325,7 @@ class Parameter(admin.ModelAdmin):
                     'parametergroep']
     list_filter = ['parametergroep',
                    'status']
+    actions = [download_csv]
 
 
 @admin.register(models.StatusKRW)

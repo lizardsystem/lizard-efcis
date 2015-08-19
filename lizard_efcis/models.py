@@ -765,15 +765,17 @@ class ImportRun(models.Model):
 class MappingField(models.Model):
 
     FOREIGNKEY_MODELS = [
-        'WNS',
-        'Locatie',
+        'Activiteit',
+        'BioStatus',
         'Detectiegrens',
-        'ParameterGroep',
+        'FCStatus',
+        'Locatie',
         'Meetnet',
+        'ParameterGroep',
         'StatusKRW',
         'Waterlichaam',
         'Watertype',
-        'Activiteit'
+        'WNS'
     ]
 
     type_choices = [
