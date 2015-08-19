@@ -4,6 +4,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from ftplib import FTP
+import StringIO
 import hashlib
 import tempfile
 
@@ -56,6 +57,23 @@ def django_file(ftp_connection, filename):
     return DjangoFile(open(tempfilename, 'rb'))
 
 
+def write_file(ftp_connection, filename, contents):
+    file_like = StringIO.StringIO()
+    file_like.write(contents)
+    file_like.seek(0)  # "Wind back" so that read() works.
+    ftp_connection.storbinary('STOR %s' % filename, file_like)
+
+
+def delete_file(ftp_connection, filename):
+    """Delete file. Return success message if succesful."""
+    return ftp_connection.delete(filename)
+
+
+def move_file(ftp_connection, filename1, filename2):
+    """Move file. Filename can contain *relative* path."""
+    ftp_connection.rename(filename1, filename2)
+
+
 def debug_info(ftp_location):
     """Return string with information about the FTP connection."""
     output = []
@@ -67,7 +85,19 @@ def debug_info(ftp_location):
     output.append("Importable csv files:")
     for filename in importable_filenames(ftp_connection):
         output.append("    - %s" % filename)
-
+    output.append("Attempting to write file...")
+    filename = 'ftp_test_file'
+    write_file(ftp_connection,
+               filename,
+               "Write/move/read test successful")
+    output.append("Attempting to move file...")
+    filename_in_subdir = '%s/%s' % (DIR_IMPORTED_CORRECTLY, filename)
+    move_file(ftp_connection,
+              filename,
+              filename_in_subdir)
+    output.append(django_file(ftp_connection, filename_in_subdir).read())
+    output.append("Attempting to delete file...")
+    output.append(delete_file(ftp_connection, filename_in_subdir))
     return '\n'.join(output)
 
 
@@ -123,14 +153,24 @@ def handle_first_file(ftp_location):
         tasks.import_data(IMPORT_USER, import_run=import_run)
     import_run = ImportRun.objects.get(id=import_run.id)  # Reload
 
+    log_filename = 'efcis_importlog_' + filename
     if import_run.action_log:
-        output.append("Here is the log of the import machinery:")
+        output.append("Here is the log of the import machinery.")
         output.append(import_run.action_log_for_logfile())
-        # TODO: write action log to the FTP dir.
+        write_file(ftp_connection,
+                   log_filename,
+                   import_run.action_log_for_logfile())
+        output.append("(We wrote it to FTP as %s)" % log_filename)
 
     if import_run.imported:
-        output.append("TODO: move file to %s folder" % DIR_IMPORTED_CORRECTLY)
-        # TODO: remove action log, if on FTP (or add that we've moved the
-        # file).
+        success_filename = '%s/%s' % (DIR_IMPORTED_CORRECTLY, filename)
+        output.append("Import succesful. Moving %s to %s..." % (
+            filename, success_filename))
+        move_file(ftp_connection,
+                  filename,
+                  success_filename)
+        output.append("Removing now-unneeded logfile %s..." % (
+            log_filename))
+        delete_file(log_filename)
 
     return '\n'.join(output)
