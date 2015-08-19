@@ -764,6 +764,20 @@ class ImportRun(models.Model):
             can_run = False
         return (can_run, messages)
 
+    def add_log_line(self, text, username=None):
+        """Add log text including timestamp."""
+        datetime_format = '%Y-%m-%d %H:%M'
+        datetime_string = datetime.now().strftime(datetime_format)
+        if username:
+            datetime_string = datetime_string + ' ' + username
+        text = '%s: %s\n' % (datetime_string, text)
+        self.action_log = utils.add_text_to_top(self.action_log, text)
+
+    def add_log_separator(self):
+        """Add separator line to action log."""
+        text = '-------------------------------\n'
+        self.action_log = utils.add_text_to_top(self.action_log, text)
+
 
 class MappingField(models.Model):
 
