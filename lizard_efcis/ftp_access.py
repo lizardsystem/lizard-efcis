@@ -126,8 +126,11 @@ def handle_first_file(ftp_location):
     if import_run.action_log:
         output.append("Here is the log of the import machinery:")
         output.append(import_run.action_log)
+        # TODO: write action log to the FTP dir.
 
     if import_run.imported:
         output.append("TODO: move file to %s folder" % DIR_IMPORTED_CORRECTLY)
+        # TODO: remove action log, if on FTP (or add that we've moved the
+        # file).
 
     return '\n'.join(output)
