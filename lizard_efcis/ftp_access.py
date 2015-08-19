@@ -49,7 +49,7 @@ def django_file(ftp_connection, filename):
                                              suffix='.csv')
     ftp_connection.retrbinary('RETR %s' % filename,
                               open(tempfilename, 'wb').write)
-
+    print(tempfilename)
     # Create a django file, ready for feeding to a filefield
     return DjangoFile(open(tempfilename, 'rb'))
 
@@ -120,12 +120,3 @@ def handle_first_file(ftp_location):
         output.append(import_run.action_log)
 
     return '\n'.join(output)
-
-
-# See https://docs.djangoproject.com/en/1.8/ref/models/fields/#filefield-and-fieldfile
-
-# ftp_connection = connect('ftp.blabla.nl', 'bla', 'secret')
-# print(listdir(ftp_connection))
-# import_run = ImportRun.objects.get_or_create(....)
-# import_run.attachment.save('blabla.csv',
-#                            django_file(ftp_connection, 'blabla.csv'))
