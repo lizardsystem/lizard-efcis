@@ -57,3 +57,16 @@ Import ibever data::
 
     $ bin/django import_ibever --mapping='iBever-opnames'
     $ bin/django import_hdsr_bio --mapping='hdsr-bio-opnames'
+
+Data can also be imported from FTP. Add an FTP connection via the admin. You
+can test the FTP connection by running a management command::
+
+    $ bin/django ftpdebug
+
+Importing from ftp can also be fired off from a management command::
+
+    $ bin/django ftp_import_first
+
+For every ftp connection (normally there will be only one), the oldest
+available csv file (``iBever_*.txt``) will be imported. At least, a validation
+and import will be attempted. A logfile is written back when unsuccesful.
