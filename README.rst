@@ -70,3 +70,6 @@ Importing from ftp can also be fired off from a management command::
 For every ftp connection (normally there will be only one), the oldest
 available csv file (``iBever_*.txt``) will be imported. At least, a validation
 and import will be attempted. A logfile is written back when unsuccesful.
+
+(Possible TODO: it now uses the standard "iBever-opnames" mapping. That might
+need to be made configurable later on as the current csv files don't match.)
