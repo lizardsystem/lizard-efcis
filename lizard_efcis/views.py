@@ -30,6 +30,7 @@ import numpy as np
 from lizard_efcis import models
 from lizard_efcis import serializers
 from lizard_efcis import export_data
+from lizard_efcis.manager import VALIDATED
 
 MAX_GRAPH_RESULTS = 20000
 GRAPH_KEY_SEPARATOR = '___'
@@ -289,11 +290,14 @@ class MapAPI(FilteredOpnamesAPIView):
 
         latest_values = {}  # Latest value per location.
         color_values = {}  # Latest value converted to 0-100 scale.
+        abs_color_values = {}  # Same, but scaled to all values.
         boxplot_values = {}
         latest_datetimes = {}
 
         min_value = None
         max_value = None
+        abs_min_value = None
+        abs_max_value = None
         color_by_name = None
         is_krw_score = False
 
@@ -304,31 +308,47 @@ class MapAPI(FilteredOpnamesAPIView):
             opnames_for_color_by = numerical_opnames.filter(
                 wns=self.color_by).values(
                     'locatie', 'datum', 'tijd', 'waarde_n',
-                    'activiteit__act_type')
+                    'detect__teken', 'activiteit__act_type')
 
             if opnames_for_color_by:
                 is_krw_score = (
                     opnames_for_color_by[0]['activiteit__act_type'] ==
                     models.Activiteit.T2)
 
-            min_max = models.Opname.objects.filter(
-                wns=self.color_by).aggregate(
+            abs_min_max = models.Opname.objects.filter(
+                wns=self.color_by,
+                validation_state=VALIDATED).aggregate(
                     Min('waarde_n'), Max('waarde_n'))
-            min_value = min_max['waarde_n__min']
-            max_value = min_max['waarde_n__max']
+            abs_min_value = abs_min_max['waarde_n__min']
+            abs_max_value = abs_min_max['waarde_n__max']
+            abs_difference = abs_max_value - abs_min_value
+
+            selection_values = [opname['waarde_n'] for opname in opnames_for_color_by]
+            min_value = min(selection_values)
+            max_value = max(selection_values)
             difference = max_value - min_value
 
             def _key(opname):
                 return opname['locatie']
 
+            def possibly_halved_value(opname):
+                value = opname['waarde_n']
+                if opname['detect__teken'] == '<':
+                    return value / 2.0
+                return value
+
             for locatie, group in groupby(opnames_for_color_by, _key):
 
                 opnames_per_locatie = list(group)
-                values = [opname['waarde_n'] for opname in opnames_per_locatie]
-                summer_values = [opname['waarde_n'] for opname in opnames_per_locatie
-                                 if opname['datum'].month in [4, 5, 6, 7, 8, 9]]
-                winter_values = [opname['waarde_n'] for opname in opnames_per_locatie
-                                 if opname['datum'].month not in [4, 5, 6, 7, 8, 9]]
+                values = [
+                    possibly_halved_value(opname)
+                    for opname in opnames_per_locatie]
+                summer_values = [
+                    possibly_halved_value(opname) for opname in opnames_per_locatie
+                    if opname['datum'].month in [4, 5, 6, 7, 8, 9]]
+                winter_values = [
+                    possibly_halved_value(opname) for opname in opnames_per_locatie
+                    if opname['datum'].month not in [4, 5, 6, 7, 8, 9]]
                 if summer_values:
                     summer_mean = np.mean(summer_values)
                 else:
@@ -367,7 +387,13 @@ class MapAPI(FilteredOpnamesAPIView):
                         (latest_value - min_value) / difference * 100)
                 else:
                     color_value = 100.0
+                if abs_difference:
+                    abs_color_value = round(
+                        (latest_value - abs_min_value) / abs_difference * 100)
+                else:
+                    abs_color_value = 100.0
                 color_values[locatie] = color_value
+                abs_color_values[locatie] = abs_color_value
                 boxplot_values[locatie] = boxplot_data
 
         serializer = serializers.MapSerializer(
@@ -376,12 +402,15 @@ class MapAPI(FilteredOpnamesAPIView):
             context={'latest_values': latest_values,
                      'latest_datetimes': latest_datetimes,
                      'color_values': color_values,
+                     'abs_color_values': abs_color_values,
                      'boxplot_values': boxplot_values})
         result = serializer.data
 
         result['color_by_fields'] = color_by_fields
         result['min_value'] = min_value
         result['max_value'] = max_value
+        result['abs_min_value'] = abs_min_value
+        result['abs_max_value'] = abs_max_value
         result['color_by_name'] = color_by_name
         result['is_krw_score'] = is_krw_score
 
