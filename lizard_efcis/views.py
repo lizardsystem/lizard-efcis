@@ -386,7 +386,7 @@ class MapAPI(FilteredOpnamesAPIView):
                 latest_values[locatie] = latest_value
                 latest_opname = opnames_per_locatie[-1]
                 latest_datetime = '%sT%s.000Z' % (latest_opname['datum'],
-                                                  latest_opname['tijd'] or '00:00')
+                                                  latest_opname['tijd'] or '00:00:00')
                 latest_datetimes[locatie] = latest_datetime
                 if difference:
                     color_value = round(
@@ -638,7 +638,7 @@ class LineAPI(FilteredOpnamesAPIView):
             return Response({})
         first = points[0]
         data = [{'datetime': '%sT%s.000Z' % (point['datum'],
-                                             point['tijd'] or '00:00'),
+                                             point['tijd'] or '00:00:00'),
                  'value': point['waarde_n']} for point in points]
         line = {'wns': first['wns__wns_oms'],
                 'location': first['locatie__loc_oms'],
