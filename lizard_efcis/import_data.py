@@ -36,20 +36,20 @@ class DataImport(object):
             settings.DATA_IMPORT_DIR, 'domain')
 
     def import_domain_data(self):
-        #self.create_status()
-        #self.import_status_krw('status_krw.csv')
-        #self.import_watertype('watertype.csv')
-        #self.import_waterlichaam('waterlichaam.csv')
-        #self.create_detectie()
-        #self.import_compartiment('compartiment.csv')
-        #self.import_hoedanigheid('hoedanigheid.csv')
-        #self.import_eenheid('eenheid.csv')
-        #self.import_parametergroep('parameter.csv')
-        #self.import_parameter('parameter.csv')
-        #self.import_wns('wns.csv')
+        self.create_status()
+        self.import_status_krw('status_krw.csv')
+        self.import_watertype('watertype.csv')
+        self.import_waterlichaam('waterlichaam.csv')
+        self.create_detectie()
+        self.import_compartiment('compartiment.csv')
+        self.import_hoedanigheid('hoedanigheid.csv')
+        self.import_eenheid('eenheid.csv')
+        self.import_parametergroep('parameter.csv')
+        self.import_parameter('parameter.csv')
+        self.import_wns('wns.csv')
         self.import_csv('meetnet.csv', 'meetnet')
-        #self.import_csv('locaties_met_meetnet.csv', 'locaties')
-        #self.import_csv('hdsr_biologie.csv', 'activiteit-bio')
+        self.import_csv('locaties_met_meetnet.csv', 'locaties')
+        self.import_csv('hdsr_biologie.csv', 'activiteit-bio')
 
     def _datestr_to_date(self, datestr):
         dt = None
