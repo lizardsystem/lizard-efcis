@@ -224,7 +224,7 @@ class FilteredOpnamesAPIView(APIView):
 
             location_filter = location_filter | Q(
                 locatie__meetnet__in=meetnetten)
-        opnames = opnames.filter(location_filter)
+        opnames = opnames.filter(location_filter).distinct()
         return opnames
 
 
