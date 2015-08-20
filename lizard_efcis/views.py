@@ -257,12 +257,16 @@ class MapAPI(FilteredOpnamesAPIView):
     """Lists locations as geojson for the map.
 
     ``features`` lists the actual geojson locations. In the properties,
-    ``color_value`` is a value between 0 and 100 that you can use to color the
-    points. The value is ``null`` when there's no value at this location for
-    the measurement.
+    ``color_value`` (and ``abs_color_value``, see below) is a value between 0
+    and 100 that you can use to color the points. The value is ``null`` when
+    there's no value at this location for the measurement.
+
+    ``abs_min_value`` and ``abs_max_value`` are the minimum and maximum
+    (validated) values found in all the available "opnames" for the "wns" that
+    we color on.
 
     ``min_value`` and ``max_value`` are the minimum and maximum values found
-    in all the available "opnames" for the "wns" that we color on.
+    for the current selection.
 
     ``color_by_fields`` is a list of fields (rather "wns" id/description
     pairs) that we can color the locations by. Add a GET parameter
