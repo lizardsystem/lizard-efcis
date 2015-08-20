@@ -4,10 +4,10 @@ import logging
 import os
 
 from django.conf import settings
-from django.db import models as django_models
-from django.db import IntegrityError
-from django.db.models import ManyToManyField
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
+from django.db import models as django_models
+from django.db.models import ManyToManyField
 
 from lxml.etree import XMLSyntaxError
 
@@ -688,7 +688,7 @@ class DataImport(object):
                         for inst_field in inst._meta.fields:
                             if inst_field.unique or inst_field.primary_key:
                                 fields_excluded.append(inst_field)
-                        inst.clean_fields(exclude='id')
+                        inst.clean_fields(exclude=fields_excluded)
                     else:
                         count_imports += 1
                         inst.clean_fields(exclude='id')
@@ -706,7 +706,7 @@ class DataImport(object):
                     self.save_action_log(import_run, message)
                     is_valid = False
 
-            message = "Aantal rijen %d, waarvan %d nieuwe en %d bestande." % (
+            message = "Aantal rijen %d, waarvan %d nieuwe en %d bestaande." % (
                 counter, count_imports, count_updates)
             self.save_action_log(import_run, message)
         return is_valid
@@ -798,7 +798,7 @@ class DataImport(object):
                     self.save_action_log(import_run, ex.message)
                     break
         is_imported = True
-        message = "Toegevoegd %d, Geupdated %d objects" % (
+        message = "Toegevoegd %d, Geupdated %d objecten" % (
             count_imports, count_updates)
         self.save_action_log(import_run, message)
         return is_imported

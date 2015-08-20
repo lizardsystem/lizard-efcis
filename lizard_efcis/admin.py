@@ -6,16 +6,16 @@ from __future__ import unicode_literals
 from datetime import datetime
 import csv
 
+from django.conf import settings
 from django.contrib import admin
 from django.contrib import messages
-from django.conf import settings
-from django.utils.text import slugify
 from django.http import HttpResponse
+from django.utils.text import slugify
 
+from lizard_efcis import export_data
 from lizard_efcis import models
 from lizard_efcis import tasks
 from lizard_efcis import validation
-from lizard_efcis import export_data
 
 def check_file(modeladmin, request, queryset):
 
@@ -96,8 +96,8 @@ def download_csv(self, request, queryset):
     else:
         messages.warning(
             request,
-            "Export voor de tabel '%s' is niet aanwezig." %
-            (queryset.model.__name__))
+            "Export voor de tabel '%s' is niet aanwezig." % (
+                queryset.model.__name__))
         return
 
     import_mapping = models.ImportMapping.objects.get(
