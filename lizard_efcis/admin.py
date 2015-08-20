@@ -91,7 +91,7 @@ def download_csv(self, request, queryset):
         mapping_code = 'parametergroep-export'
     elif queryset.model == models.Meetnet:
         mapping_code = 'meetnet'
-    elif queryset.model == models.Meetnet:
+    elif queryset.model == models.Parameter:
         mapping_code = 'parameter'
     else:
         messages.warning(
