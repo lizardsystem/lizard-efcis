@@ -74,7 +74,7 @@ def import_data(username, importrun=None, *args, **options):
             import_run.add_log_line(
                 "Niet uitgevoerd, bestandsextentie is geen .csv of .xml")
             continue
-        import_run.add_log_line("Import status is %" % result)
+        import_run.add_log_line("Import status is %s" % result)
         import_run.add_log_line("Eind import", username)
         import_run.imported = result
         import_run.uploaded_by = username

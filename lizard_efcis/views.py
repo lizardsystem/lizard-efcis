@@ -809,7 +809,8 @@ class ExportFormatsAPI(APIView):
 
     def get(self, request, format=None):
         result = []
-        for import_mapping in models.ImportMapping.objects.all():
+        for import_mapping in models.ImportMapping.objects.filter(
+                tabel_naam='Opname').filter(is_export=True):
             url = reverse('efcis-export-csv',
                           request=request,
                           kwargs={'import_mapping_id': import_mapping.id})

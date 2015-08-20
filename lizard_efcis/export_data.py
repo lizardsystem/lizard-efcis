@@ -156,6 +156,12 @@ def get_csv_context(queryset, import_mapping):
                         mapping_field.get('data_format')))
                 except:
                     continue
+            elif datatype == 'Meetnet':
+                meetnetten = value.filter(code=mapping_field.get('file_field'))
+                if meetnetten.exists():
+                    row.append(meetnetten[0].id)
+                else:
+                    row.append('')
             elif datatype in models.MappingField.FOREIGNKEY_MODELS:
                 row.append(getattr(
                     value, mapping_field.get('foreignkey_field'), ''))

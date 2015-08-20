@@ -4,10 +4,10 @@ import logging
 import os
 
 from django.conf import settings
-from django.db import models as django_models
-from django.db import IntegrityError
-from django.db.models import ManyToManyField
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
+from django.db import models as django_models
+from django.db.models import ManyToManyField
 
 from lxml.etree import XMLSyntaxError
 
@@ -662,6 +662,8 @@ class DataImport(object):
             reader = csv.reader(f, delimiter=str(mapping.scheiding_teken))
             headers = reader.next()
             counter = 0
+            count_updates = 0
+            count_imports = 0
             for row in reader:
                 counter += 1
                 if len(row) != len(headers):
@@ -680,7 +682,16 @@ class DataImport(object):
                         setattr(inst, 'activiteit', import_run.activiteit)
                     if isinstance(inst, models.Locatie):
                         self.check_many2many_data(inst, mapping_fields, row, headers)
-                    inst.full_clean()
+                    if inst.id:
+                        count_updates += 1
+                        fields_excluded = []
+                        for inst_field in inst._meta.fields:
+                            if inst_field.unique or inst_field.primary_key:
+                                fields_excluded.append(inst_field)
+                        inst.clean_fields(exclude=fields_excluded)
+                    else:
+                        count_imports += 1
+                        inst.clean_fields(exclude='id')
                 except ValidationError as e:
                     message = "  regelnr.: %d, Foutmeldingen - %s" % (
                         reader.line_num,
@@ -695,9 +706,8 @@ class DataImport(object):
                     self.save_action_log(import_run, message)
                     is_valid = False
 
-            message = "%s %d." % (
-                "Aantal rijen",
-                counter)
+            message = "Aantal rijen %d, waarvan %d nieuwe en %d bestaande." % (
+                counter, count_imports, count_updates)
             self.save_action_log(import_run, message)
         return is_valid
 
@@ -725,6 +735,10 @@ class DataImport(object):
                     inst.activiteit = activiteit
                 try:
                     self.set_data(inst, mapping_fields, row, headers)
+                    inst.save()
+                    if isinstance(inst, models.Locatie):
+                        self.set_many2many_data(inst, mapping_fields, row, headers)
+                        inst.save()
                     created = created + 1
                 except IntegrityError as ex:
                     if ignore_duplicate_key:
@@ -735,6 +749,7 @@ class DataImport(object):
         logger.info(
             'End import: created={}.'.format(created))
 
+    
     def manual_import_csv(self, import_run, datetime_format, ignore_duplicate_key=True):
 
         is_imported = False
@@ -743,14 +758,13 @@ class DataImport(object):
         activiteit = import_run.activiteit
         mapping_fields = mapping.mappingfield_set.all()
 
-        created = 0
+        count_imports = 0
+        count_updates = 0
         with open(filepath, 'rb') as f:
             reader = csv.reader(f, delimiter=str(mapping.scheiding_teken))
             # read headers
             headers = reader.next()
-            count = 0
             for row in reader:
-                count += 1
                 inst = django_models.get_model('lizard_efcis',
                                                mapping.tabel_naam)()
                 try:
@@ -758,11 +772,17 @@ class DataImport(object):
                     if mapping.tabel_naam == 'Opname':
                         setattr(inst, 'import_run', import_run)
                         setattr(inst, 'activiteit', activiteit)
-                    inst.save()
+                    if inst.id:
+                        fields_to_update = mapping_fields.exclude(
+                            db_datatype='Meetnet').exclude(db_field='id').values_list('db_field', flat=True)
+                        inst.save(force_update=True, update_fields=fields_to_update)
+                        count_updates += 1
+                    else:
+                        inst.save()
+                        count_imports += 1
                     if isinstance(inst, models.Locatie):
                         self.set_many2many_data(inst, mapping_fields, row, headers)
                         inst.save()
-                    created += 1
                 except IntegrityError as ex:
                     if ignore_duplicate_key:
                         if self.log:
@@ -778,7 +798,8 @@ class DataImport(object):
                     self.save_action_log(import_run, ex.message)
                     break
         is_imported = True
-        message = "Created %d objects." % created
+        message = "Toegevoegd %d, Geupdated %d objecten" % (
+            count_imports, count_updates)
         self.save_action_log(import_run, message)
         return is_imported
 

@@ -3,14 +3,19 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from datetime import datetime
+import csv
+
+from django.conf import settings
 from django.contrib import admin
 from django.contrib import messages
-from django.conf import settings
+from django.http import HttpResponse
+from django.utils.text import slugify
 
+from lizard_efcis import export_data
 from lizard_efcis import models
 from lizard_efcis import tasks
 from lizard_efcis import validation
-
 
 def check_file(modeladmin, request, queryset):
 
@@ -78,6 +83,42 @@ def import_file(modeladmin, request, queryset):
 import_file.short_description = "Uitvoeren geselecteerde imports"
 
 
+def download_csv(self, request, queryset):
+    mapping_codes = ''
+    if queryset.model == models.Locatie:
+        mapping_code = 'locaties'
+    elif queryset.model == models.ParameterGroep:
+        mapping_code = 'parametergroep-export'
+    elif queryset.model == models.Meetnet:
+        mapping_code = 'meetnet'
+    elif queryset.model == models.Meetnet:
+        mapping_code = 'parameter'
+    else:
+        messages.warning(
+            request,
+            "Export voor de tabel '%s' is niet aanwezig." % (
+                queryset.model.__name__))
+        return
+
+    import_mapping = models.ImportMapping.objects.get(
+        code=mapping_code)
+
+    filename = "%s-%s.csv" % (
+        slugify(import_mapping.code),
+        datetime.now().strftime("%Y-%m-%d_%H%M"))
+    response = HttpResponse(content_type='text/csv')
+    response[
+        'Content-Disposition'] = 'attachment; filename="%s"' % filename
+    writer = csv.writer(response,
+                        dialect='excel',
+                        delimiter=str(import_mapping.scheiding_teken))
+    rows = export_data.get_csv_context(queryset, import_mapping)
+    for row in rows:
+        writer.writerow(row)
+    return response
+download_csv.short_description = "Download CSV"
+
+
 def validate_opnames_min_max(modeladmin, request, queryset):
     validation.MinMaxValidator(modeladmin, request, queryset).validate()
 validate_opnames_min_max.short_description = "Valideer volgens ingestelde min/max"
@@ -121,7 +162,6 @@ def validate_stddev_all(modeladmin, request, queryset):
         period_to_look_back=365 * 99).validate()
 validate_stddev_all.short_description = (
     "Valideer t.o.v. alle waardes")
-
 
 
 @admin.register(models.ImportRun)
@@ -216,12 +256,14 @@ class LocatieAdmin(admin.ModelAdmin):
                    'afvoergebied',
                    'grondsoort']
     filter_horizontal = ['meetnet']
+    actions = [download_csv]
 
 
 @admin.register(models.Meetnet)
 class MeetnetAdmin(admin.ModelAdmin):
     list_display = ['code',
                     'parent']
+    actions = [download_csv]
 
 
 @admin.register(models.Opname)
@@ -268,6 +310,7 @@ class WNSAdmin(admin.ModelAdmin):
 class ParameterGroepAdmin(admin.ModelAdmin):
     list_display = ['code',
                     'parent']
+    actions = [download_csv]
 
 
 @admin.register(models.Parameter)
@@ -283,6 +326,7 @@ class Parameter(admin.ModelAdmin):
                     'parametergroep']
     list_filter = ['parametergroep',
                    'status']
+    actions = [download_csv]
 
 
 @admin.register(models.StatusKRW)

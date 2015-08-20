@@ -9,9 +9,11 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.create_ibever_opname_mapping()
         self.create_hdsr_bio_opname_mapping()
+        self.create_mapping_parameter_groep_export()
         self.create_mapping_parameter_groep_n0()
         self.create_mapping_parameter_groep_n1()
         self.create_mapping_parameter_groep_n2()
+        self.create_mapping_parameter()
         self.create_mapping_meetnet()
         self.create_mapping_locations()
         self.create_mapping_activiteit_bio()
@@ -111,6 +113,80 @@ class Command(BaseCommand):
                 'db_field': 'code',
                 'file_field': 'parametergroup0',
                 'db_datatype': 'CharField'
+            }
+        ]
+        self.create(import_mapping, mapping_fields)
+
+    def create_mapping_parameter(self):
+        import_mapping = {
+            'code': 'parameter',
+            'tabel_naam': 'Parameter',
+            'omschrijving': 'Automatisch gegenereerde mapping.'
+        }
+
+        mapping_fields = [
+            {
+                'db_field': 'id',
+                'file_field': 'intern_id',
+                'db_datatype': 'CharField'
+            },
+            {
+                'db_field': 'par_code',
+                'file_field': 'PAR_CODE',
+                'db_datatype': 'CharField'
+            },
+            {
+                'db_field': 'par_oms',
+                'file_field': 'PAR_OMS',
+                'db_datatype': 'CharField'
+            },
+            {
+                'db_field': 'casnummer',
+                'file_field': 'CASnummer',
+                'db_datatype': 'CharField'
+            },
+            {
+                'db_field': 'parametergroep',
+                'file_field': 'parametergroep',
+                'db_datatype': 'ParameterGroep',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'datum_status',
+                'file_field': 'DATUM_STATUS',
+                'db_datatype': 'CharField'
+            },
+            {
+                'db_field': 'status',
+                'file_field': 'STATUS',
+                'db_datatype': 'CharField'
+            }
+        ]
+        self.create(import_mapping, mapping_fields)
+
+    def create_mapping_parameter_groep_export(self):
+        import_mapping = {
+            'code': 'parametergroep-export',
+            'tabel_naam': 'ParameterGroep',
+            'omschrijving': 'Automatisch gegenereerde mapping.'
+        }
+
+        mapping_fields = [
+             {
+                'db_field': 'id',
+                'file_field': 'intern_id',
+                'db_datatype': 'CharField'
+            },
+            {
+                'db_field': 'code',
+                'file_field': 'code',
+                'db_datatype': 'CharField'
+            },
+            {
+                'db_field': 'parent',
+                'file_field': 'parent',
+                'db_datatype': 'ParameterGroep',
+                'foreignkey_field': 'code'
             }
         ]
         self.create(import_mapping, mapping_fields)
@@ -273,7 +349,7 @@ class Command(BaseCommand):
         mapping_fields = [
             {
                 'db_field': 'id',
-                'file_field': 'id',
+                'file_field': 'intern_id',
                 'db_datatype': 'CharField'
             },
             {
@@ -298,6 +374,11 @@ class Command(BaseCommand):
         }
 
         mapping_fields = [
+             {
+                'db_field': 'id',
+                'file_field': 'intern_id',
+                'db_datatype': 'CharField'
+            },
             {
                 'db_field': 'loc_id',
                 'file_field': 'LOC_ID',
@@ -347,72 +428,38 @@ class Command(BaseCommand):
                 'foreignkey_field': 'code'
             },
             {
-                'db_field': 'status_fc',
+                'db_field': 'fc_status',
                 'file_field': 'STATUS_FC',
-                'db_datatype': 'CharField',
+                'db_datatype': 'FCStatus',
+                'foreignkey_field': 'naam'
             },
             {
-                'db_field': 'status_bio',
+                'db_field': 'bio_status',
                 'file_field': 'STATUS_BIO',
-                'db_datatype': 'CharField',
+                'db_datatype': 'BioStatus',
+                'foreignkey_field': 'naam'
             },
             {
                 'db_field': 'meetnet',
-                'file_field': 'BASIS_FC',
+                'file_field': 'Voorgedefinieerde meetpuntgroepen',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
             },
             {
                 'db_field': 'meetnet',
-                'file_field': 'PROJECT_FC',
+                'file_field': 'Fysisch-chemisch meetnet',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
             },
             {
                 'db_field': 'meetnet',
-                'file_field': 'ONBEKEND_FC',
+                'file_field': 'Biologisch meetnet',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
             },
             {
                 'db_field': 'meetnet',
-                'file_field': 'KRW_FC',
-                'db_datatype': 'Meetnet',
-                'foreignkey_field': 'id'
-            },
-            {
-                'db_field': 'meetnet',
-                'file_field': 'BASIS_BIO',
-                'db_datatype': 'Meetnet',
-                'foreignkey_field': 'id'
-            },
-            {
-                'db_field': 'meetnet',
-                'file_field': 'PROJECT_BIO',
-                'db_datatype': 'Meetnet',
-                'foreignkey_field': 'id'
-            },
-            {
-                'db_field': 'meetnet',
-                'file_field': 'KRW_BIO',
-                'db_datatype': 'Meetnet',
-                'foreignkey_field': 'id'
-            },
-            {
-                'db_field': 'meetnet',
-                'file_field': 'ROULEREND MEETNET_FC',
-                'db_datatype': 'Meetnet',
-                'foreignkey_field': 'id'
-            },
-            {
-                'db_field': 'meetnet',
-                'file_field': 'ROULEREND MEETNET_BIO',
-                'db_datatype': 'Meetnet',
-                'foreignkey_field': 'id'
-            },
-            {
-                'db_field': 'meetnet',
-                'file_field': 'OVERIG',
+                'file_field': 'Basis',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
             },
@@ -424,7 +471,49 @@ class Command(BaseCommand):
             },
             {
                 'db_field': 'meetnet',
-                'file_field': 'ZWEM',
+                'file_field': 'Roulerend (FC)',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'Zwemwater',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'Projecten (FC)',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'Onbekend (FC)',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'KRW (BIO)',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'Roulerend (BIO)',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'Projecten (BIO)',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'KRW (FC)',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
             },
@@ -436,91 +525,109 @@ class Command(BaseCommand):
             },
             {
                 'db_field': 'meetnet',
-                'file_field': 'LMGBM',
-                'db_datatype': 'Meetnet',
-                'foreignkey_field': 'id'
-            },
-            {
-                'db_field': 'meetnet',
                 'file_field': 'CMNO',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
             },
             {
                 'db_field': 'meetnet',
-                'file_field': 'FC_CSD',
+                'file_field': 'LMGBM',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
             },
             {
                 'db_field': 'meetnet',
-                'file_field': 'FC_KRR_HONS',
+                'file_field': 'CSD (FC)',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
             },
             {
                 'db_field': 'meetnet',
-                'file_field': 'FC_LOP',
+                'file_field': 'GROM (FC)',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
             },
             {
                 'db_field': 'meetnet',
-                'file_field': 'FC_OR',
+                'file_field': 'KRR Honswijk (FC)',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
             },
             {
                 'db_field': 'meetnet',
-                'file_field': 'FC_GROM',
+                'file_field': 'LBW (FC)',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
             },
             {
                 'db_field': 'meetnet',
-                'file_field': 'FC_LBW',
+                'file_field': 'LOP (LOP)',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
             },
             {
                 'db_field': 'meetnet',
-                'file_field': 'BIO_CSD',
+                'file_field': 'OR (FC)',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
             },
             {
                 'db_field': 'meetnet',
-                'file_field': 'BIO_KRR_HONS',
+                'file_field': 'NL14_01 Langbroekerw',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
             },
             {
                 'db_field': 'meetnet',
-                'file_field': 'BIO_LOP',
+                'file_field': 'CSD (BIO)',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
             },
             {
                 'db_field': 'meetnet',
-                'file_field': 'BIO_OR',
+                'file_field': 'GROM (BIO)',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
             },
             {
                 'db_field': 'meetnet',
-                'file_field': 'BIO_GROM',
+                'file_field': 'KRR Honswijk (BIO)',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
             },
             {
                 'db_field': 'meetnet',
-                'file_field': 'BIO_LBW',
+                'file_field': 'LBW (BIO)',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
             },
             {
                 'db_field': 'meetnet',
-                'file_field': 'BIO_ONB',
+                'file_field': 'LOP (BIO)',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'OR (BIO)',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'Overig',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'Onbekend (BIO)',
+                'db_datatype': 'Meetnet',
+                'foreignkey_field': 'id'
+            },
+            {
+                'db_field': 'meetnet',
+                'file_field': 'Toetsresultaten KRW',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
             }
