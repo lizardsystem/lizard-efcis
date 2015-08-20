@@ -126,6 +126,11 @@ class Command(BaseCommand):
 
         mapping_fields = [
             {
+                'db_field': 'id',
+                'file_field': 'intern_id',
+                'db_datatype': 'CharField'
+            },
+            {
                 'db_field': 'par_code',
                 'file_field': 'PAR_CODE',
                 'db_datatype': 'CharField'
@@ -169,7 +174,7 @@ class Command(BaseCommand):
         mapping_fields = [
              {
                 'db_field': 'id',
-                'file_field': 'id',
+                'file_field': 'intern_id',
                 'db_datatype': 'CharField'
             },
             {
@@ -344,7 +349,7 @@ class Command(BaseCommand):
         mapping_fields = [
             {
                 'db_field': 'id',
-                'file_field': 'id',
+                'file_field': 'intern_id',
                 'db_datatype': 'CharField'
             },
             {
@@ -369,6 +374,11 @@ class Command(BaseCommand):
         }
 
         mapping_fields = [
+             {
+                'db_field': 'id',
+                'file_field': 'intern_id',
+                'db_datatype': 'CharField'
+            },
             {
                 'db_field': 'loc_id',
                 'file_field': 'LOC_ID',
