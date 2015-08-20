@@ -232,7 +232,8 @@ class OpnameAdmin(admin.ModelAdmin):
                     'waarde_a',
                     'datum',
                     'validation_state']
-    search_fields = ['wns__wns_oms',
+    search_fields = ['wns__wns_code',
+                     'wns__wns_oms',
                      'locatie__loc_oms']
     raw_id_fields = ['wns',
                      'locatie']
