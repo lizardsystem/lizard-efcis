@@ -588,9 +588,7 @@ class DataImport(object):
             setattr(inst, mapping_field.db_field, value)
 
     def save_action_log(self, import_run, message):
-        import_run.action_log = utils.add_text_to_top(
-            import_run.action_log,
-            message)
+        import_run.add_log_line(message)
         import_run.save(force_update=True, update_fields=['action_log'])
 
     def check_csv(self, import_run, datetime_format, ignore_duplicate_key=True):
@@ -605,8 +603,7 @@ class DataImport(object):
         # Check or mapping contains fields
         mapping_fields = mapping.mappingfield_set.all()
         if mapping_fields.count() <= 0:
-            message = "%s: %s %s.\n" % (
-                datetime.now().strftime(datetime_format),
+            message = "%s %s." % (
                 "Geen veld in mapping",
                 mapping_code)
             self.save_action_log(import_run, message)
@@ -614,8 +611,7 @@ class DataImport(object):
 
         # Check delimeter
         if not mapping.scheiding_teken or len(mapping.scheiding_teken) > 1:
-            message = "%s: %s %s.\n" % (
-                datetime.now().strftime(datetime_format),
+            message = "%s %s." % (
                 "Scheidingsteken moet 1-character string zijn i.p.v.",
                 mapping.scheiding_teken)
             self.save_action_log(import_run, message)
@@ -629,21 +625,19 @@ class DataImport(object):
             reader = csv.reader(f, delimiter=str(mapping.scheiding_teken))
             headers = reader.next()
             if not headers:
-                message = "%s: %s %s.\n" % (
-                    datetime.now().strftime(datetime_format),
+                message = "%s %s." % (
                     "Bestand is leeg",
                     filepath)
                 self.save_action_log(import_run, message)
                 is_valid = False
             if headers and len(headers) <= 1:
-                message = "%s: %s %s.\n" % (
-                    datetime.now().strftime(datetime_format),
+                message = "%s %s." % (
                     "Scheidingsteken is onjuist of het header bevat "
                     "alleen 1 veld",
                     headers[0])
                 self.save_action_log(import_run, message)
                 is_valid = False
-            
+
         if not is_valid:
             return is_valid
 
@@ -655,26 +649,23 @@ class DataImport(object):
                 if mapping_field.file_field.find('[') >= 0:
                     continue
                 if mapping_field.file_field not in headers:
-                    message = "%s: %s %s.\n" % (
-                        datetime.now().strftime(datetime_format),
-                        "CSV-header bevat geen veld",
+                    message = "CSV-header bevat geen veld %s" % (
                         mapping_field.file_field)
                     self.save_action_log(import_run, message)
                     is_valid = False
-        
+
         if not is_valid:
             return is_valid
 
         # check data integrity
         with open(filepath, 'rb') as f:
             reader = csv.reader(f, delimiter=str(mapping.scheiding_teken))
-            headers = reader.next()            
+            headers = reader.next()
             counter = 0
             for row in reader:
                 counter += 1
                 if len(row) != len(headers):
-                    message = "%s: regelnr.: %s, %d.\n" % (
-                        datetime.now().strftime(datetime_format),
+                    message = "regelnr.: %s, %d." % (
                         "Aantal kolommen komt niet overeen "
                         "met het aantal headers",
                         reader.line_num)
@@ -691,23 +682,20 @@ class DataImport(object):
                         self.check_many2many_data(inst, mapping_fields, row, headers)
                     inst.full_clean()
                 except ValidationError as e:
-                    message = "%s:  regelnr.: %d, Foutmeldingen - %s\n" % (
-                        datetime.now().strftime(datetime_format),
+                    message = "  regelnr.: %d, Foutmeldingen - %s" % (
                         reader.line_num,
                         ", ".join(["%s: %s" % (k, ", ".join(v)) for k, v in e.message_dict.iteritems()])
                     )
                     self.save_action_log(import_run, message)
                     is_valid = False
                 except Exception as e:
-                    message = "%s:  regelnr.: %d, overige foutmelding - %s\n" % (
-                        datetime.now().strftime(datetime_format),
+                    message = "  regelnr.: %d, overige foutmelding - %s" % (
                         reader.line_num,
                         e.message)
                     self.save_action_log(import_run, message)
                     is_valid = False
 
-            message = "%s: %s %d.\n" % (
-                datetime.now().strftime(datetime_format),
+            message = "%s %d." % (
                 "Aantal rijen",
                 counter)
             self.save_action_log(import_run, message)
@@ -783,33 +771,18 @@ class DataImport(object):
                     if ignore_duplicate_key:
                         if self.log:
                             logger.error(ex.message)
-                            message = "%s: %s.\n" % (
-                                datetime.now().strftime(datetime_format),
-                                ex.message
-                            )
-                            self.save_action_log(import_run, message)
+                            self.save_action_log(import_run, ex.message)
                         continue
                     else:
                         logger.error(ex.message)
-                        message = "%s: %s.\n" % (
-                            datetime.now().strftime(datetime_format),
-                            ex.message
-                        )
-                        self.save_action_log(import_run, message)
+                        self.save_action_log(import_run, ex.message)
                         break
                 except Exception as ex:
                     logger.error("%s." % ex.message)
-                    message = "%s: %s.\n" % (
-                        datetime.now().strftime(datetime_format),
-                        ex.message
-                    )
-                    self.save_action_log(import_run, message)
+                    self.save_action_log(import_run, ex.message)
                     break
         is_imported = True
-        message = "%s: Created %d objects.\n" % (
-            datetime.now().strftime(datetime_format),
-            created
-        )
+        message = "Created %d objects." % created
         self.save_action_log(import_run, message)
         return is_imported
 
@@ -824,16 +797,12 @@ class DataImport(object):
             umaquo_parser = Parser(filepath)
             umaquo_parser.parse()
         except XMLSyntaxError as ex:
-            message = "%s:  Foutmeldingen - %s\n" % (
-                datetime.now().strftime(datetime_format),
-                ex.message
-            )
+            message = "Foutmeldingen - %s" % ex.message
             self.save_action_log(import_run, message)
             return False
 
         if umaquo_parser.waardereekstijden <= 0:
-            message = "%s: Geen waaardereekstijden gevonden, gezocht met '%s'\n" % (
-                datetime.now().strftime(datetime_format),
+            message = "Geen waaardereekstijden gevonden, gezocht met '%s'" % (
                 umaquo_parser.WAARDEREEKSTIJD_XPATH
             )
             self.save_action_log(import_run, message)
@@ -861,24 +830,21 @@ class DataImport(object):
                 opname.activiteit = activiteit
                 opname.full_clean()
             except ValidationError as e:
-                message = "%s:  regelnr.: %d, Foutmeldingen - %s\n" % (
-                    datetime.now().strftime(datetime_format),
+                message = "  regelnr.: %d, Foutmeldingen - %s" % (
                     waardereekstijd.sourceline,
                     ", ".join(["%s: %s" % (k, ", ".join(v)) for k, v in e.message_dict.iteritems()])
                 )
                 self.save_action_log(import_run, message)
                 is_valid = False
             except ValueError as e:
-                message = "%s:  regelnr.: %d, Foutmeldingen - %s\n" % (
-                    datetime.now().strftime(datetime_format),
+                message = "  regelnr.: %d, Foutmeldingen - %s" % (
                     waardereekstijd.sourceline,
                     e.message
                 )
                 self.save_action_log(import_run, message)
                 is_valid = False
 
-        message = "%s: %s %d.\n" % (
-            datetime.now().strftime(datetime_format),
+        message = "%s %d." % (
             "Aantal rijen",
             counter)
         self.save_action_log(import_run, message)
@@ -916,30 +882,17 @@ class DataImport(object):
                 if ignore_dublicate_key:
                     if self.log:
                         logger.error(ex.message)
-                        message = "%s: %s.\n" % (
-                            datetime.now().strftime(datetime_format),
-                            ex.message)
-                        self.save_action_log(import_run, message)
+                        self.save_action_log(import_run, ex.message)
                         continue
                     else:
                         logger.error(ex.message)
-                        message = "%s: %s.\n" % (
-                            datetime.now().strftime(datetime_format),
-                            ex.message)
-                        self.save_action_log(import_run, message)
+                        self.save_action_log(import_run, ex.message)
                         break
             except Exception as ex:
                 logger.error("%s." % ex.message)
-                message = "%s: %s.\n" % (
-                    datetime.now().strftime(datetime_format),
-                    ex.message
-                )
-                self.save_action_log(import_run, message)
+                self.save_action_log(import_run, ex.message)
                 break
         is_imported = True
-        message = "%s: Created %d objects.\n" % (
-            datetime.now().strftime(datetime_format),
-            created
-        )
+        message = "Created %d objects." % created
         self.save_action_log(import_run, message)
         return is_imported

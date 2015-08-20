@@ -398,3 +398,8 @@ class BioStatusAdmin(admin.ModelAdmin):
 class FCStatusAdmin(admin.ModelAdmin):
     list_display = ['naam']
     search_fields = ['naam']
+
+
+@admin.register(models.FTPLocation)
+class FTPLocationAdmin(admin.ModelAdmin):
+    list_display = ['hostname', 'directory', 'username']

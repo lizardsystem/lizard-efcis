@@ -710,6 +710,9 @@ class ImportRun(models.Model):
         null=True)
     actief = models.BooleanField(default=True)
 
+    def __unicode__(self):
+        return 'import run %s (%s)' % (self.name, self.activiteit)
+
     @property
     def has_attachment_file(self):
         if not self.attachment:
@@ -760,6 +763,26 @@ class ImportRun(models.Model):
             messages.append("geen activiteit")
             can_run = False
         return (can_run, messages)
+
+    def add_log_line(self, text, username=None):
+        """Add log text including timestamp."""
+        datetime_format = '%Y-%m-%d %H:%M'
+        datetime_string = datetime.now().strftime(datetime_format)
+        if username:
+            datetime_string = datetime_string + ' ' + username
+        text = '%s: %s\n' % (datetime_string, text)
+        self.action_log = utils.add_text_to_top(self.action_log, text)
+
+    def add_log_separator(self):
+        """Add separator line to action log."""
+        text = '-------------------------------\n'
+        self.action_log = utils.add_text_to_top(self.action_log, text)
+
+    def action_log_for_logfile(self):
+        """Return action log string in regular date order."""
+        lines = self.action_log.split('\n')
+        lines.reverse()
+        return '\n'.join(lines)
 
 
 class MappingField(models.Model):
@@ -897,3 +920,28 @@ class Opname(models.Model):
     def compartiment(self):
         if self.wns.compartiment:
             return self.wns.compartiment.compartiment
+
+
+class FTPLocation(models.Model):
+
+    hostname = models.CharField(
+        max_length=255)
+    username = models.CharField(
+        max_length=255)
+    password = models.CharField(
+        max_length=255)
+    directory = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Base directory (TEST or PROD, currently)")
+
+    class Meta:
+        ordering = ['hostname']
+        verbose_name = "FTP locatie voor automatische import"
+        verbose_name_plural = "FTP locaties voor automatische import"
+
+    def __unicode__(self):
+        if self.directory:
+            return 'FTP locatie %s/%s' % (self.hostname, self.directory)
+        else:
+            return 'FTP locatie %s' % self.hostname
