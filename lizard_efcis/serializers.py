@@ -1,8 +1,10 @@
 import json
 
 from django.contrib.gis.geos import GEOSGeometry
+from django.core import urlresolvers
 from rest_framework import pagination
 from rest_framework import serializers
+from rest_framework.reverse import reverse
 from rest_framework_gis import serializers as gis_serializers
 
 from lizard_efcis import models
@@ -172,6 +174,7 @@ class OpnameDetailSerializer(OpnameSerializer):
     afvoergebied = serializers.CharField(
         read_only=True,
         source='locatie.afvoergebied')
+    admin_link = serializers.SerializerMethodField()
 
     def get_validatiestatus(self, obj):
         return obj.get_validation_state_display()
@@ -180,6 +183,13 @@ class OpnameDetailSerializer(OpnameSerializer):
         meetnetten = obj.locatie.meetnet.all().values_list(
             'code', flat=True)
         return ', '.join(meetnetten)
+
+    def get_admin_link(self, obj):
+        if not self.context['show_admin_link']:
+            return
+        return reverse('admin:lizard_efcis_opname_change',
+                       args=(obj.id,),
+                       request=self.context['request'])
 
     class Meta:
         model = models.Opname
@@ -199,6 +209,7 @@ class OpnameDetailSerializer(OpnameSerializer):
                   'landgebruik',
                   'afvoergebied',
                   'watertype',
+                  'admin_link',
         )
 
 

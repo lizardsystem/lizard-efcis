@@ -96,8 +96,10 @@ def opname_detail(request, pk):
     except models.Opname.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
+    show_admin_link = request.user.is_staff
     serializer = serializers.OpnameDetailSerializer(
-        opname, context={'request': request})
+        opname, context={'request': request,
+                         'show_admin_link': show_admin_link})
     return Response(serializer.data)
 
 
