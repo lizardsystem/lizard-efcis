@@ -26,15 +26,9 @@ def check_file(username, import_run=None, *args, **options):
         import_runs = list(ImportRun.objects.filter(
             **{'type_run': ImportRun.AUTO, 'actief': True}))
     for import_run in import_runs:
-        import_run.action_log = utils.add_text_to_top(
-            import_run.action_log,
-            '-------------------------------\n')
-        import_run.action_log = utils.add_text_to_top(
-            import_run.action_log,
-            "%s %s %s.\n" % (
-                datetime.now().strftime(datetime_format),
-                "Start controle",
-                username))
+        import_run.add_log_separator()
+        import_run.add_log_line("Start controle",
+                                username=username)
         import_run.save(force_update=True, update_fields=['action_log'])
         if import_run.has_xml_attachment:
             result = data_import.check_xml(
@@ -43,23 +37,11 @@ def check_file(username, import_run=None, *args, **options):
             result = data_import.check_csv(
                 import_run, datetime_format)
         else:
-            import_run.action_log = utils.add_text_to_top(
-                import_run.action_log,
-                "%s %s.\n" % (
-                    datetime.now().strftime(datetime_format),
-                    "Niet uitgevoerd, bestandsextentie is geen .csv of .xml"))
+            import_run.add_log_line(
+                "Niet uitgevoerd, bestandsextentie is geen .csv of .xml")
             continue
-        import_run.action_log = utils.add_text_to_top(
-            import_run.action_log,
-            "%s %s: %s.\n" % (
-                datetime.now().strftime(datetime_format),
-                "Controle status",
-                result))
-        import_run.action_log = utils.add_text_to_top(
-            import_run.action_log,
-            "%s %s.\n" % (
-                datetime.now().strftime(datetime_format),
-                "Eind controle"))
+        import_run.add_log_line("Controle status is %s" % result)
+        import_run.add_log_line("Eind controle", username=username)
         import_run.validated = result
         import_run.uploaded_by = username
         import_run.save()
@@ -78,15 +60,9 @@ def import_data(username, importrun=None, *args, **options):
         import_runs = list(ImportRun.objects.filter(
             **{'type_run': ImportRun.AUTO, 'actief': True}))
     for import_run in import_runs:
-        import_run.action_log = utils.add_text_to_top(
-            import_run.action_log,
-            '-------------------------------\n')
-        import_run.action_log = utils.add_text_to_top(
-            import_run.action_log,
-            "%s %s %s.\n" % (
-                datetime.now().strftime(datetime_format),
-                "Start import",
-                username))
+        import_run.add_log_separator()
+        import_run.add_log_line("Start import",
+                                username)
         import_run.save(force_update=True, update_fields=['action_log'])
         if import_run.has_xml_attachment:
             result = data_import.manual_import_xml(
@@ -95,23 +71,11 @@ def import_data(username, importrun=None, *args, **options):
             result = data_import.manual_import_csv(
                 import_run, datetime_format)
         else:
-            import_run.action_log = utils.add_text_to_top(
-                import_run.action_log,
-                "%s %s.\n" % (
-                    datetime.now().strftime(datetime_format),
-                    "Niet uitgevoerd, bestandsextentie is geen .csv of .xml"))
+            import_run.add_log_line(
+                "Niet uitgevoerd, bestandsextentie is geen .csv of .xml")
             continue
-        import_run.action_log = utils.add_text_to_top(
-            import_run.action_log,
-            "%s %s: %s.\n" % (
-                datetime.now().strftime(datetime_format),
-                "Import status",
-                result))
-        import_run.action_log = utils.add_text_to_top(
-            import_run.action_log,
-            "%s %s.\n" % (
-                datetime.now().strftime(datetime_format),
-                "Eind import"))
+        import_run.add_log_line("Import status is %" % result)
+        import_run.add_log_line("Eind import", username)
         import_run.imported = result
         import_run.uploaded_by = username
         import_run.save()
