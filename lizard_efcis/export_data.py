@@ -1,10 +1,41 @@
 #
 import logging
+import csv, codecs, cStringIO
 
 from lizard_efcis import models
 
 
 logger = logging.getLogger(__name__)
+
+
+class UnicodeWriter:
+    """
+    A CSV writer which will write rows to CSV file "f",
+    which is encoded in the given encoding.
+    """
+
+    def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
+        # Redirect output to a queue
+        self.queue = cStringIO.StringIO()
+        self.writer = csv.writer(self.queue, dialect=dialect, **kwds)
+        self.stream = f
+        self.encoder = codecs.getincrementalencoder(encoding)()
+
+    def writerow(self, row):
+        self.writer.writerow([s.encode("utf-8") for s in row])
+        # Fetch UTF-8 output from the queue ...
+        data = self.queue.getvalue()
+        data = data.decode("utf-8")
+        # ... and reencode it into the target encoding
+        data = self.encoder.encode(data)
+        # write to the target stream
+        self.stream.write(data)
+        # empty queue
+        self.queue.truncate(0)
+
+    def writerows(self, rows):
+        for row in rows:
+            self.writerow(row)
 
 
 def create_compartimentid(id):
@@ -147,25 +178,30 @@ def get_csv_context(queryset, import_mapping):
         for mapping_field in mapping_fields:
 
             value = getattr(model_object, mapping_field.get('db_field'), '')
-
+            value_out = ''
             datatype = mapping_field.get('db_datatype')
-
+           
             if datatype == 'date' or datatype == 'time':
                 try:
-                    row.append(value.strftime(
-                        mapping_field.get('data_format')))
+                    value_out = value.strftime(
+                        mapping_field.get('data_format'))
                 except:
-                    continue
-            elif type(value).__name__ == 'Meetnet' and type(model_object).__name__ == 'Locatie':
-                meetnetten = value.filter(code=mapping_field.get('file_field'))
-                if meetnetten.exists():
-                    row.append(meetnetten[0].id)
-                else:
-                    row.append('')
-            elif type(value).__name__ in models.MappingField.FOREIGNKEY_MODELS:
-                row.append(getattr(
-                    value, mapping_field.get('foreignkey_field'), ''))
+                    value_out = ''
+            elif datatype in models.MappingField.FOREIGNKEY_MODELS:
+                if type(value).__name__ == 'ManyRelatedManager':
+                     meetnetten = value.filter(code=mapping_field.get('file_field'))
+                     if meetnetten.exists():
+                         value = meetnetten[0]
+                value_out = getattr(value, mapping_field.get('foreignkey_field'), '')
             else:
-                row.append(value)
+                value_out = value
+
+            if isinstance(value_out, int):
+                value_out = str(value_out)
+
+            if value_out is None:
+                value_out = ''
+            row.append(value_out)
+                
         context.append(row)
     return context

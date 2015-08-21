@@ -118,6 +118,7 @@ class Command(BaseCommand):
         self.create(import_mapping, mapping_fields)
 
     def create_mapping_parameter(self):
+         dformat = '%d-%m-%Y'
         import_mapping = {
             'code': 'parameter',
             'tabel_naam': 'Parameter',
@@ -154,12 +155,14 @@ class Command(BaseCommand):
             {
                 'db_field': 'datum_status',
                 'file_field': 'DATUM_STATUS',
-                'db_datatype': 'CharField'
+                'db_datatype': 'date',
+                'data_format': dformat
             },
             {
                 'db_field': 'status',
                 'file_field': 'STATUS',
-                'db_datatype': 'CharField'
+                'db_datatype': 'Status',
+                'foreignkey_field': 'naam'
             }
         ]
         self.create(import_mapping, mapping_fields)

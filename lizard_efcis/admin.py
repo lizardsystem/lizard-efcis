@@ -109,9 +109,9 @@ def download_csv(self, request, queryset):
     response = HttpResponse(content_type='text/csv')
     response[
         'Content-Disposition'] = 'attachment; filename="%s"' % filename
-    writer = csv.writer(response,
-                        dialect='excel',
-                        delimiter=str(import_mapping.scheiding_teken))
+    writer = export_data.UnicodeWriter(
+        response,
+        delimiter=str(import_mapping.scheiding_teken))
     rows = export_data.get_csv_context(queryset, import_mapping)
     for row in rows:
         writer.writerow(row)

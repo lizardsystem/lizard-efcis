@@ -109,7 +109,10 @@ class BioStatus(models.Model):
 
 class Meetnet(models.Model):
     code = models.CharField(max_length=255)
-    parent = models.ForeignKey('self', null=True)
+    parent = models.ForeignKey(
+        'self',
+        null=True,
+        blank=True)
 
     class Meta:
         ordering = ['id']
@@ -341,7 +344,9 @@ class ParameterGroep(models.Model):
     )
     parent = models.ForeignKey(
         'lizard_efcis.ParameterGroep',
-        null=True)
+        null=True,
+        blank = True
+    )
 
     def __unicode__(self):
         return self.code
@@ -395,7 +400,10 @@ class Parameter(models.Model):
         blank=True)
     datum_status = models.DateField(null=True, blank=True)
     status = models.ForeignKey(Status, null=True, blank=True)
-    parametergroep = models.ForeignKey(ParameterGroep, null=True)
+    parametergroep = models.ForeignKey(
+        ParameterGroep,
+        null=True,
+        blank=True)
 
     def __unicode__(self):
         return ' '.join([self.par_code, self.par_oms])
@@ -630,12 +638,13 @@ class WNS(models.Model):
 class ImportMapping(models.Model):
 
     tabellen = [
-        ('Opname', 'Opname'),
-        ('Locatie', 'Locatie'),
-        ('ParameterGroep', 'ParameterGroep'),
-        ('Meetnet', 'Meetnet'),
         ('Activiteit', 'Activiteit'),
-        ('WNS', 'WNS'),
+        ('Locatie', 'Locatie'),
+        ('Meetnet', 'Meetnet'),
+        ('Parameter', 'Parameter'),
+        ('ParameterGroep', 'ParameterGroep'),
+        ('Opname', 'Opname'),
+        ('WNS', 'WNS')
     ]
     code = models.CharField(max_length=50, unique=True)
     omschrijving = models.TextField(null=True, blank=True)
@@ -795,6 +804,7 @@ class MappingField(models.Model):
         'Locatie',
         'Meetnet',
         'ParameterGroep',
+        'Status',
         'StatusKRW',
         'Waterlichaam',
         'Watertype',
