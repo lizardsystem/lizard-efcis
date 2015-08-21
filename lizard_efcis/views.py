@@ -330,9 +330,15 @@ class MapAPI(FilteredOpnamesAPIView):
             abs_difference = abs_max_value - abs_min_value
 
             selection_values = [opname['waarde_n'] for opname in opnames_for_color_by]
-            min_value = min(selection_values)
-            max_value = max(selection_values)
-            difference = max_value - min_value
+            if selection_values:
+                min_value = min(selection_values)
+                max_value = max(selection_values)
+                difference = max_value - min_value
+            else:
+                # min([]) raises an error!
+                min_value = None
+                max_value = None
+                difference = None
 
             def _key(opname):
                 return opname['locatie']
