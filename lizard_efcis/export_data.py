@@ -1,6 +1,7 @@
-#
+import cStringIO
+import codecs
+import csv
 import logging
-import csv, codecs, cStringIO
 
 from lizard_efcis import models
 
@@ -180,7 +181,7 @@ def get_csv_context(queryset, import_mapping):
             value = getattr(model_object, mapping_field.get('db_field'), '')
             value_out = ''
             datatype = mapping_field.get('db_datatype')
-           
+
             if datatype == 'date' or datatype == 'time':
                 try:
                     value_out = value.strftime(
@@ -189,19 +190,23 @@ def get_csv_context(queryset, import_mapping):
                     value_out = ''
             elif datatype in models.MappingField.FOREIGNKEY_MODELS:
                 if type(value).__name__ == 'ManyRelatedManager':
-                     meetnetten = value.filter(code=mapping_field.get('file_field'))
-                     if meetnetten.exists():
-                         value = meetnetten[0]
-                value_out = getattr(value, mapping_field.get('foreignkey_field'), '')
+                    meetnetten = value.filter(
+                        code=mapping_field.get('file_field'))
+                    if meetnetten.exists():
+                        value = meetnetten[0]
+                value_out = getattr(
+                    value,
+                    mapping_field.get('foreignkey_field'), '')
             else:
                 value_out = value
 
             if isinstance(value_out, int):
                 value_out = str(value_out)
-
+            if isinstance(value_out, float):
+                value_out = str(value_out)
             if value_out is None:
                 value_out = ''
             row.append(value_out)
-                
+
         context.append(row)
     return context

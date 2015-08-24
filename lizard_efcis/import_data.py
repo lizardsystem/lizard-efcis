@@ -753,7 +753,6 @@ class DataImport(object):
         logger.info(
             'End import: created={}.'.format(created))
 
-    
     def manual_import_csv(self, import_run, datetime_format, ignore_duplicate_key=True):
 
         is_imported = False
