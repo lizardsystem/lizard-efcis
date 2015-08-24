@@ -91,7 +91,7 @@ def download_csv(self, request, queryset):
         mapping_code = 'parametergroep-export'
     elif queryset.model == models.Meetnet:
         mapping_code = 'meetnet'
-    elif queryset.model == models.Meetnet:
+    elif queryset.model == models.Parameter:
         mapping_code = 'parameter'
     else:
         messages.warning(
@@ -109,9 +109,9 @@ def download_csv(self, request, queryset):
     response = HttpResponse(content_type='text/csv')
     response[
         'Content-Disposition'] = 'attachment; filename="%s"' % filename
-    writer = csv.writer(response,
-                        dialect='excel',
-                        delimiter=str(import_mapping.scheiding_teken))
+    writer = export_data.UnicodeWriter(
+        response,
+        delimiter=str(import_mapping.scheiding_teken))
     rows = export_data.get_csv_context(queryset, import_mapping)
     for row in rows:
         writer.writerow(row)

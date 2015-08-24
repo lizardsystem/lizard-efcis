@@ -555,12 +555,16 @@ class DataImport(object):
                     value = datetime.strptime(
                         val_raw, mapping_field.data_format)
                 except:
+                    logger.info("Fout bij converteren van datum %s, %s, %s." % (
+                        mapping_field.db_field, val_raw,  mapping_field.data_format))
                     continue
             elif datatype == 'time':
                 try:
                     value = datetime.strptime(
                         val_raw, mapping_field.data_format)
                 except:
+                    logger.info("Fout bij converteren van tijd %s, %s, %s." % (
+                        mapping_field.db_field, val_raw,  mapping_field.data_format))
                     continue
             elif datatype == 'float':
                 value = self._str_to_float(val_raw)
@@ -749,7 +753,6 @@ class DataImport(object):
         logger.info(
             'End import: created={}.'.format(created))
 
-    
     def manual_import_csv(self, import_run, datetime_format, ignore_duplicate_key=True):
 
         is_imported = False
@@ -773,8 +776,13 @@ class DataImport(object):
                         setattr(inst, 'import_run', import_run)
                         setattr(inst, 'activiteit', activiteit)
                     if inst.id:
-                        fields_to_update = mapping_fields.exclude(
-                            db_datatype='Meetnet').exclude(db_field='id').values_list('db_field', flat=True)
+                        # exlude id and many2many fields
+                        if isinstance(inst, models.Locatie):
+                            fields_to_update = mapping_fields.exclude(
+                                db_datatype='Meetnet').exclude(db_field='id').values_list('db_field', flat=True)
+                        else:
+                            fields_to_update = mapping_fields.exclude(
+                                db_field='id').values_list('db_field', flat=True)
                         inst.save(force_update=True, update_fields=fields_to_update)
                         count_updates += 1
                     else:
