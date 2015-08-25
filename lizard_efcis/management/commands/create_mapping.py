@@ -118,7 +118,7 @@ class Command(BaseCommand):
         self.create(import_mapping, mapping_fields)
 
     def create_mapping_parameter(self):
-         dformat = '%d-%m-%Y'
+        dformat = '%d-%m-%Y'
         import_mapping = {
             'code': 'parameter',
             'tabel_naam': 'Parameter',
