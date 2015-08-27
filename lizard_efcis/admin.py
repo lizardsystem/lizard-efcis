@@ -13,9 +13,11 @@ from django.http import HttpResponse
 from django.utils.text import slugify
 
 from lizard_efcis import export_data
+from lizard_efcis import ftp_access
 from lizard_efcis import models
 from lizard_efcis import tasks
 from lizard_efcis import validation
+
 
 def check_file(modeladmin, request, queryset):
 
@@ -162,6 +164,26 @@ def validate_stddev_all(modeladmin, request, queryset):
         period_to_look_back=365 * 99).validate()
 validate_stddev_all.short_description = (
     "Valideer t.o.v. alle waardes")
+
+
+def ftp_connection_test(modeladmin, request, queryset):
+    result = ''
+    for ftp_location in queryset:
+        result += ftp_access.debug_info(ftp_location)
+    response = HttpResponse(content_type='text/plain')
+    response.write(result)
+    return response
+ftp_connection_test.short_description = "Test the FTP connection"
+
+
+def ftp_run_import(modeladmin, request, queryset):
+    result = ''
+    for ftp_location in queryset:
+        result += ftp_access.handle_first_file(ftp_location)
+    response = HttpResponse(content_type='text/plain')
+    response.write(result)
+    return response
+ftp_run_import.short_description = "Import oldest available FTP file"
 
 
 @admin.register(models.ImportRun)
@@ -404,3 +426,5 @@ class FCStatusAdmin(admin.ModelAdmin):
 @admin.register(models.FTPLocation)
 class FTPLocationAdmin(admin.ModelAdmin):
     list_display = ['hostname', 'directory', 'username']
+    actions = [ftp_connection_test,
+               ftp_run_import]
