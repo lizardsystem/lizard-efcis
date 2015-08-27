@@ -83,7 +83,7 @@ def import_file(modeladmin, request, queryset):
 import_file.short_description = "Uitvoeren geselecteerde imports"
 
 
-def download_csv(self, request, queryset):
+def download_csv(modeladmin, request, queryset):
     mapping_codes = ''
     if queryset.model == models.Locatie:
         mapping_code = 'locaties'
