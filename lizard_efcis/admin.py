@@ -298,7 +298,8 @@ class OpnameAdmin(admin.ModelAdmin):
                     'validation_state']
     search_fields = ['wns__wns_code',
                      'wns__wns_oms',
-                     'locatie__loc_oms']
+                     'locatie__loc_oms',
+                     'locatie__loc_id']
     raw_id_fields = ['wns',
                      'locatie']
     list_filter = ['datum',
