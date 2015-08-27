@@ -50,7 +50,6 @@ def django_file(ftp_connection, filename):
                                              suffix='.csv')
     ftp_connection.retrbinary('RETR %s' % filename,
                               open(tempfilename, 'wb').write)
-    print(tempfilename)
     # Create a django file, ready for feeding to a filefield
     return DjangoFile(open(tempfilename, 'rb'))
 
@@ -83,18 +82,18 @@ def debug_info(ftp_location):
     output.append("Importable csv files:")
     for filename in importable_filenames(ftp_connection):
         output.append("    - %s" % filename)
-    output.append("Attempting to write file...")
+    output.append("Attempting to write dummy file...")
     filename = 'ftp_test_file'
     write_file(ftp_connection,
                filename,
                "Write/move/read test successful")
-    output.append("Attempting to move file...")
+    output.append("Attempting to move dummy file...")
     filename_in_subdir = '%s/%s' % (DIR_IMPORTED_CORRECTLY, filename)
     move_file(ftp_connection,
               filename,
               filename_in_subdir)
     output.append(django_file(ftp_connection, filename_in_subdir).read())
-    output.append("Attempting to delete file...")
+    output.append("Attempting to delete dummy file...")
     output.append(delete_file(ftp_connection, filename_in_subdir))
     return '\n'.join(output)
 
