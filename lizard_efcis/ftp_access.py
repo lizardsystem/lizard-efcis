@@ -12,11 +12,9 @@ from django.core.files import File as DjangoFile
 
 from lizard_efcis import tasks
 from lizard_efcis.models import Activiteit
-from lizard_efcis.models import ImportMapping
 from lizard_efcis.models import ImportRun
 
 DIR_IMPORTED_CORRECTLY = 'VERWERKT'
-MAPPING_NAME = 'iBever-opnames'
 IMPORT_USER = 'automatische ftp import'
 
 
@@ -52,7 +50,6 @@ def django_file(ftp_connection, filename):
                                              suffix='.csv')
     ftp_connection.retrbinary('RETR %s' % filename,
                               open(tempfilename, 'wb').write)
-    print(tempfilename)
     # Create a django file, ready for feeding to a filefield
     return DjangoFile(open(tempfilename, 'rb'))
 
@@ -77,37 +74,37 @@ def move_file(ftp_connection, filename1, filename2):
 def debug_info(ftp_location):
     """Return string with information about the FTP connection."""
     output = []
-    output.append("Looking at %s" % ftp_location)
+    output.append("We maken een connectie met %s" % ftp_location)
     ftp_connection = connect(ftp_location)
-    output.append("Directory contents:")
+    output.append("Inhoud v/d directory:")
     for filename in listdir(ftp_connection):
         output.append("    - %s" % filename)
-    output.append("Importable csv files:")
+    output.append("Importeerbare csv bestanden:")
     for filename in importable_filenames(ftp_connection):
         output.append("    - %s" % filename)
-    output.append("Attempting to write file...")
+    output.append("Testbestand wegschrijven...")
     filename = 'ftp_test_file'
     write_file(ftp_connection,
                filename,
                "Write/move/read test successful")
-    output.append("Attempting to move file...")
+    output.append("Testbestand verplaatsen...")
     filename_in_subdir = '%s/%s' % (DIR_IMPORTED_CORRECTLY, filename)
     move_file(ftp_connection,
               filename,
               filename_in_subdir)
     output.append(django_file(ftp_connection, filename_in_subdir).read())
-    output.append("Attempting to delete file...")
+    output.append("Testbestand weer weggooien...")
     output.append(delete_file(ftp_connection, filename_in_subdir))
     return '\n'.join(output)
 
 
 def handle_first_file(ftp_location):
     output = []
-    output.append("Looking at %s" % ftp_location)
+    output.append("We maken een connectie met %s" % ftp_location)
     ftp_connection = connect(ftp_location)
     filenames = importable_filenames(ftp_connection)
     if not filenames:
-        output.append("Nothing to import")
+        output.append("Niets te importeren")
         return '\n'.join(output)
 
     import_activity, created1 = Activiteit.objects.get_or_create(
@@ -121,8 +118,9 @@ def handle_first_file(ftp_location):
     else:
         output.append("Bestaande import run gebruikt: %s" % import_run)
 
-    import_mapping = ImportMapping.objects.get(code=MAPPING_NAME)
-    import_run.import_mapping = import_mapping
+    if not ftp_location.import_mapping:
+        raise ValueError("Import mapping not defined on FTP location")
+    import_run.import_mapping = ftp_location.import_mapping
     import_run.save()
 
     new_attachment = django_file(ftp_connection, filename)

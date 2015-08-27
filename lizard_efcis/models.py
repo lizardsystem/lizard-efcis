@@ -944,6 +944,9 @@ class FTPLocation(models.Model):
         max_length=255,
         blank=True,
         help_text="Base directory (TEST or PROD, currently)")
+    import_mapping = models.ForeignKey(
+        ImportMapping,
+        null=True)
 
     class Meta:
         ordering = ['hostname']
