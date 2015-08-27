@@ -12,11 +12,9 @@ from django.core.files import File as DjangoFile
 
 from lizard_efcis import tasks
 from lizard_efcis.models import Activiteit
-from lizard_efcis.models import ImportMapping
 from lizard_efcis.models import ImportRun
 
 DIR_IMPORTED_CORRECTLY = 'VERWERKT'
-MAPPING_NAME = 'iBever-opnames'
 IMPORT_USER = 'automatische ftp import'
 
 
@@ -121,8 +119,9 @@ def handle_first_file(ftp_location):
     else:
         output.append("Bestaande import run gebruikt: %s" % import_run)
 
-    import_mapping = ImportMapping.objects.get(code=MAPPING_NAME)
-    import_run.import_mapping = import_mapping
+    if not ftp_location.import_mapping:
+        raise ValueError("Import mapping not defined on FTP location")
+    import_run.import_mapping = ftp_location.import_mapping
     import_run.save()
 
     new_attachment = django_file(ftp_connection, filename)
