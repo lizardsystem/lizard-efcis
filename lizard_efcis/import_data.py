@@ -763,11 +763,14 @@ class DataImport(object):
 
         count_imports = 0
         count_updates = 0
+        count_errors = 0
+        counter = 0
         with open(filepath, 'rb') as f:
             reader = csv.reader(f, delimiter=str(mapping.scheiding_teken))
             # read headers
             headers = reader.next()
             for row in reader:
+                counter += 1
                 inst = django_models.get_model('lizard_efcis',
                                                mapping.tabel_naam)()
                 try:
@@ -792,22 +795,26 @@ class DataImport(object):
                         self.set_many2many_data(inst, mapping_fields, row, headers)
                         inst.save()
                 except IntegrityError as ex:
+                    count_errors += 1
                     if ignore_duplicate_key:
-                        if self.log:
-                            logger.error(ex.message)
-                            self.save_action_log(import_run, ex.message)
-                        continue
+                        message = "regelnr.: %d, Foutmelding %s" % (
+                            reader.line_num, ex.message)
+                        self.save_action_log(import_run, message)
                     else:
                         logger.error(ex.message)
                         self.save_action_log(import_run, ex.message)
                         break
                 except Exception as ex:
+                    count_errors += 1
                     logger.error("%s." % ex.message)
-                    self.save_action_log(import_run, ex.message)
+                    message = "regelnr.: %d, Foutmelding %s" % (
+                        reader.line_num, ex.message)
+                    self.save_action_log(import_run, message)
                     break
         is_imported = True
-        message = "Toegevoegd %d, Geupdated %d objecten" % (
-            count_imports, count_updates)
+        message = "Aantal rijen %d, waarvan %d toegevoegd, %d geupdated, "\
+                  "%d niet toegevoegd/geupdated objecten" % (
+                      counter, count_imports, count_updates, count_errors)
         self.save_action_log(import_run, message)
         return is_imported
 
