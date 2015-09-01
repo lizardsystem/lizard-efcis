@@ -26,10 +26,6 @@ install_requires = [
     'pyproj',
     'python-memcached',
     'raven',
-    'south',
-    'werkzeug',
-    # Maptree and wms are included for demo purposes; almost every site needs
-    # them anyway.
     ],
 
 tests_require = [
