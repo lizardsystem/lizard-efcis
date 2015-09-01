@@ -1,11 +1,9 @@
 from __future__ import absolute_import
 
-from datetime import datetime
 from celery import shared_task
 
 from lizard_efcis.import_data import DataImport
 from lizard_efcis.models import ImportRun
-from lizard_efcis import utils
 
 
 @shared_task

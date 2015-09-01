@@ -12,7 +12,6 @@ from django.db.models import ManyToManyField
 from lxml.etree import XMLSyntaxError
 
 from lizard_efcis import models
-from lizard_efcis import utils
 from lizard_efcis.umaquo_xml_parser import Parser
 
 logger = logging.getLogger(__name__)

@@ -1,4 +1,3 @@
-import os
 from lxml import etree
 
 
@@ -92,7 +91,7 @@ class Parser(object):
 
     def get_parameter(self, waardereekstijd):
         """
-        Retrieve first part of the text of 
+        Retrieve first part of the text of
         first parameter-element.
         Arguments:
            waardereekstijd - etree xml-objects found
@@ -111,7 +110,7 @@ class Parser(object):
 
     def get_hoortbijmonsterobject_id(self, waardereekstijd):
         """
-        Retrieve related monsterobjectid of first 
+        Retrieve related monsterobjectid of first
         hoortBijMonsterObject-element.
         Arguments:
            waardereekstijd - etree xml-objects found
