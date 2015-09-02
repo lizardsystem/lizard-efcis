@@ -799,20 +799,26 @@ class MappingField(models.Model):
     FOREIGNKEY_MODELS = [
         'Activiteit',
         'BioStatus',
+        'Compartiment',
         'Detectiegrens',
+        'Eenheid',
         'FCStatus',
+        'Hoedanigheid',
         'Locatie',
         'Meetnet',
+        'Parameter',
         'ParameterGroep',
         'Status',
         'StatusKRW',
+        'WNS',
+        'WNSStatus',
         'Waterlichaam',
-        'Watertype',
-        'WNS'
+        'Watertype'
     ]
 
     type_choices = [
         ('CharField', 'CharField'),
+        ('TextField', 'TextField'),
         ('float', 'float'),
         ('date', 'date'),
         ('time', 'time'),
