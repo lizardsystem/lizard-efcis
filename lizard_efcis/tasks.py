@@ -4,11 +4,19 @@ from celery import shared_task
 
 from lizard_efcis.import_data import DataImport
 from lizard_efcis.models import ImportRun
+from lizard_efcis.models import FTPLocation
 
 
 @shared_task
 def add(x, y):
     return x + y
+
+
+@shared_task
+def ftpimport():
+    from lizard_efcis import ftp_access
+    for ftp_location in FTPLocation.objects.all():
+        ftp_access.handle_first_file(ftp_location)
 
 
 @shared_task
