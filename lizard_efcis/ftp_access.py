@@ -144,12 +144,12 @@ def handle_first_file(ftp_location):
 
     if not import_run.validated:
         output.append("Import run is nog niet gecontroleerd, dat proberen we nu...")
-        tasks.check_file(IMPORT_USER, import_run=import_run)
+        tasks.check_file(IMPORT_USER, importrun=import_run)
     import_run = ImportRun.objects.get(id=import_run.id)  # Reload
 
     if import_run.validated and not import_run.imported:
         output.append("Import run is nog niet geimporteerd, dat proberen we nu...")
-        tasks.import_data(IMPORT_USER, import_run=import_run)
+        tasks.import_data(IMPORT_USER, importrun=import_run)
     import_run = ImportRun.objects.get(id=import_run.id)  # Reload
 
     log_filename = 'efcis_importlog_' + filename
