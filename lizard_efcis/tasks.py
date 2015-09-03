@@ -1,11 +1,13 @@
 from __future__ import absolute_import
 
+import logging
 from celery import shared_task
 
 from lizard_efcis.import_data import DataImport
 from lizard_efcis.models import ImportRun
 from lizard_efcis.models import FTPLocation
 
+logger = logging.getLogger(__name__)
 
 @shared_task
 def add(x, y):
@@ -20,14 +22,16 @@ def ftpimport():
 
 
 @shared_task
-def check_file(username, import_run=None, *args, **options):
+def check_file(username, importrun=None, *args, **options):
     """Check passed import_run or
     all active automatic import_runs"""
+    logger.debug("Begin of check_file task, import_run: '%s'")
     import_runs = []
     data_import = DataImport()
     datetime_format = '%Y-%m-%d %H:%M'
-    if import_run:
-        import_runs.append(import_run)
+    if importrun:
+        import_runs.append(importrun)
+        logger.debug("ImportRun: %s" % importrun.name)
     else:
         import_runs = list(ImportRun.objects.filter(
             **{'type_run': ImportRun.AUTO, 'actief': True}))
@@ -45,6 +49,7 @@ def check_file(username, import_run=None, *args, **options):
         else:
             import_run.add_log_line(
                 "Niet uitgevoerd, bestandsextentie is geen .csv of .xml")
+            import_run.save()
             continue
         import_run.add_log_line("Controle status is %s" % result)
         import_run.add_log_line("Eind controle", username=username)
@@ -62,6 +67,7 @@ def import_data(username, importrun=None, *args, **options):
     data_import.log = False
     if importrun:
         import_runs.append(importrun)
+        logger.debug("ImportRun: %s" % importrun.name)
     else:
         import_runs = list(ImportRun.objects.filter(
             **{'type_run': ImportRun.AUTO, 'actief': True}))
@@ -79,6 +85,7 @@ def import_data(username, importrun=None, *args, **options):
         else:
             import_run.add_log_line(
                 "Niet uitgevoerd, bestandsextentie is geen .csv of .xml")
+            import_run.save()
             continue
         import_run.add_log_line("Import status is %s" % result)
         import_run.add_log_line("Eind import", username)
