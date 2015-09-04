@@ -177,11 +177,12 @@ def get_csv_context(queryset, import_mapping):
     for model_object in queryset:
         row = []
         for mapping_field in mapping_fields:
-
-            value = getattr(model_object, mapping_field.get('db_field'), '')
             value_out = ''
+            if hasattr(model_object, mapping_field.get('db_field')):
+                value = getattr(model_object, mapping_field.get('db_field'), '')
+            else:
+                value = "Fout in mapping db_field '%s' niet bestaat." % mapping_field.get('db_field')
             datatype = mapping_field.get('db_datatype')
-
             if datatype == 'date' or datatype == 'time':
                 try:
                     value_out = value.strftime(
@@ -194,9 +195,19 @@ def get_csv_context(queryset, import_mapping):
                         code=mapping_field.get('file_field'))
                     if meetnetten.exists():
                         value = meetnetten[0]
-                value_out = getattr(
-                    value,
-                    mapping_field.get('foreignkey_field'), '')
+                foreign_fields = mapping_field.get('foreignkey_field', '').split('__')
+                if len(foreign_fields) >= 2:
+                    if hasattr(value, foreign_fields[0]):
+                        value = getattr(value, foreign_fields[0])
+                    else:
+                        value = "Fout in mapping db_field '%s' niet bestaat." % foreign_fields[0]
+                    foreignkey_field = foreign_fields[1]
+                else:
+                    foreignkey_field = foreign_fields[0]
+                if hasattr(value, foreignkey_field):
+                    value_out = getattr(value, foreignkey_field, '')
+                else:
+                    value_out = "Fout in mapping db_field '%s' niet bestaat." % foreignkey_field
             else:
                 value_out = value
 
