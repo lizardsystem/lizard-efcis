@@ -32,7 +32,7 @@ def check_file(modeladmin, request, queryset):
                 import_run.attachment.size / 1024 / 1024):
             task_result = tasks.check_file.delay(
                 request.user.get_full_name(),
-                import_run=import_run)
+                importrun=import_run)
             messages.success(
                 request,
                 "Controle wordt uitgevoerd op achtergrond, "
@@ -41,7 +41,7 @@ def check_file(modeladmin, request, queryset):
         else:
             tasks.check_file(
                 request.user.get_full_name(),
-                import_run=import_run)
+                importrun=import_run)
             messages.success(
                 request,
                 "Controle van '%s' is uitgevoerd." % import_run.name)
