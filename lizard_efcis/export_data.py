@@ -189,7 +189,7 @@ def get_csv_context(queryset, import_mapping):
                         mapping_field.get('data_format'))
                 except:
                     value_out = ''
-            elif datatype in models.MappingField.FOREIGNKEY_MODELS:
+            elif value and datatype in models.MappingField.FOREIGNKEY_MODELS:
                 if type(value).__name__ == 'ManyRelatedManager':
                     meetnetten = value.filter(
                         code=mapping_field.get('file_field'))
