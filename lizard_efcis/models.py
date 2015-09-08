@@ -660,7 +660,7 @@ class ImportMapping(models.Model):
         null=True,
         blank=True,
         verbose_name="Extra export velden",
-        help_text="Geef hier extra velden velddnaam=waarde, gebruik ENTER om velden te scheiden.")
+        help_text="Geef hier extra velden veldnaam=waarde, gebruik ENTER om velden te scheiden.")
 
     is_export = models.BooleanField(
         default=False,
