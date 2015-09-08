@@ -173,6 +173,11 @@ def get_csv_context(queryset, import_mapping):
     mapping_fields = retrieve_mapping_fields(import_mapping)
 
     headers = retrieve_headers(mapping_fields)
+    # Add headers for extra fields
+    extra_field_headers, extra_field_values = import_mapping.extra_field_lists()
+    if extra_field_headers:
+        headers.extend(extra_field_headers)
+
     context = [headers]
     for model_object in queryset:
         row = []
@@ -219,6 +224,8 @@ def get_csv_context(queryset, import_mapping):
             if value_out is None:
                 value_out = ''
             row.append(value_out)
-
+        # Add values for extra fields
+        for extra_field_value in extra_field_values:
+            row.append(extra_field_value)
         context.append(row)
     return context
