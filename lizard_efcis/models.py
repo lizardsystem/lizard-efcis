@@ -679,26 +679,16 @@ class ImportMapping(models.Model):
     def __unicode__(self):
         return self.code
 
-    def _split_field(self, extra_field):
-        paar = []
-        if extra_field:
-            paar = extra_field.split('=')
-        if len(paar) == 1:
-            return (paar[0], '')
-        elif len(paar) == 2:
-            return (paar[0], paar[1])
-        else:
-            return
-
     def extra_field_lists(self):
         fields = []
         values = []
         if self.extra_fields:
-            for extra_field in self.extra_fields.split('\r\n'):
-                key, value = self._split_field(extra_field)
-                if key:
-                    fields.append(key)
-                    values.append(value)
+            for extra_field in self.extra_fields.split('\n'):
+                if '=' not in extra_field:
+                    continue
+                key, value = extra_field.split('=')
+                fields.append(key.strip())
+                values.append(value.strip())
         return (fields, values)
 
 
