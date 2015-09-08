@@ -17,7 +17,7 @@ MEETNET_NAME = "Toetsresultaten KRW"
 
 
 class Command(BaseCommand):
-    help = '''Importeren krw json file als locaties'''
+    help = '''Kopieer geimporteerde krw gebieden naar meetnetten'''
 
     def handle(self, *args, **options):
 
