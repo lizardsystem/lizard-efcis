@@ -345,7 +345,7 @@ class ParameterGroep(models.Model):
     parent = models.ForeignKey(
         'lizard_efcis.ParameterGroep',
         null=True,
-        blank = True
+        blank=True
     )
 
     def __unicode__(self):
@@ -656,6 +656,12 @@ class ImportMapping(models.Model):
         max_length=3,
         default=";",
         verbose_name="Veld scheidingsteken.")
+    extra_fields = models.TextField(
+        null=True,
+        blank=True,
+        verbose_name="Extra export velden",
+        help_text="Geef hier extra velden velddnaam=waarde, gebruik ENTER om velden te scheiden.")
+
     is_export = models.BooleanField(
         default=False,
         verbose_name="Export",
@@ -672,6 +678,18 @@ class ImportMapping(models.Model):
 
     def __unicode__(self):
         return self.code
+
+    def extra_field_lists(self):
+        fields = []
+        values = []
+        if self.extra_fields:
+            for extra_field in self.extra_fields.split('\n'):
+                if '=' not in extra_field:
+                    continue
+                key, value = extra_field.split('=')
+                fields.append(key.strip())
+                values.append(value.strip())
+        return (fields, values)
 
 
 class ImportRun(models.Model):
