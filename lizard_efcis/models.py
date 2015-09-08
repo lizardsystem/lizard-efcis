@@ -266,7 +266,11 @@ class Locatie(models.Model):
         Waterlichaam,
         blank=True,
         null=True)
-    meetnet = models.ManyToManyField(Meetnet, null=True, blank=True)
+    meetnet = models.ManyToManyField(
+        Meetnet,
+        null=True,
+        blank=True,
+        related_name='locaties')
     watertype = models.ForeignKey(
         Watertype,
         null=True,
