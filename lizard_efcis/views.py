@@ -833,7 +833,6 @@ class ExportCSVView(FilteredOpnamesAPIView):
 
     def rows(self, import_mapping):
         """Return rows as list of lists."""
-        # TODO Alexandr: hier een methode aanroepen die dit teruggeeft.
         context = export_data.get_csv_context(
             self.filtered_opnames, import_mapping)
         return context
@@ -870,14 +869,12 @@ class ExportXMLView(FilteredOpnamesAPIView):
         So: if you have 'for thingy in thingies' in your template, you need to
         have 'thingies' in the dictionary you return here.
         """
-        # TODO Alexandr: hier een methode aanroepen die de context voor de
-        # template teruggeeft.
         context = export_data.get_xml_context(self.filtered_opnames)
         return context
 
     def get(self, request, format=None):
-        filename = "umaquo-%s.csv" % datetime.now().strftime("%Y-%m-%d_%H%M")
-        headers = {'Content-Disposition': 'filename="%s"' % filename}
+        filename = "umaquo-%s.xml" % datetime.now().strftime("%Y-%m-%d_%H%M")
+        headers = {'Content-Disposition': 'attachment; filename="%s"' % filename}
         return Response(self.data(),
                         headers=headers)
 
