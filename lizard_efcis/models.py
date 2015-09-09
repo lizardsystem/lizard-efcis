@@ -638,7 +638,7 @@ class WNS(models.Model):
             self.compartiment.compartiment)
         self.wns_oms = wns_oms.replace(' ', '')
 
-        wns_oms_ecolims =  "%s[%s][%s][%s]" % (
+        wns_oms_ecolims = "%s[%s][%s][%s]" % (
             self.parameter.par_oms,
             self.eenheid.eenheid,
             self.hoedanigheid.hoedanigheid,
