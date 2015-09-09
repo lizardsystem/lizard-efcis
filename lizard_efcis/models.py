@@ -594,6 +594,12 @@ class WNS(models.Model):
         null=True,
         blank=True,
         editable=False)
+    wns_oms_ecolims = models.CharField(
+        verbose_name="omschrijving",
+        max_length=255,
+        null=True,
+        blank=True,
+        editable=False)
     parameter = models.ForeignKey(Parameter, null=True, blank=True)
     eenheid = models.ForeignKey(Eenheid, null=True, blank=True)
     hoedanigheid = models.ForeignKey(
@@ -631,6 +637,13 @@ class WNS(models.Model):
             self.hoedanigheid.hoedanigheid,
             self.compartiment.compartiment)
         self.wns_oms = wns_oms.replace(' ', '')
+
+        wns_oms_ecolims =  "%s[%s][%s][%s]" % (
+            self.parameter.par_oms,
+            self.eenheid.eenheid,
+            self.hoedanigheid.hoedanigheid,
+            self.compartiment.compartiment)
+        self.wns_oms_ecolims = wns_oms_ecolims.replace(' ', '') 
         super(WNS, self).save(*args, **kwargs)
 
     class Meta:
