@@ -643,7 +643,7 @@ class WNS(models.Model):
             self.eenheid.eenheid,
             self.hoedanigheid.hoedanigheid,
             self.compartiment.compartiment)
-        self.wns_oms_ecolims = wns_oms.replace(' ', '') 
+        self.wns_oms_ecolims = wns_oms_ecolims.replace(' ', '') 
         super(WNS, self).save(*args, **kwargs)
 
     class Meta:
