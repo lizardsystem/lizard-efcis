@@ -1,11 +1,6 @@
-import json
 import logging
-import sys
 
 from django.core.management.base import BaseCommand
-from django.contrib.gis.geos import GEOSGeometry
-from django.contrib.gis.geos import MultiPolygon
-from django.contrib.gis.geos import Polygon
 
 from lizard_efcis.models import Locatie
 from lizard_efcis.models import Meetnet
@@ -13,7 +8,6 @@ from lizard_efcis.models import Meetnet
 logger = logging.getLogger(__name__)
 
 MEETNET_NAME = "Toetsresultaten KRW"
-
 
 
 class Command(BaseCommand):
@@ -42,6 +36,7 @@ class Command(BaseCommand):
                 geo_punt1__within=krw_locatie.area).exclude(
                     id=krw_locatie.id).exclude(
                         id__in=existing_locaties).values_list('id', flat=True)
-            logger.info("Found %s new locaties within the area", len(matching_locaties))
+            logger.info("Found %s new locaties within the area",
+                        len(matching_locaties))
             meetnet.locaties.add(*matching_locaties)
             meetnet.save()
