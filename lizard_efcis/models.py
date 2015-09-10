@@ -930,6 +930,22 @@ class Opname(models.Model):
         null=True,
         blank=True
     )
+    vis_opp_ha = models.FloatField(
+        null=True,
+        blank=True,
+        db_index=True)
+    vis_kg = models.FloatField(
+        null=True,
+        blank=True,
+        db_index=True)
+    vis_cm = models.FloatField(
+        null=True,
+        blank=True,
+        db_index=True)
+    opmerkingen = models.TextField(
+        verbose_name="Opmerkingen",
+        null=True,
+        blank=True)
     validation_state = models.IntegerField(
         choices=VALIDATION_CHOICES,
         default=NOT_VALIDATED,

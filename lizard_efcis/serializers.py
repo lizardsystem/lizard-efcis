@@ -209,6 +209,7 @@ class OpnameDetailSerializer(OpnameSerializer):
                   'afvoergebied',
                   'watertype',
                   'admin_link',
+                  'opmerkingen', 'vis_opp_ha', 'vis_kg', 'vis_cm',
         )
 
 
