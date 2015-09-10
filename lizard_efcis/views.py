@@ -240,7 +240,8 @@ class LocatieAPI(generics.ListAPIView):
 
     def get_queryset(self):
         meetnets = self.request.query_params.get('meetnets')
-        locaties = models.Locatie.objects.exclude(geo_punt1__isnull=True)
+        locaties = models.Locatie.objects.exclude(geo_punt1__isnull=True,
+                                                  area__isnull=True)
         if meetnets is not None:
             meetnet_ids = meetnets.split(',')
             meetnetten = models.Meetnet.objects.filter(
