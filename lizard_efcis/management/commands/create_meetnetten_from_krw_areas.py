@@ -15,28 +15,25 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-        base_krw_meetnet, created = Meetnet.objects.get_or_create(
+        krw_meetnet, created = Meetnet.objects.get_or_create(
             code=MEETNET_NAME)
         if created:
-            logger.info("Created meetnet %s", base_krw_meetnet)
+            logger.info("Created meetnet %s", krw_meetnet)
+        existing_locaties = krw_meetnet.locaties.values_list('id', flat=True)
 
         for krw_locatie in Locatie.objects.filter(is_krw_area=True):
-            # Create meetnet with the same name.
+            # Remove possible previously created *meetnet* with the same name.
             name = krw_locatie.loc_oms.splitlines()[0]  # textfield...
             logger.info("Looking at krw locatie %s", name)
-            meetnet, created = Meetnet.objects.get_or_create(
-                code=name)
-            meetnet.parent = base_krw_meetnet
-            if created:
-                logger.info("Created krw area as meetnet %s", meetnet)
+            for meetnet in Meetnet.objects.filter(code=name):
+                logger.warn("Deleting accidentally created meetnet %s", meetnet)
+                meetnet.locaties = []  # Not sure if it is needed, actually.
+                meetnet.save()
+                meetnet.delete()
 
-            # Find locations within the area and assign them to the meetnet.
-            existing_locaties = meetnet.locaties.values_list('id', flat=True)
-            matching_locaties = Locatie.objects.filter(
-                geo_punt1__within=krw_locatie.area).exclude(
-                    id=krw_locatie.id).exclude(
-                        id__in=existing_locaties).values_list('id', flat=True)
-            logger.info("Found %s new locaties within the area",
-                        len(matching_locaties))
-            meetnet.locaties.add(*matching_locaties)
-            meetnet.save()
+            # Attach locatie to the krw meetnet
+            if not krw_locatie.id in existing_locaties:
+                krw_meetnet.locaties.add(krw_locatie)
+                logger.info("Attached locatie %s to meetnet %s",
+                            krw_locatie, krw_meetnet)
+                krw_meetnet.save()
