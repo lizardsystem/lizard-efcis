@@ -294,7 +294,11 @@ class OpnameAdmin(admin.ModelAdmin):
                     'waarde_n',
                     'waarde_a',
                     'datum',
-                    'validation_state']
+                    'validation_state',
+                    'opmerkingen',
+                    'vis_opp_ha',
+                    'vis_kg',
+                    'vis_cm']
     search_fields = ['wns__wns_code',
                      'wns__wns_oms',
                      'locatie__loc_oms',
