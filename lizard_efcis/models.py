@@ -639,11 +639,10 @@ class WNS(models.Model):
         self.wns_oms = wns_oms.replace(' ', '')
 
         wns_oms_ecolims = "%s[%s][%s][%s]" % (
-            self.parameter.par_oms,
-            self.eenheid.eenheid,
-            self.hoedanigheid.hoedanigheid,
-            self.compartiment.compartiment)
-        self.wns_oms_ecolims = wns_oms_ecolims.replace(' ', '') 
+            self.parameter.par_oms.strip(),
+            self.eenheid.eenheid.strip(),
+            self.hoedanigheid.hoedanigheid.strip(),
+            self.compartiment.compartiment.strip())
         super(WNS, self).save(*args, **kwargs)
 
     class Meta:
