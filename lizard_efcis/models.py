@@ -643,6 +643,7 @@ class WNS(models.Model):
             self.eenheid.eenheid.strip(),
             self.hoedanigheid.hoedanigheid.strip(),
             self.compartiment.compartiment.strip())
+        self.wns_oms_ecolims = wns_oms_ecolims
         super(WNS, self).save(*args, **kwargs)
 
     class Meta:
