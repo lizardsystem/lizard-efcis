@@ -205,15 +205,13 @@ def get_csv_context(queryset, import_mapping):
                 if len(foreign_fields) >= 2:
                     if hasattr(value, foreign_fields[0]):
                         value = getattr(value, foreign_fields[0])
-                    else:
-                        value = "Fout in mapping db_field: '%s' bestaat niet." % foreign_fields[0]
                     foreignkey_field = foreign_fields[1]
                 else:
                     foreignkey_field = foreign_fields[0]
                 if hasattr(value, foreignkey_field):
                     value_out = getattr(value, foreignkey_field, '')
                 else:
-                    value_out = "Fout in mapping db_field: '%s' bestaat niet." % foreignkey_field
+                    value_out = ''
             else:
                 value_out = value
 
