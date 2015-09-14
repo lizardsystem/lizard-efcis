@@ -19,7 +19,7 @@ def fill_krw_scores(apps, schema_editor):
     Opname = apps.get_model("lizard_efcis", "Opname")
     for key, value in KRW_SCORE_MAPPING.items():
         for opname in Opname.objects.filter(waarde_a__iexact=key):
-            print("Re-saving opname %s (waarde_a=%s)" % (opname, waarde_a))
+            print("Re-saving opname %s (waarde_a=%s)" % (opname, opname.waarde_a))
             opname.save()
 
 
