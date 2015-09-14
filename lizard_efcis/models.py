@@ -18,6 +18,17 @@ from lizard_efcis.manager import NOT_VALIDATED
 from lizard_efcis.manager import VALIDATION_CHOICES
 
 
+KRW_SCORE_MAPPING = {
+    'voldoet': 0.9,
+    'voldoet niet': 0.1,
+    'zeer goed': 0.9,
+    'goed': 0.7,
+    'matig': 0.5,
+    'ontoereikend': 0.3,
+    'slecht': 0.1,
+}
+
+
 def get_attachment_path(instance, filename):
     dt = datetime.now()
     prefix = "{0}_{1}".format(
@@ -903,6 +914,11 @@ class Opname(models.Model):
         null=True,
         blank=True,
         db_index=True)
+    waarde_krw = models.FloatField(
+        null=True,
+        blank=True,
+        editable=False,
+        help_text="Automatisch gegenereerd voor de KRW kleuring")
     waarde_a = models.CharField(
         max_length=255,
         db_index=True,
@@ -967,6 +983,11 @@ class Opname(models.Model):
         ordering = ['wns_id', 'locatie_id', 'datum', 'tijd']
         verbose_name = "opname"
         verbose_name_plural = "opnames"
+
+    def save(self, *args, **kwargs):
+        if self.waarde_a.lower() in KRW_SCORE_MAPPING:
+            self.waarde_krw = KRW_SCORE_MAPPING[self.waarde_a.lower()]
+        super(Opname, self).save(*args, **kwargs)
 
     @property
     def par_code(self):
