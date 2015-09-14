@@ -12,7 +12,7 @@ from lizard_efcis.models import Meetnet
 
 logger = logging.getLogger(__name__)
 
-MEETNET_NAME = "Toetsresultaten KRW"
+MEETNET_NAME = "KRW Waterlichamen"
 
 
 class Command(BaseCommand):

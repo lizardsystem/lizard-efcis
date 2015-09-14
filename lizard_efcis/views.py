@@ -284,7 +284,8 @@ class MapAPI(FilteredOpnamesAPIView):
             return int(from_query_param)
 
     def get(self, request, format=None):
-        numerical_opnames = self.filtered_opnames.exclude(waarde_n=None)
+        numerical_opnames = self.filtered_opnames.exclude(waarde_n=None,
+                                                          waarde_krw=None)
         opnames = numerical_opnames.values('locatie', 'wns').order_by()
         # ^^^ Note: unordered for speed reasons.
         relevant_locatie_ids = list(set(
@@ -311,10 +312,12 @@ class MapAPI(FilteredOpnamesAPIView):
         if self.color_by:
             color_by_name = models.WNS.objects.get(pk=self.color_by).wns_oms
             # Re-fetch numerical opnames, now including values
-            numerical_opnames = self.filtered_opnames.exclude(waarde_n=None)
+            numerical_opnames = self.filtered_opnames.exclude(waarde_n=None,
+                                                              waarde_krw=None)
             opnames_for_color_by = numerical_opnames.filter(
                 wns=self.color_by).values(
                     'locatie', 'datum', 'tijd', 'waarde_n',
+                    'waarde_krw',
                     'detect__teken', 'activiteit__act_type')
 
             if opnames_for_color_by:
@@ -330,7 +333,8 @@ class MapAPI(FilteredOpnamesAPIView):
             abs_max_value = abs_min_max['waarde_n__max']
             abs_difference = abs_max_value - abs_min_value
 
-            selection_values = [opname['waarde_n'] for opname in opnames_for_color_by]
+            selection_values = [opname['waarde_n'] for opname in opnames_for_color_by
+                                if opname['waarde_n'] is not None]
             if selection_values:
                 min_value = min(selection_values)
                 max_value = max(selection_values)
@@ -344,7 +348,9 @@ class MapAPI(FilteredOpnamesAPIView):
             def _key(opname):
                 return opname['locatie']
 
-            def possibly_halved_value(opname):
+            def possibly_halved_or_krw_value(opname):
+                if opname['waarde_krw'] is not None:
+                    return opname['waarde_krw']
                 value = opname['waarde_n']
                 if opname['detect__teken'] == '<':
                     return value / 2.0
@@ -354,13 +360,13 @@ class MapAPI(FilteredOpnamesAPIView):
 
                 opnames_per_locatie = list(group)
                 values = [
-                    possibly_halved_value(opname)
+                    possibly_halved_or_krw_value(opname)
                     for opname in opnames_per_locatie]
                 summer_values = [
-                    possibly_halved_value(opname) for opname in opnames_per_locatie
+                    possibly_halved_or_krw_value(opname) for opname in opnames_per_locatie
                     if opname['datum'].month in [4, 5, 6, 7, 8, 9]]
                 winter_values = [
-                    possibly_halved_value(opname) for opname in opnames_per_locatie
+                    possibly_halved_or_krw_value(opname) for opname in opnames_per_locatie
                     if opname['datum'].month not in [4, 5, 6, 7, 8, 9]]
                 if summer_values:
                     summer_mean = np.mean(summer_values)
