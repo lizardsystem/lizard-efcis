@@ -170,6 +170,6 @@ def handle_first_file(ftp_location):
                   success_filename)
         output.append("Logfile %s is niet meer nodig. We verwijderen het..." % (
             log_filename))
-        delete_file(log_filename)
+        delete_file(ftp_connection, log_filename)
 
     return '\n'.join(output)
