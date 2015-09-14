@@ -630,7 +630,7 @@ class Command(BaseCommand):
             },
             {
                 'db_field': 'meetnet',
-                'file_field': 'Toetsresultaten KRW',
+                'file_field': 'KRW Waterlichamen',
                 'db_datatype': 'Meetnet',
                 'foreignkey_field': 'id'
             }
