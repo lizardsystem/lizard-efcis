@@ -331,7 +331,10 @@ class MapAPI(FilteredOpnamesAPIView):
                     Min('waarde_n'), Max('waarde_n'))
             abs_min_value = abs_min_max['waarde_n__min']
             abs_max_value = abs_min_max['waarde_n__max']
-            abs_difference = abs_max_value - abs_min_value
+            if abs_min_value is not None and abs_max_value is not None:
+                abs_difference = abs_max_value - abs_min_value
+            else:
+                abs_difference = None
 
             selection_values = [opname['waarde_n'] for opname in opnames_for_color_by
                                 if opname['waarde_n'] is not None]
