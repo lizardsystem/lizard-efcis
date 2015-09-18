@@ -4,11 +4,14 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from datetime import datetime
+from itertools import groupby
 import csv
+import logging
 
 from django.core.paginator import EmptyPage
 from django.core.paginator import PageNotAnInteger
 from django.core.paginator import Paginator
+from django.db import connection
 from django.db.models import Count
 from django.db.models import Max
 from django.db.models import Min
@@ -16,7 +19,6 @@ from django.db.models import Q
 from django.http import HttpResponse
 from django.utils.functional import cached_property
 from django.utils.text import slugify
-from itertools import groupby
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -24,7 +26,6 @@ from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
-import logging
 import numpy as np
 
 from lizard_efcis import models
@@ -45,6 +46,21 @@ def str_to_datetime(datetime_string):
     except:
         logger.warn("Datetime string %r doesn't match format %s.",
                     datetime_string, dtformat)
+
+
+class ApproximateCountPaginator(Paginator):
+
+    def _get_count(self):
+        # Much quicker approximate count for big datasets.
+        # Partial copy/paste from https://djangosnippets.org/snippets/2855/
+        # See http://wiki.postgresql.org/wiki/Slow_Counting
+        if self._count is None:
+            cursor = connection.cursor()
+            cursor.execute("SELECT reltuples FROM pg_class WHERE relname = %s",
+                           [self.object_list.query.model._meta.db_table])
+            self._count = int(cursor.fetchone()[0])
+        return self._count
+    count = property(_get_count)
 
 
 @api_view()
@@ -535,7 +551,7 @@ class OpnamesAPI(FilteredOpnamesAPIView):
                 context={'request': self.request})
             return Response(serializer.data)
 
-        paginator = Paginator(filtered_opnames, ITEMS_PER_PAGE)
+        paginator = ApproximateCountPaginator(filtered_opnames, ITEMS_PER_PAGE)
         try:
             opnames = paginator.page(page)
         except PageNotAnInteger:
