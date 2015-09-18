@@ -36,6 +36,8 @@ Changelog of lizard-efcis
 
 - KRW areas can now be loaded and shown.
 
+- Using very quick count for opnames.
+
 
 0.1 (2015-03-09)
 ----------------
