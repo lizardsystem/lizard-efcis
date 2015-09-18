@@ -553,7 +553,8 @@ class OpnamesAPI(FilteredOpnamesAPIView):
                 context={'request': self.request})
             return Response(serializer.data)
 
-        paginator = ApproximateCountPaginator(filtered_opnames, ITEMS_PER_PAGE)
+        # paginator = ApproximateCountPaginator(filtered_opnames, ITEMS_PER_PAGE)
+        paginator = Paginator(filtered_opnames, ITEMS_PER_PAGE)
         try:
             opnames = paginator.page(page)
         except PageNotAnInteger:
