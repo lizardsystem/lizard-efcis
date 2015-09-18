@@ -985,8 +985,9 @@ class Opname(models.Model):
         verbose_name_plural = "opnames"
 
     def save(self, *args, **kwargs):
-        if self.waarde_a.lower() in KRW_SCORE_MAPPING:
-            self.waarde_krw = KRW_SCORE_MAPPING[self.waarde_a.lower()]
+        if self.waarde is not None:
+            if self.waarde_a.lower() in KRW_SCORE_MAPPING:
+                self.waarde_krw = KRW_SCORE_MAPPING[self.waarde_a.lower()]
         super(Opname, self).save(*args, **kwargs)
 
     @property
