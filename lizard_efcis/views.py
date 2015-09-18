@@ -54,6 +54,8 @@ class ApproximateCountPaginator(Paginator):
         # Much quicker approximate count for big datasets.
         # Partial copy/paste from https://djangosnippets.org/snippets/2855/
         # See http://wiki.postgresql.org/wiki/Slow_Counting
+        # Drawback: this returns the total number of items and does **not**
+        # take into account any filtering.
         if self._count is None:
             cursor = connection.cursor()
             cursor.execute("SELECT reltuples FROM pg_class WHERE relname = %s",
