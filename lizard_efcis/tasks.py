@@ -1,7 +1,10 @@
 from __future__ import absolute_import
 
 import logging
+
 from celery import shared_task
+from django.core.mail import send_mail
+from django.conf import settings
 
 from lizard_efcis import validation
 from lizard_efcis.import_data import DataImport
@@ -76,14 +79,22 @@ def import_data(username, importrun, *args, **options):
 
 
 @shared_task
-def validate_opnames_min_max(queryset):
+def validate_opnames_min_max(queryset, to_email):
     messages = validation.MinMaxValidator(queryset).validate()
-    if messages:
-        logger.debug('/n'.join(messages))
+    body = '\n'.join(['De validatie is klaar.', ''] + messages)
+    send_mail('De validatie is klaar',
+              body,
+              settings.DEFAULT_FROM_EMAIL,
+              [to_email])
 
 
 @shared_task
-def validate_stddev(queryset, period_to_look_back):
+def validate_stddev(queryset, period_to_look_back, to_email):
     messages = validation.StandardDeviationValidator(
         queryset,
         period_to_look_back=period_to_look_back).validate()
+    body = '\n'.join(['De validatie is klaar.', ''] + messages)
+    send_mail('De validatie is klaar',
+              body,
+              settings.DEFAULT_FROM_EMAIL,
+              [to_email])

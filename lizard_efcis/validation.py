@@ -54,6 +54,8 @@ class BaseValidator(object):
         if self.n_textual_opnames:
             self.messages.append("%s zijn niet numeriek" % self.n_textual_opnames)
 
+        return self.messages
+
     def find_min_max(self, wns):
         """Return min, max tuple for the WNS."""
         raise NotImplementedError
@@ -89,6 +91,9 @@ class StandardDeviationValidator(BaseValidator):
                                                    datum__gte=start_date)
         values = opnames_to_look_at.values_list('waarde_n', flat=True)
         values = [value for value in values if value is not None]
+        if not values:
+            # Just return something.
+            return (0, 0)
         mean = np.mean(values)
         standard_deviation = np.std(values)
         return (mean - standard_deviation, mean + standard_deviation)
