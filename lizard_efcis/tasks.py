@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import logging
 from celery import shared_task
 
+from lizard_efcis import validation
 from lizard_efcis.import_data import DataImport
 from lizard_efcis.models import FTPLocation
 
@@ -72,3 +73,17 @@ def import_data(username, importrun, *args, **options):
     importrun.imported = result
     importrun.uploaded_by = username
     importrun.save()
+
+
+@shared_task
+def validate_opnames_min_max(queryset):
+    messages = validation.MinMaxValidator(queryset).validate()
+    if messages:
+        logger.debug('/n'.join(messages))
+
+
+@shared_task
+def validate_stddev(queryset, period_to_look_back):
+    messages = validation.StandardDeviationValidator(
+        queryset,
+        period_to_look_back=period_to_look_back).validate()

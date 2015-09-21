@@ -15,7 +15,6 @@ from lizard_efcis import export_data
 from lizard_efcis import ftp_access
 from lizard_efcis import models
 from lizard_efcis import tasks
-from lizard_efcis import validation
 
 
 def check_file(modeladmin, request, queryset):
@@ -85,7 +84,6 @@ import_file.short_description = "Uitvoeren geselecteerde imports"
 
 
 def download_csv(modeladmin, request, queryset):
-    mapping_codes = ''
     if queryset.model == models.Locatie:
         mapping_code = 'locaties'
     elif queryset.model == models.ParameterGroep:
@@ -121,46 +119,43 @@ download_csv.short_description = "Download CSV"
 
 
 def validate_opnames_min_max(modeladmin, request, queryset):
-    validation.MinMaxValidator(modeladmin, request, queryset).validate()
-validate_opnames_min_max.short_description = "Valideer volgens ingestelde min/max"
+    tasks.validate_opnames_min_max.delay(queryset)
+    messages.success(request, "Taak is gestart.")
+validate_opnames_min_max.short_description = (
+    "Valideer volgens ingestelde min/max")
 
 
 def validate_stddev_half_year(modeladmin, request, queryset):
-    validation.StandardDeviationValidator(
-        modeladmin, request, queryset,
-        period_to_look_back=365/2).validate()
+    tasks.validate_stddev.delay(queryset, 365/2)
+    messages.success(request, "Taak is gestart.")
 validate_stddev_half_year.short_description = (
     "Valideer t.o.v. waardes afgelopen halfjaar")
 
 
 def validate_stddev_1year(modeladmin, request, queryset):
-    validation.StandardDeviationValidator(
-        modeladmin, request, queryset,
-        period_to_look_back=365).validate()
+    tasks.validate_stddev.delay(queryset, 365)
+    messages.success(request, "Taak is gestart.")
 validate_stddev_1year.short_description = (
     "Valideer t.o.v. waardes afgelopen jaar")
 
 
 def validate_stddev_2year(modeladmin, request, queryset):
-    validation.StandardDeviationValidator(
-        modeladmin, request, queryset,
-        period_to_look_back=365 * 2).validate()
+    tasks.validate_stddev.delay(queryset, 365 * 2)
+    messages.success(request, "Taak is gestart.")
 validate_stddev_2year.short_description = (
     "Valideer t.o.v. waardes afgelopen twee jaar")
 
 
 def validate_stddev_5year(modeladmin, request, queryset):
-    validation.StandardDeviationValidator(
-        modeladmin, request, queryset,
-        period_to_look_back=365 * 5).validate()
+    tasks.validate_stddev.delay(queryset, 365 * 5)
+    messages.success(request, "Taak is gestart.")
 validate_stddev_5year.short_description = (
     "Valideer t.o.v. waardes afgelopen vijf jaar")
 
 
 def validate_stddev_all(modeladmin, request, queryset):
-    validation.StandardDeviationValidator(
-        modeladmin, request, queryset,
-        period_to_look_back=365 * 99).validate()
+    tasks.validate_stddev.delay(queryset, 365 * 99)
+    messages.success(request, "Taak is gestart.")
 validate_stddev_all.short_description = (
     "Valideer t.o.v. alle waardes")
 
@@ -312,8 +307,7 @@ class OpnameAdmin(admin.ModelAdmin):
                validate_stddev_1year,
                validate_stddev_2year,
                validate_stddev_5year,
-               validate_stddev_all,
-    ]
+               validate_stddev_all]
 
 
 @admin.register(models.WNS)
@@ -342,8 +336,8 @@ class ParameterGroepAdmin(admin.ModelAdmin):
 @admin.register(models.Parameter)
 class Parameter(admin.ModelAdmin):
     search_fields = ['par_code',
-                    'par_oms',
-                    'casnummer']
+                     'par_oms',
+                     'casnummer']
     list_display = ['par_code',
                     'par_oms',
                     'casnummer',
