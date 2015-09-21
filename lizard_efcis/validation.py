@@ -15,13 +15,12 @@ from lizard_efcis.models import Opname
 
 class BaseValidator(object):
 
-    def __init__(self, modeladmin, request, queryset):
-        self.modeladmin = modeladmin
-        self.request = request
+    def __init__(self, queryset):
         self.queryset = queryset
         self.n_textual_opnames = 0
         self.n_validated = 0
         self.n_unreliable = 0
+        self.messages = []
 
     def validate(self):
         """Actual validation method you need to call from the admin."""
@@ -33,8 +32,7 @@ class BaseValidator(object):
         for wns, opnames in groupby(selected_opnames, _key):
             minimum, maximum = self.find_min_max(wns)
             if minimum is None or maximum is None:
-                messages.warning(self.request,
-                                 "Min/Max niet ingesteld voor %s" % wns)
+                self.messages.append("Min/Max niet ingesteld voor %s" % wns)
                 continue
             for opname in opnames:
                 if opname.waarde_n is None:
@@ -50,14 +48,11 @@ class BaseValidator(object):
                     self.n_unreliable += 1
 
         if self.n_validated:
-            messages.success(self.request,
-                             "%s zijn valide" % self.n_validated)
+            self.messages.append("%s zijn valide" % self.n_validated)
         if self.n_unreliable:
-            messages.error(self.request,
-                           "%s zijn onbetrouwbaar" % self.n_unreliable)
+            self.messages.append("%s zijn onbetrouwbaar" % self.n_unreliable)
         if self.n_textual_opnames:
-            messages.warning(self.request,
-                             "%s zijn niet numeriek" % self.n_textual_opnames)
+            self.messages.append("%s zijn niet numeriek" % self.n_textual_opnames)
 
     def find_min_max(self, wns):
         """Return min, max tuple for the WNS."""
@@ -73,9 +68,9 @@ class MinMaxValidator(BaseValidator):
 
 class StandardDeviationValidator(BaseValidator):
 
-    def __init__(self, modeladmin, request, queryset, period_to_look_back):
+    def __init__(self, queryset, period_to_look_back):
         super(StandardDeviationValidator, self).__init__(
-            modeladmin, request, queryset)
+            queryset)
         self.period_to_look_back = period_to_look_back
         # period_to_look_back: number of days back we should look at values.
 
