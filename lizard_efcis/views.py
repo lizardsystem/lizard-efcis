@@ -597,6 +597,8 @@ class OpnamesAPI(FilteredOpnamesAPIView):
                 fieldname = 'wns__compartiment__comp_oms'
             elif fieldname == 'eenheid_oms':
                 fieldname = 'wns__eenheid__eenheid_oms'
+            elif fieldname == 'validatiestatus':
+                fieldname = 'validation_state'
             ordering.append('%s%s' % (direction_sign, fieldname))
         filtered_opnames = filtered_opnames.order_by(*ordering)
         return filtered_opnames
