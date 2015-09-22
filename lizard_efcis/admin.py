@@ -119,42 +119,48 @@ download_csv.short_description = "Download CSV"
 
 
 def validate_opnames_min_max(modeladmin, request, queryset):
-    tasks.validate_opnames_min_max.delay(queryset)
+    to_email = request.user.email
+    tasks.validate_opnames_min_max.delay(queryset, to_email)
     messages.success(request, "Taak is gestart.")
 validate_opnames_min_max.short_description = (
     "Valideer volgens ingestelde min/max")
 
 
 def validate_stddev_half_year(modeladmin, request, queryset):
-    tasks.validate_stddev.delay(queryset, 365/2)
+    to_email = request.user.email
+    tasks.validate_stddev.delay(queryset, 365/2, to_email)
     messages.success(request, "Taak is gestart.")
 validate_stddev_half_year.short_description = (
     "Valideer t.o.v. waardes afgelopen halfjaar")
 
 
 def validate_stddev_1year(modeladmin, request, queryset):
-    tasks.validate_stddev.delay(queryset, 365)
+    to_email = request.user.email
+    tasks.validate_stddev.delay(queryset, 365, to_email)
     messages.success(request, "Taak is gestart.")
 validate_stddev_1year.short_description = (
     "Valideer t.o.v. waardes afgelopen jaar")
 
 
 def validate_stddev_2year(modeladmin, request, queryset):
-    tasks.validate_stddev.delay(queryset, 365 * 2)
+    to_email = request.user.email
+    tasks.validate_stddev.delay(queryset, 365 * 2, to_email)
     messages.success(request, "Taak is gestart.")
 validate_stddev_2year.short_description = (
     "Valideer t.o.v. waardes afgelopen twee jaar")
 
 
 def validate_stddev_5year(modeladmin, request, queryset):
-    tasks.validate_stddev.delay(queryset, 365 * 5)
+    to_email = request.user.email
+    tasks.validate_stddev.delay(queryset, 365 * 5, to_email)
     messages.success(request, "Taak is gestart.")
 validate_stddev_5year.short_description = (
     "Valideer t.o.v. waardes afgelopen vijf jaar")
 
 
 def validate_stddev_all(modeladmin, request, queryset):
-    tasks.validate_stddev.delay(queryset, 365 * 99)
+    to_email = request.user.email
+    tasks.validate_stddev.delay(queryset, 365 * 99, to_email)
     messages.success(request, "Taak is gestart.")
 validate_stddev_all.short_description = (
     "Valideer t.o.v. alle waardes")
