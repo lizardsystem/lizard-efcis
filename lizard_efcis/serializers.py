@@ -166,7 +166,7 @@ class OpnameDetailSerializer(OpnameSerializer):
     validatiestatus = serializers.SerializerMethodField()
     grondsoort = serializers.CharField(
         read_only=True,
-        source='locatie.grondsoord')
+        source='locatie.grondsoort')
     landgebruik = serializers.CharField(
         read_only=True,
         source='locatie.landgebruik')
