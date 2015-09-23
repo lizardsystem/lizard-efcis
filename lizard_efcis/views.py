@@ -601,6 +601,8 @@ class OpnamesAPI(FilteredOpnamesAPIView):
                 fieldname = 'validation_state'
             elif fieldname == 'grondsoort':
                 fieldname = 'locatie__grondsoort'
+            elif fieldname == 'landgebruik':
+                fieldname = 'locatie__landgebruik'
             ordering.append('%s%s' % (direction_sign, fieldname))
         filtered_opnames = filtered_opnames.order_by(*ordering)
         return filtered_opnames
