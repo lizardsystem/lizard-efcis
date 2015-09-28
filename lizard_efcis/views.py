@@ -879,6 +879,7 @@ class ExportCSVView(FilteredOpnamesAPIView):
             'wns__hoedanigheid',
             'wns__compartiment',
         )
+        opnames = opnames.order_by()  # Switch off sorting.
         context = export_data.get_csv_context(opnames, import_mapping)
         return context
 
