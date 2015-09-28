@@ -35,8 +35,8 @@ def check_file(modeladmin, request, queryset):
             messages.success(
                 request,
                 "Controle wordt uitgevoerd op achtergrond, "
-                "want het bestand is te groot '%s', status '%s'." % (
-                    import_run.name, task_result.status))
+                "volg de voortgang in 'Action log' veld van '%s'." % (
+                    import_run.name))
         else:
             tasks.check_file(
                 request.user.get_full_name(),
@@ -71,8 +71,8 @@ def import_file(modeladmin, request, queryset):
             messages.success(
                 request,
                 "Import wordt uitgevoerd op achtergrond, "
-                "want het bestand is te groot '%s', status '%s'." % (
-                    import_run.name, task_result.status))
+                "volg de voortgang in 'Action log' veld van '%s'." % (
+                    import_run.name))
         else:
             tasks.import_data(
                 request.user.get_full_name(),
@@ -86,12 +86,25 @@ import_file.short_description = "Uitvoeren geselecteerde imports"
 def download_csv(modeladmin, request, queryset):
     if queryset.model == models.Locatie:
         mapping_code = 'locaties'
+        queryset = queryset.prefetch_related(
+            'bio_status',
+            'fc_status',
+            'meetnet',
+            'status_krw',
+            'waterlichaam',
+            'watertype'
+        )
     elif queryset.model == models.ParameterGroep:
         mapping_code = 'parametergroep-export'
+        queryset = queryset.prefetch_related('parent')
     elif queryset.model == models.Meetnet:
         mapping_code = 'meetnet'
+        queryset = queryset.prefetch_related('parent')
     elif queryset.model == models.Parameter:
         mapping_code = 'parameter'
+        queryset = queryset.prefetch_related(
+            'parametergroep',
+            'status')
     else:
         messages.warning(
             request,
