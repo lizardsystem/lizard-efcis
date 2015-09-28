@@ -868,8 +868,18 @@ class ExportCSVView(FilteredOpnamesAPIView):
 
     def rows(self, import_mapping):
         """Return rows as list of lists."""
-        context = export_data.get_csv_context(
-            self.filtered_opnames, import_mapping)
+        opnames = self.filtered_opnames.prefetch_related(
+            'locatie',
+            'locatie__watertype',
+            'wns',
+            'activiteit',
+            'detect',
+            'wns__parameter',
+            'wns__eenheid',
+            'wns__hoedanigheid',
+            'wns__compartiment',
+        )
+        context = export_data.get_csv_context(opnames, import_mapping)
         return context
 
     def get(self, request, import_mapping_id=None, format=None):
