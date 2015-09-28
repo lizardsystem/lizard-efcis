@@ -48,6 +48,15 @@ def str_to_datetime(datetime_string):
                     datetime_string, dtformat)
 
 
+def possibly_halved_or_krw_value(opname):
+    if opname.get('waarde_krw') is not None:
+        return opname['waarde_krw']
+    value = opname['waarde_n']
+    if opname.get('detect__teken') == '<':
+        return value / 2.0
+    return value
+
+
 class ApproximateCountPaginator(Paginator):
 
     def _get_count(self):
@@ -368,14 +377,6 @@ class MapAPI(FilteredOpnamesAPIView):
 
             def _key(opname):
                 return opname['locatie']
-
-            def possibly_halved_or_krw_value(opname):
-                if opname['waarde_krw'] is not None:
-                    return opname['waarde_krw']
-                value = opname['waarde_n']
-                if opname['detect__teken'] == '<':
-                    return value / 2.0
-                return value
 
             for locatie, group in groupby(opnames_for_color_by, _key):
 
@@ -705,11 +706,13 @@ class BoxplotAPI(FilteredOpnamesAPIView):
             'locatie__loc_oms',
             'datum',
             'tijd',
+            'detect__teken',
             'waarde_n')
 
         points = list(points)
         first = points[0]
-        values = [point['waarde_n'] for point in points]
+        values = [possibly_halved_or_krw_value(point)
+                  for point in points]
         boxplot_data = {'mean': np.mean(values),
                         'median': np.median(values),
                         'min': np.min(values),
