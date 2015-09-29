@@ -3,6 +3,8 @@ import codecs
 import csv
 import logging
 
+from django.contrib.gis.db.models import Model
+
 from lizard_efcis import models
 
 
@@ -219,6 +221,8 @@ def get_csv_context(queryset, import_mapping):
                 value_out = str(value_out)
             if isinstance(value_out, float):
                 value_out = str(value_out)
+            if isinstance(value_out, Model):
+                value_out = "Fout in mapping: wijst naar compleet item i.p.v. veld"
             if value_out is None:
                 value_out = ''
             row.append(value_out)
