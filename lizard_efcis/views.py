@@ -895,9 +895,10 @@ class ExportCSVView(FilteredOpnamesAPIView):
         response = HttpResponse(content_type='text/csv')
         response[
             'Content-Disposition'] = 'attachment; filename="%s"' % filename
-        writer = csv.writer(response,
-                            dialect='excel',
-                            delimiter=str(import_mapping.scheiding_teken))
+        writer = export_data.UnicodeWriter(
+            response,
+            dialect='excel',
+            delimiter=str(import_mapping.scheiding_teken))
         for row in self.rows(import_mapping):
             writer.writerow(row)
         return response
