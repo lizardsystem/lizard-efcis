@@ -264,12 +264,16 @@ class MapSerializer(gis_serializers.GeoFeatureModelSerializer):
     latest_value = serializers.SerializerMethodField()
     latest_datetime = serializers.SerializerMethodField()
     boxplot_data = serializers.SerializerMethodField()
+    is_krw_score = serializers.SerializerMethodField()
 
     def get_geo_punt_1(self, obj):
         if obj.is_krw_area:
             return obj.area
         else:
             return obj.geo_punt1
+
+    def get_is_krw_score(self, ob):
+        return self.context['is_krw_score']
 
     def get_color_value(self, obj):
         return self.context['color_values'].get(obj.id)
@@ -290,6 +294,7 @@ class MapSerializer(gis_serializers.GeoFeatureModelSerializer):
         model = models.Locatie
         fields = ('id', 'loc_id', 'loc_oms', 'color_value', 'latest_value',
                   'abs_color_value',
+                  'is_krw_score',
                   'latest_datetime', 'boxplot_data', 'photo_url',
                   'is_krw_area')
         geo_field = 'geo_punt_1'

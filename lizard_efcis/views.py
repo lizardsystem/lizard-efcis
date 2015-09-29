@@ -375,6 +375,15 @@ class MapAPI(FilteredOpnamesAPIView):
                 max_value = None
                 difference = None
 
+            if is_krw_score:
+                # Hard-code the range to 0-1
+                min_value = 0
+                abs_min_value = 0
+                max_value = 1
+                abs_max_value = 1
+                difference = 1
+                abs_difference = 1
+
             def _key(opname):
                 return opname['locatie']
 
@@ -442,6 +451,7 @@ class MapAPI(FilteredOpnamesAPIView):
             many=True,
             context={'latest_values': latest_values,
                      'latest_datetimes': latest_datetimes,
+                     'is_krw_score': is_krw_score,
                      'color_values': color_values,
                      'abs_color_values': abs_color_values,
                      'boxplot_values': boxplot_values})
