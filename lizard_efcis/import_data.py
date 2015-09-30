@@ -580,6 +580,8 @@ class DataImport(object):
                     if self.log:
                         logger.error("Value is None.")
                     continue
+            elif datatype == 'boolean':
+                value = bool(val_raw)
             else:
                 if val_raw == '':
                     val_raw = None

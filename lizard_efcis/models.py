@@ -419,6 +419,7 @@ class Parameter(models.Model):
         ParameterGroep,
         null=True,
         blank=True)
+    is_grootheid = models.BooleanField(default=False)
 
     def __unicode__(self):
         return ' '.join([self.par_code, self.par_oms])
@@ -868,6 +869,7 @@ class MappingField(models.Model):
         ('float', 'float'),
         ('date', 'date'),
         ('time', 'time'),
+        ('boolean', 'boolean'),
     ] + [(foreignkey_model, foreignkey_model) for
          foreignkey_model in FOREIGNKEY_MODELS]
 
