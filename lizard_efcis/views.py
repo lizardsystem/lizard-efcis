@@ -640,6 +640,9 @@ class GraphsAPI(FilteredOpnamesAPIView):
         lines = []
         for key, group in groupby(all_points, _key):
             points = list(group)
+            if not points:
+                # Weird corner case?
+                continue
             first = points[0]
             line = {'wns': first['wns__wns_oms'],
                     'location': first['locatie__loc_oms'],
