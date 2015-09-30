@@ -688,8 +688,8 @@ class LineAPI(FilteredOpnamesAPIView):
 
         points = list(points)
         if not points:
-            logger.error("Weird. No opnames found in LineAPI for key %s.",
-                         key)
+            logger.warn("Weird. No opnames found in LineAPI for key %s.",
+                        key)
             return Response({})
         first = points[0]
         data = [{'datetime': '%sT%s.000Z' % (point['datum'],
