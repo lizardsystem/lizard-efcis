@@ -640,6 +640,9 @@ class GraphsAPI(FilteredOpnamesAPIView):
         lines = []
         for key, group in groupby(all_points, _key):
             points = list(group)
+            if not points:
+                # Weird corner case?
+                continue
             first = points[0]
             line = {'wns': first['wns__wns_oms'],
                     'location': first['locatie__loc_oms'],
@@ -685,8 +688,8 @@ class LineAPI(FilteredOpnamesAPIView):
 
         points = list(points)
         if not points:
-            logger.error("Weird. No opnames found in LineAPI for key %s.",
-                         key)
+            logger.warn("Weird. No opnames found in LineAPI for key %s.",
+                        key)
             return Response({})
         first = points[0]
         data = [{'datetime': '%sT%s.000Z' % (point['datum'],
