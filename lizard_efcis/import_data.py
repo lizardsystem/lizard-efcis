@@ -581,7 +581,10 @@ class DataImport(object):
                         logger.error("Value is None.")
                     continue
             elif datatype == 'boolean':
-                value = bool(val_raw)
+                if val_raw in ['GROOTHEID', 'True', 'TRUE', 'Ja', 'JA', '1']:
+                    value = True
+                else:
+                    value = False
             else:
                 if val_raw == '':
                     val_raw = None
