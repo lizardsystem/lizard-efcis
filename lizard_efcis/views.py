@@ -829,6 +829,7 @@ class ScatterplotGraphAPI(FilteredOpnamesAPIView):
                 'wns__parameter__par_code',
                 'wns__eenheid__eenheid',
                 'locatie__loc_oms',
+                'detect__teken',
                 'datum',
                 'waarde_n')
         our_opnames2 = numerical_opnames.filter(
@@ -837,6 +838,7 @@ class ScatterplotGraphAPI(FilteredOpnamesAPIView):
                 'wns__parameter__par_code',
                 'wns__eenheid__eenheid',
                 'locatie__loc_oms',
+                'detect__teken',
                 'datum',
                 'waarde_n')
         dates = [opname['datum'] for opname in our_opnames1]
@@ -849,8 +851,8 @@ class ScatterplotGraphAPI(FilteredOpnamesAPIView):
                             if opname['datum'] == date]
             if not (x_candidates and y_candidates):
                 continue
-            x = x_candidates[0]['waarde_n']
-            y = y_candidates[0]['waarde_n']
+            x = possibly_halved_or_krw_value(x_candidates[0])
+            y = possibly_halved_or_krw_value(y_candidates[0])
             points.append({'x': x, 'y': y})
 
         first_x = our_opnames1[0]
