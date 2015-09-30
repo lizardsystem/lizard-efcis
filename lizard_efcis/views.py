@@ -44,8 +44,8 @@ def str_to_datetime(datetime_string):
     try:
         return datetime.strptime(datetime_string, dtformat)
     except:
-        logger.warn("Datetime string %r doesn't match format %s.",
-                    datetime_string, dtformat)
+        logger.debug("Datetime string %r doesn't match format %s.",
+                     datetime_string, dtformat)
 
 
 def possibly_halved_or_krw_value(opname):
