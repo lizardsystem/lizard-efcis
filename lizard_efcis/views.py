@@ -324,6 +324,7 @@ class MapAPI(FilteredOpnamesAPIView):
             pk__in=relevant_wns_ids).values('id', 'wns_oms')
 
         latest_values = {}  # Latest value per location.
+        latest_krw_values = {}  # Latest value per location.
         color_values = {}  # Latest value converted to 0-100 scale.
         abs_color_values = {}  # Same, but scaled to all values.
         boxplot_values = {}
@@ -344,6 +345,7 @@ class MapAPI(FilteredOpnamesAPIView):
             opnames_for_color_by = numerical_opnames.filter(
                 wns=self.color_by).values(
                     'locatie', 'datum', 'tijd', 'waarde_n',
+                    'waarde_a',
                     'waarde_krw',
                     'detect__teken', 'activiteit__act_type')
 
@@ -422,6 +424,11 @@ class MapAPI(FilteredOpnamesAPIView):
                                 'p10': np.percentile(values, 10),
                                 'p90': np.percentile(values, 90)}
 
+                if is_krw_score:
+                    krw_values = [opname['waarde_a'] for opname in opnames_per_locatie
+                                  if opname['waarde_a']]
+                    latest_krw_values[locatie] = krw_values[-1]
+
                 if not opnames_per_locatie:
                     continue
                 # Group is sorted according to date/time, we can grab the
@@ -450,6 +457,7 @@ class MapAPI(FilteredOpnamesAPIView):
             locaties,
             many=True,
             context={'latest_values': latest_values,
+                     'latest_krw_values': latest_krw_values,
                      'latest_datetimes': latest_datetimes,
                      'is_krw_score': is_krw_score,
                      'color_values': color_values,
