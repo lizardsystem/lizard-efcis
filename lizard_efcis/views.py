@@ -690,6 +690,7 @@ class LineAPI(FilteredOpnamesAPIView):
             'wns__parameter__par_code',
             'wns__eenheid__eenheid',
             'locatie__loc_oms',
+            'detect__teken',
             'datum',
             'tijd',
             'waarde_n')
@@ -702,7 +703,7 @@ class LineAPI(FilteredOpnamesAPIView):
         first = points[0]
         data = [{'datetime': '%sT%s.000Z' % (point['datum'],
                                              point['tijd'] or '00:00:00'),
-                 'value': point['waarde_n']} for point in points]
+                 'value': possibly_halved_or_krw_value(point)} for point in points]
         line = {'wns': first['wns__wns_oms'],
                 'location': first['locatie__loc_oms'],
                 'unit': first['wns__eenheid__eenheid'],
