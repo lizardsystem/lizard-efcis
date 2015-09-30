@@ -29,7 +29,7 @@ def check_file(modeladmin, request, queryset):
             continue
         if settings.CELERY_MIN_FILE_SIZE < (
                 import_run.attachment.size / 1024 / 1024):
-            task_result = tasks.check_file.delay(
+            tasks.check_file.delay(
                 request.user.get_full_name(),
                 importrun=import_run)
             messages.success(
@@ -65,7 +65,7 @@ def import_file(modeladmin, request, queryset):
             continue
         if settings.CELERY_MIN_FILE_SIZE < (
                 import_run.attachment.size / 1024 / 1024):
-            task_result = tasks.import_data.delay(
+            tasks.import_data.delay(
                 request.user.get_full_name(),
                 importrun=import_run)
             messages.success(
@@ -105,6 +105,14 @@ def download_csv(modeladmin, request, queryset):
         queryset = queryset.prefetch_related(
             'parametergroep',
             'status')
+    elif queryset.model == models.WNS:
+        mapping_code = 'waarnemingssoorten'
+        queryset = queryset.prefetch_related(
+            'compartiment',
+            'eenheid',
+            'hoedanigheid',
+            'parameter',
+            'wns_status')
     else:
         messages.warning(
             request,
@@ -343,6 +351,7 @@ class WNSAdmin(admin.ModelAdmin):
     raw_id_fields = ['parameter']
     list_select_related = ['parameter__code', 'eenheid__eenheid']
     list_filter = ['wns_status']
+    actions = [download_csv]
 
 
 @admin.register(models.ParameterGroep)

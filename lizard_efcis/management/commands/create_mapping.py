@@ -17,6 +17,7 @@ class Command(BaseCommand):
         self.create_mapping_meetnet()
         self.create_mapping_locations()
         self.create_mapping_activiteit_bio()
+        self.create_mapping_wns()
         self.stdout.write('Einde import')
 
     def add_mapping_fields(self, imp_mapping, mapping_fields):
@@ -44,6 +45,69 @@ class Command(BaseCommand):
             self.add_mapping_fields(imp_mapping, mapping_fields)
             self.stdout.write(
                 "Mapping {} aangemaakt.".format(import_mapping['code']))
+
+    def create_mapping_wns(self):
+        dformat = '%d-%m-%Y'
+        import_mapping = {
+            'code': 'waarnemingssoorten',
+            'tabel_naam': 'WNS',
+            'omschrijving': 'Automatisch gegenereerde mapping.'
+        }
+
+        mapping_fields = [
+            {
+                'db_field': 'id',
+                'file_field': 'intern_id',
+                'db_datatype': 'CharField'
+            },
+            {
+                'db_field': 'wns_code',
+                'file_field': 'WNS_CODE',
+                'db_datatype': 'CharField'
+            },
+            {
+                'db_field': 'wns_oms',
+                'file_field': 'WNS_OMS',
+                'db_datatype': 'CharField'
+            },
+            {
+                'db_field': 'wns_satus',
+                'file_field': 'status',
+                'db_datatype': 'WNSStatus',
+                'foreignkey_field': 'naam'
+            },
+            {
+                'db_field': 'parameter',
+                'file_field': 'PAR_CODE',
+                'db_datatype': 'Parameter',
+                'foreignkey_field': 'par_code'
+            },
+            {
+                'db_field': 'parameter',
+                'file_field': 'PAR_OMS',
+                'db_datatype': 'Parameter',
+                'foreignkey_field': 'par_oms'
+            },
+            {
+                'db_field': 'datum_status',
+                'file_field': 'datum_status',
+                'db_datatype': 'date',
+                'data_format': dformat
+            },
+            {
+                'db_field': 'eenheid',
+                'file_field': 'eenheid',
+                'db_datatype': 'Eenheid',
+                'foreignkey_field': 'eenheid'
+            },
+            {
+                'db_field': 'hoedanigheid',
+                'file_field': 'hoedanigheid',
+                'db_datatype': 'Hoedanigheid',
+                'foreignkey_field': 'hoedanigheid'
+            }
+        ]
+        self.create(import_mapping, mapping_fields)
 
     def create_mapping_activiteit_bio(self):
         import_mapping = {
@@ -163,7 +227,12 @@ class Command(BaseCommand):
                 'file_field': 'STATUS',
                 'db_datatype': 'Status',
                 'foreignkey_field': 'naam'
-            }
+            },
+            {
+                'db_field': 'is_grootheid',
+                'file_field': 'Grootheid',
+                'db_datatype': 'boolean'
+            },
         ]
         self.create(import_mapping, mapping_fields)
 
