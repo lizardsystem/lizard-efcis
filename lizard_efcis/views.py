@@ -485,6 +485,7 @@ class OpnamesAPI(FilteredOpnamesAPIView):
         loc_oms_filter = self.get_or_post_param('loc_oms')
         activiteit_filter = self.get_or_post_param('activiteit')
         detectiegrens_filter = self.get_or_post_param('detectiegrens')
+        validation_state_filter = self.get_or_post_param('validation_state')
         waarde_n_filter = self.get_or_post_param('waarde_n')
         waarde_a_filter = self.get_or_post_param('waarde_a')
         eenheid_oms_filter = self.get_or_post_param('eenheid_oms')
@@ -516,6 +517,9 @@ class OpnamesAPI(FilteredOpnamesAPIView):
         if detectiegrens_filter:
             filtered_opnames = filtered_opnames.filter(
                 detect__teken__icontains=detectiegrens_filter)
+        if validation_state_filter:
+            filtered_opnames = filtered_opnames.filter(
+                validation_state__icontains=validation_state_filter)
         if waarde_n_filter:
             if '..' in waarde_n_filter:
                 waarde_range = waarde_n_filter.split('..')
