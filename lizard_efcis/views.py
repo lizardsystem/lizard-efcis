@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 
 from datetime import datetime
 from itertools import groupby
-import csv
 import logging
 
 from django.core.paginator import EmptyPage
@@ -28,9 +27,10 @@ from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 import numpy as np
 
+from lizard_efcis import export_data
 from lizard_efcis import models
 from lizard_efcis import serializers
-from lizard_efcis import export_data
+from lizard_efcis.manager import UNRELIABLE
 from lizard_efcis.manager import VALIDATED
 from lizard_efcis.manager import VALIDATION_CHOICES
 
@@ -190,6 +190,8 @@ class MeetnetAPI(APIView):
 class FilteredOpnamesAPIView(APIView):
     """Base view for returning opnames, filted by GET parameters."""
 
+    exclude_unreliable_also_for_managers = True
+
     def post(self, *args, **kwargs):
         # Dirty hack around long URLs due to long query parameters.  Note that
         # this only works for the FilteredOpnamesAPIView descendants!
@@ -203,6 +205,9 @@ class FilteredOpnamesAPIView(APIView):
     @property
     def filtered_opnames(self):
         opnames = models.Opname.objects.all()
+
+        if self.exclude_unreliable_also_for_managers:
+            opnames = opnames.exclude(validation_state=UNRELIABLE)
 
         start_date = self.get_or_post_param('start_date')
         end_date = self.get_or_post_param('end_date')
@@ -478,6 +483,12 @@ class MapAPI(FilteredOpnamesAPIView):
 
 
 class OpnamesAPI(FilteredOpnamesAPIView):
+
+    exclude_unreliable_also_for_managers = False
+    # ^^^ The table view is the only place were managers want to see
+    # unreliable opnames. In all other places (especially the mean/min/max
+    # values) they should be filtered out even for them. (Normal users already
+    # only see validated opnames).
 
     def get(self, request, format=None):
         loc_id_filter = self.get_or_post_param('loc_id')
