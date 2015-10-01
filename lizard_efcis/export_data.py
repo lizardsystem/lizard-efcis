@@ -160,7 +160,7 @@ def retrieve_headers(mapping_fields):
 
 import resource
 def using(point=""):
-    usage=resource.getrusage(resource.RUSAGE_BOTH)
+    usage=resource.getrusage(resource.RUSAGE_SELF)
     return '''%s: usertime=%s systime=%s mem=%s mb
            '''%(point,usage[0],usage[1],
                 (usage[2]*resource.getpagesize())/1024.0/1024.0 )
@@ -174,14 +174,14 @@ def get_csv_context(queryset, import_mapping):
     import datetime
     th1 = datetime.datetime.now()
     
-    if queryset.model.__name__ != import_mapping.tabel_naam:
-        logger.error("Wrong mapping, queryset of '%s' mapped "
-                     "to the table name '%s' in the mapping "
-                     "'%s'." % (
-                         queryset.model.__name__,
-                         import_mapping.tabel_naam,
-                         import_mapping.code))
-        raise StopIteration
+    # if queryset.model.__name__ != import_mapping.tabel_naam:
+    #     logger.error("Wrong mapping, queryset of '%s' mapped "
+    #                  "to the table name '%s' in the mapping "
+    #                  "'%s'." % (
+    #                      queryset.model.__name__,
+    #                      import_mapping.tabel_naam,
+    #                      import_mapping.code))
+    #     raise StopIteration
     t1_mf = datetime.datetime.now()
     mapping_fields = retrieve_mapping_fields(import_mapping)
     t2_mf = datetime.datetime.now()
@@ -195,7 +195,7 @@ def get_csv_context(queryset, import_mapping):
     yield headers
     count = 0
     print(using("External FOR START"))
-    for model_object in queryset:
+    for model_object in queryset.iterator():
         if count == 0:
             print(using("External FOR START"))
             count += 1

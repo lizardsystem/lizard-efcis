@@ -881,7 +881,7 @@ class ExportCSVView(FilteredOpnamesAPIView):
 
     def row_iterator(self, import_mapping):
         """Return rows as list of lists."""
-        opnames = self.filtered_opnames.prefetch_related(
+        opnames = self.filtered_opnames.select_related(
             'locatie',
             'locatie__watertype',
             'wns',
@@ -892,8 +892,7 @@ class ExportCSVView(FilteredOpnamesAPIView):
             'wns__hoedanigheid',
             'wns__compartiment',
             'locatie__waterlichaam',
-        )
-        opnames = opnames.order_by()  # Switch off sorting.
+        ).order_by()
         return export_data.get_csv_context(opnames, import_mapping)
 
     def get(self, request, import_mapping_id=None, format=None):
@@ -905,6 +904,7 @@ class ExportCSVView(FilteredOpnamesAPIView):
         response = HttpResponse(content_type='text/csv')
         response[
             'Content-Disposition'] = 'attachment; filename="%s"' % filename
+        import csv
         writer = export_data.UnicodeWriter(
             response,
             dialect='excel',
