@@ -158,11 +158,22 @@ def retrieve_headers(mapping_fields):
     return headers
 
 
+import resource
+def using(point=""):
+    usage=resource.getrusage(resource.RUSAGE_BOTH)
+    return '''%s: usertime=%s systime=%s mem=%s mb
+           '''%(point,usage[0],usage[1],
+                (usage[2]*resource.getpagesize())/1024.0/1024.0 )
+
+
 def get_csv_context(queryset, import_mapping):
     """
     Retrieve data conform the mapping.
     Not suitable for ManyToMany fields"""
-    context = []
+
+    import datetime
+    th1 = datetime.datetime.now()
+    
     if queryset.model.__name__ != import_mapping.tabel_naam:
         logger.error("Wrong mapping, queryset of '%s' mapped "
                      "to the table name '%s' in the mapping "
@@ -170,19 +181,30 @@ def get_csv_context(queryset, import_mapping):
                          queryset.model.__name__,
                          import_mapping.tabel_naam,
                          import_mapping.code))
-        return None
-
+        raise StopIteration
+    t1_mf = datetime.datetime.now()
     mapping_fields = retrieve_mapping_fields(import_mapping)
-
+    t2_mf = datetime.datetime.now()
+    print("RETRIEVE MAPPING FIELDS: %f" % (t2_mf - t1_mf).total_seconds())
     headers = retrieve_headers(mapping_fields)
     # Add headers for extra fields
     extra_field_headers, extra_field_values = import_mapping.extra_field_lists()
     if extra_field_headers:
         headers.extend(extra_field_headers)
 
-    context = [headers]
+    yield headers
+    count = 0
+    print(using("External FOR START"))
     for model_object in queryset:
+        if count == 0:
+            print(using("External FOR START"))
+            count += 1
+        elif count == 10000:
+            count = 0
+        else:
+            count+=1
         row = []
+        t1 = datetime.datetime.now()
         for mapping_field in mapping_fields:
             value_out = ''
             if hasattr(model_object, mapping_field.get('db_field')):
@@ -192,19 +214,27 @@ def get_csv_context(queryset, import_mapping):
             datatype = mapping_field.get('db_datatype')
             if datatype == 'date' or datatype == 'time':
                 try:
+                    tf1 = datetime.datetime.now()
                     value_out = value.strftime(
                         mapping_field.get('data_format'))
+                    tf2 = datetime.datetime.now()
+                   # print("DATE TIME: %f" % (tf2 - tf1).total_seconds())
                 except:
                     value_out = ''
             elif value and datatype in models.MappingField.FOREIGNKEY_MODELS:
                 if type(value).__name__ == 'ManyRelatedManager':
+                    tm1 = datetime.datetime.now()
                     meetnetten = value.filter(
                         code=mapping_field.get('file_field'))
                     if meetnetten.exists():
                         value = meetnetten[0]
+                    tm2 = datetime.datetime.now()
+                    #print("MANU2Many: %f" % (th2 - th1).total_seconds() )
                 foreign_fields = mapping_field.get('foreignkey_field', '').split('__')
                 # Used only 2 fields separated with '__'
+                tk1 = datetime.datetime.now()
                 if len(foreign_fields) >= 2:
+                    
                     if hasattr(value, foreign_fields[0]):
                         value = getattr(value, foreign_fields[0])
                     foreignkey_field = foreign_fields[1]
@@ -214,6 +244,8 @@ def get_csv_context(queryset, import_mapping):
                     value_out = getattr(value, foreignkey_field, '')
                 else:
                     value_out = ''
+                tk2 = datetime.datetime.now()
+                #print("FOREIGN VALUE: %f" % (tk2 - tk1).total_seconds())
             else:
                 value_out = value
 
@@ -226,8 +258,14 @@ def get_csv_context(queryset, import_mapping):
             if value_out is None:
                 value_out = ''
             row.append(value_out)
+        t2 = datetime.datetime.today()
+        #print("RETRIEVE 1 RECORD: %f" % (t2 - t1).total_seconds())
         # Add values for extra fields
+        t_ef1 = datetime.datetime.today()
         for extra_field_value in extra_field_values:
             row.append(extra_field_value)
-        context.append(row)
-    return context
+        t_ef2 = datetime.datetime.today()
+        #print("EXTRA FIELDS: %f" % (t_ef2 - t_ef1).total_seconds())
+        yield row
+    th2 = datetime.datetime.now()
+    print("----TOTAL DURATION %f----" % (th2 - th1).total_seconds() )
