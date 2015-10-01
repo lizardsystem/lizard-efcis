@@ -32,6 +32,7 @@ from lizard_efcis import models
 from lizard_efcis import serializers
 from lizard_efcis import export_data
 from lizard_efcis.manager import VALIDATED
+from lizard_efcis.manager import VALIDATION_CHOICES
 
 MAX_GRAPH_RESULTS = 20000
 GRAPH_KEY_SEPARATOR = '___'
@@ -485,7 +486,7 @@ class OpnamesAPI(FilteredOpnamesAPIView):
         loc_oms_filter = self.get_or_post_param('loc_oms')
         activiteit_filter = self.get_or_post_param('activiteit')
         detectiegrens_filter = self.get_or_post_param('detectiegrens')
-        validation_state_filter = self.get_or_post_param('validation_state')
+        validation_state_filter = self.get_or_post_param('validatiestatus')
         waarde_n_filter = self.get_or_post_param('waarde_n')
         waarde_a_filter = self.get_or_post_param('waarde_a')
         eenheid_oms_filter = self.get_or_post_param('eenheid_oms')
@@ -518,8 +519,12 @@ class OpnamesAPI(FilteredOpnamesAPIView):
             filtered_opnames = filtered_opnames.filter(
                 detect__teken__icontains=detectiegrens_filter)
         if validation_state_filter:
+            search_text = validation_state_filter.lower()
+            matching_states = [number for (number, text) in VALIDATION_CHOICES
+                               if search_text in text.lower()]
+            print("Matching states: %s" % matching_states)
             filtered_opnames = filtered_opnames.filter(
-                validation_state__icontains=validation_state_filter)
+                validation_state__in=matching_states)
         if waarde_n_filter:
             if '..' in waarde_n_filter:
                 waarde_range = waarde_n_filter.split('..')
