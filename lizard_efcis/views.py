@@ -522,7 +522,6 @@ class OpnamesAPI(FilteredOpnamesAPIView):
             search_text = validation_state_filter.lower()
             matching_states = [number for (number, text) in VALIDATION_CHOICES
                                if search_text in text.lower()]
-            print("Matching states: %s" % matching_states)
             filtered_opnames = filtered_opnames.filter(
                 validation_state__in=matching_states)
         if waarde_n_filter:
