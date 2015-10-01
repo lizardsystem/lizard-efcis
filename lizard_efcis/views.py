@@ -905,6 +905,7 @@ class ExportCSVView(FilteredOpnamesAPIView):
             'wns__eenheid',
             'wns__hoedanigheid',
             'wns__compartiment',
+            'locatie__waterlichaam',
         )
         opnames = opnames.order_by()  # Switch off sorting.
         context = export_data.get_csv_context(opnames, import_mapping)
