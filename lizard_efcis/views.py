@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 
 from datetime import datetime
 from itertools import groupby
-import csv
 import logging
 
 from django.core.paginator import EmptyPage
@@ -28,10 +27,12 @@ from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 import numpy as np
 
+from lizard_efcis import export_data
 from lizard_efcis import models
 from lizard_efcis import serializers
-from lizard_efcis import export_data
+from lizard_efcis.manager import UNRELIABLE
 from lizard_efcis.manager import VALIDATED
+from lizard_efcis.manager import VALIDATION_CHOICES
 
 MAX_GRAPH_RESULTS = 20000
 GRAPH_KEY_SEPARATOR = '___'
@@ -44,8 +45,8 @@ def str_to_datetime(datetime_string):
     try:
         return datetime.strptime(datetime_string, dtformat)
     except:
-        logger.warn("Datetime string %r doesn't match format %s.",
-                    datetime_string, dtformat)
+        logger.debug("Datetime string %r doesn't match format %s.",
+                     datetime_string, dtformat)
 
 
 def possibly_halved_or_krw_value(opname):
@@ -189,6 +190,8 @@ class MeetnetAPI(APIView):
 class FilteredOpnamesAPIView(APIView):
     """Base view for returning opnames, filted by GET parameters."""
 
+    exclude_unreliable_also_for_managers = True
+
     def post(self, *args, **kwargs):
         # Dirty hack around long URLs due to long query parameters.  Note that
         # this only works for the FilteredOpnamesAPIView descendants!
@@ -202,6 +205,9 @@ class FilteredOpnamesAPIView(APIView):
     @property
     def filtered_opnames(self):
         opnames = models.Opname.objects.all()
+
+        if self.exclude_unreliable_also_for_managers:
+            opnames = opnames.exclude(validation_state=UNRELIABLE)
 
         start_date = self.get_or_post_param('start_date')
         end_date = self.get_or_post_param('end_date')
@@ -324,6 +330,7 @@ class MapAPI(FilteredOpnamesAPIView):
             pk__in=relevant_wns_ids).values('id', 'wns_oms')
 
         latest_values = {}  # Latest value per location.
+        latest_krw_values = {}  # Latest value per location.
         color_values = {}  # Latest value converted to 0-100 scale.
         abs_color_values = {}  # Same, but scaled to all values.
         boxplot_values = {}
@@ -344,6 +351,7 @@ class MapAPI(FilteredOpnamesAPIView):
             opnames_for_color_by = numerical_opnames.filter(
                 wns=self.color_by).values(
                     'locatie', 'datum', 'tijd', 'waarde_n',
+                    'waarde_a',
                     'waarde_krw',
                     'detect__teken', 'activiteit__act_type')
 
@@ -416,11 +424,16 @@ class MapAPI(FilteredOpnamesAPIView):
                                 'median': np.median(values),
                                 'min': np.min(values),
                                 'max': np.max(values),
-                                'std': np.std(values, ddof=1),
+                                'std': np.std(values),
                                 'q1': np.percentile(values, 25),
                                 'q3': np.percentile(values, 75),
                                 'p10': np.percentile(values, 10),
                                 'p90': np.percentile(values, 90)}
+
+                if is_krw_score:
+                    krw_values = [opname['waarde_a'] for opname in opnames_per_locatie
+                                  if opname['waarde_a']]
+                    latest_krw_values[locatie] = krw_values[-1]
 
                 if not opnames_per_locatie:
                     continue
@@ -450,6 +463,7 @@ class MapAPI(FilteredOpnamesAPIView):
             locaties,
             many=True,
             context={'latest_values': latest_values,
+                     'latest_krw_values': latest_krw_values,
                      'latest_datetimes': latest_datetimes,
                      'is_krw_score': is_krw_score,
                      'color_values': color_values,
@@ -470,6 +484,12 @@ class MapAPI(FilteredOpnamesAPIView):
 
 class OpnamesAPI(FilteredOpnamesAPIView):
 
+    exclude_unreliable_also_for_managers = False
+    # ^^^ The table view is the only place were managers want to see
+    # unreliable opnames. In all other places (especially the mean/min/max
+    # values) they should be filtered out even for them. (Normal users already
+    # only see validated opnames).
+
     def get(self, request, format=None):
         loc_id_filter = self.get_or_post_param('loc_id')
         wns_oms_filter = self.get_or_post_param('wns_oms')
@@ -477,6 +497,7 @@ class OpnamesAPI(FilteredOpnamesAPIView):
         loc_oms_filter = self.get_or_post_param('loc_oms')
         activiteit_filter = self.get_or_post_param('activiteit')
         detectiegrens_filter = self.get_or_post_param('detectiegrens')
+        validation_state_filter = self.get_or_post_param('validatiestatus')
         waarde_n_filter = self.get_or_post_param('waarde_n')
         waarde_a_filter = self.get_or_post_param('waarde_a')
         eenheid_oms_filter = self.get_or_post_param('eenheid_oms')
@@ -508,6 +529,12 @@ class OpnamesAPI(FilteredOpnamesAPIView):
         if detectiegrens_filter:
             filtered_opnames = filtered_opnames.filter(
                 detect__teken__icontains=detectiegrens_filter)
+        if validation_state_filter:
+            search_text = validation_state_filter.lower()
+            matching_states = [number for (number, text) in VALIDATION_CHOICES
+                               if search_text in text.lower()]
+            filtered_opnames = filtered_opnames.filter(
+                validation_state__in=matching_states)
         if waarde_n_filter:
             if '..' in waarde_n_filter:
                 waarde_range = waarde_n_filter.split('..')
@@ -640,6 +667,9 @@ class GraphsAPI(FilteredOpnamesAPIView):
         lines = []
         for key, group in groupby(all_points, _key):
             points = list(group)
+            if not points:
+                # Weird corner case?
+                continue
             first = points[0]
             line = {'wns': first['wns__wns_oms'],
                     'location': first['locatie__loc_oms'],
@@ -679,19 +709,20 @@ class LineAPI(FilteredOpnamesAPIView):
             'wns__parameter__par_code',
             'wns__eenheid__eenheid',
             'locatie__loc_oms',
+            'detect__teken',
             'datum',
             'tijd',
             'waarde_n')
 
         points = list(points)
         if not points:
-            logger.error("Weird. No opnames found in LineAPI for key %s.",
-                         key)
+            logger.warn("Weird. No opnames found in LineAPI for key %s.",
+                        key)
             return Response({})
         first = points[0]
         data = [{'datetime': '%sT%s.000Z' % (point['datum'],
                                              point['tijd'] or '00:00:00'),
-                 'value': point['waarde_n']} for point in points]
+                 'value': possibly_halved_or_krw_value(point)} for point in points]
         line = {'wns': first['wns__wns_oms'],
                 'location': first['locatie__loc_oms'],
                 'unit': first['wns__eenheid__eenheid'],
@@ -727,7 +758,7 @@ class BoxplotAPI(FilteredOpnamesAPIView):
                         'median': np.median(values),
                         'min': np.min(values),
                         'max': np.max(values),
-                        'std': np.std(values, ddof=1),
+                        'std': np.std(values),
                         'num_values': len(values),
                         'q1': np.percentile(values, 25),
                         'q3': np.percentile(values, 75),
@@ -817,6 +848,7 @@ class ScatterplotGraphAPI(FilteredOpnamesAPIView):
                 'wns__parameter__par_code',
                 'wns__eenheid__eenheid',
                 'locatie__loc_oms',
+                'detect__teken',
                 'datum',
                 'waarde_n')
         our_opnames2 = numerical_opnames.filter(
@@ -825,6 +857,7 @@ class ScatterplotGraphAPI(FilteredOpnamesAPIView):
                 'wns__parameter__par_code',
                 'wns__eenheid__eenheid',
                 'locatie__loc_oms',
+                'detect__teken',
                 'datum',
                 'waarde_n')
         dates = [opname['datum'] for opname in our_opnames1]
@@ -837,8 +870,8 @@ class ScatterplotGraphAPI(FilteredOpnamesAPIView):
                             if opname['datum'] == date]
             if not (x_candidates and y_candidates):
                 continue
-            x = x_candidates[0]['waarde_n']
-            y = y_candidates[0]['waarde_n']
+            x = possibly_halved_or_krw_value(x_candidates[0])
+            y = possibly_halved_or_krw_value(y_candidates[0])
             points.append({'x': x, 'y': y})
 
         first_x = our_opnames1[0]

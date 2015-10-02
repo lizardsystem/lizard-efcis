@@ -262,6 +262,7 @@ class MapSerializer(gis_serializers.GeoFeatureModelSerializer):
     color_value = serializers.SerializerMethodField()
     abs_color_value = serializers.SerializerMethodField()
     latest_value = serializers.SerializerMethodField()
+    latest_krw_value = serializers.SerializerMethodField()
     latest_datetime = serializers.SerializerMethodField()
     boxplot_data = serializers.SerializerMethodField()
     is_krw_score = serializers.SerializerMethodField()
@@ -284,6 +285,9 @@ class MapSerializer(gis_serializers.GeoFeatureModelSerializer):
     def get_latest_value(self, obj):
         return self.context['latest_values'].get(obj.id)
 
+    def get_latest_krw_value(self, obj):
+        return self.context['latest_krw_values'].get(obj.id)
+
     def get_latest_datetime(self, obj):
         return self.context['latest_datetimes'].get(obj.id)
 
@@ -293,6 +297,7 @@ class MapSerializer(gis_serializers.GeoFeatureModelSerializer):
     class Meta:
         model = models.Locatie
         fields = ('id', 'loc_id', 'loc_oms', 'color_value', 'latest_value',
+                  'latest_krw_value',
                   'abs_color_value',
                   'is_krw_score',
                   'latest_datetime', 'boxplot_data', 'photo_url',
