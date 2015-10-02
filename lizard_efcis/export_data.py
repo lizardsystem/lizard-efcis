@@ -192,10 +192,21 @@ def get_csv_context(queryset, import_mapping):
     if extra_field_headers:
         headers.extend(extra_field_headers)
 
-    yield headers
+    context = [headers]
     count = 0
     print(using("External FOR START"))
-    for model_object in queryset.iterator():
+    full_fieldnames = [mappingfield.full_fieldname() for mappingfield in import_mapping.mappingfield_set.all()]
+    print(full_fieldnames)
+    result = queryset.values(*full_fieldnames)
+    print(using("BEFORE File WRITTEN: to tmp"))
+    # import pdb; pdb.set_trace()
+    # with open('/tmp/result.txt', 'wb') as f:
+    #     for row in result.iterator():
+    #         f.write(repr(row))
+    # print(using("File WRITTEN: to tmp"))
+    # del queryset
+    # print(using("After queryset deletion"))
+    for model_object in result.iterator():
         if count == 0:
             print(using("External FOR START"))
             count += 1
@@ -266,6 +277,7 @@ def get_csv_context(queryset, import_mapping):
             row.append(extra_field_value)
         t_ef2 = datetime.datetime.today()
         #print("EXTRA FIELDS: %f" % (t_ef2 - t_ef1).total_seconds())
-        yield row
+        context.append(row)
     th2 = datetime.datetime.now()
     print("----TOTAL DURATION %f----" % (th2 - th1).total_seconds() )
+    return context

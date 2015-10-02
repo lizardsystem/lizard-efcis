@@ -895,6 +895,13 @@ class MappingField(models.Model):
         blank=True,
         help_text="b.v. %d-%m-%Y voor de datum.")
 
+    def full_fieldname(self):
+        if self.foreignkey_field:
+            return "%s__%s" % (
+                self.db_field, self.foreignkey_field)
+        else:
+            return self.db_field
+
     def __unicode__(self):
         return '{0}-{1}'.format(self.db_field, self.file_field)
 
