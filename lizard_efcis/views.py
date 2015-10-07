@@ -928,7 +928,8 @@ class ExportCSVView(FilteredOpnamesAPIView):
             self.request.get_host()
         )
         response = Response(
-            {"message": "Export is gestart, u krijgt een email als het klaar is."})
+            {"message": "Export is gestart, u krijgt een email als het klaar is.",
+             "email": request.user.email})
         return response
 
 
