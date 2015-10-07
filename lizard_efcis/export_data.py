@@ -115,7 +115,8 @@ def create_mapping_field(file_field, db_field):
     return {
         'db_field': db_field,
         'file_field': file_field,
-        'db_datatype': 'CharField'}
+        'db_datatype': 'CharField'
+    }
 
 
 def retrieve_mapping_fields(import_mapping):
@@ -158,19 +159,10 @@ def retrieve_headers(mapping_fields):
     return headers
 
 
-def get_csv_context(queryset, import_mapping):
+def get_csv_context(queryset, import_mapping, chunksize=30000):
     """
     Retrieve data conform the mapping.
-    Not suitable for ManyToMany fields"""
-    context = []
-    if queryset.model.__name__ != import_mapping.tabel_naam:
-        logger.error("Wrong mapping, queryset of '%s' mapped "
-                     "to the table name '%s' in the mapping "
-                     "'%s'." % (
-                         queryset.model.__name__,
-                         import_mapping.tabel_naam,
-                         import_mapping.code))
-        return None
+    """
 
     mapping_fields = retrieve_mapping_fields(import_mapping)
 
@@ -180,54 +172,60 @@ def get_csv_context(queryset, import_mapping):
     if extra_field_headers:
         headers.extend(extra_field_headers)
 
-    context = [headers]
-    for model_object in queryset:
-        row = []
-        for mapping_field in mapping_fields:
-            value_out = ''
-            if hasattr(model_object, mapping_field.get('db_field')):
-                value = getattr(model_object, mapping_field.get('db_field'), '')
-            else:
-                value = "Fout in mapping db_field: '%s' bestaat niet." % mapping_field.get('db_field')
-            datatype = mapping_field.get('db_datatype')
-            if datatype == 'date' or datatype == 'time':
-                try:
-                    value_out = value.strftime(
-                        mapping_field.get('data_format'))
-                except:
-                    value_out = ''
-            elif value and datatype in models.MappingField.FOREIGNKEY_MODELS:
-                if type(value).__name__ == 'ManyRelatedManager':
-                    meetnetten = value.filter(
-                        code=mapping_field.get('file_field'))
-                    if meetnetten.exists():
-                        value = meetnetten[0]
-                foreign_fields = mapping_field.get('foreignkey_field', '').split('__')
-                # Used only 2 fields separated with '__'
-                if len(foreign_fields) >= 2:
-                    if hasattr(value, foreign_fields[0]):
-                        value = getattr(value, foreign_fields[0])
-                    foreignkey_field = foreign_fields[1]
-                else:
-                    foreignkey_field = foreign_fields[0]
-                if hasattr(value, foreignkey_field):
-                    value_out = getattr(value, foreignkey_field, '')
-                else:
-                    value_out = ''
-            else:
-                value_out = value
+    yield headers
 
-            if isinstance(value_out, int):
-                value_out = str(value_out)
-            if isinstance(value_out, float):
-                value_out = str(value_out)
-            if isinstance(value_out, Model):
-                value_out = "Fout in mapping: wijst naar compleet item i.p.v. veld"
-            if value_out is None:
+    pk = 0
+    lastpk = queryset.order_by('-pk')[0].pk
+    queryset = queryset.order_by('pk')
+    while pk < lastpk:
+        chunk_values = queryset.filter(pk__gt=pk)[:chunksize]
+        for model_object in chunk_values:
+            row = []
+            pk = model_object.pk
+            for mapping_field in mapping_fields:
                 value_out = ''
-            row.append(value_out)
-        # Add values for extra fields
-        for extra_field_value in extra_field_values:
-            row.append(extra_field_value)
-        context.append(row)
-    return context
+                if hasattr(model_object, mapping_field.get('db_field')):
+                    value = getattr(model_object, mapping_field.get('db_field'), '')
+                else:
+                    value = "Fout in mapping db_field: '%s' bestaat niet." % mapping_field.get('db_field')
+                datatype = mapping_field.get('db_datatype')
+                if datatype == 'date' or datatype == 'time':
+                    try:
+                        value_out = value.strftime(
+                            mapping_field.get('data_format'))
+                    except:
+                        value_out = ''
+                elif value and datatype in models.MappingField.FOREIGNKEY_MODELS:
+                    if type(value).__name__ == 'ManyRelatedManager':
+                        meetnetten = value.filter(
+                            code=mapping_field.get('file_field'))
+                        if meetnetten.exists():
+                            value = meetnetten[0]
+                    foreign_fields = mapping_field.get('foreignkey_field', '').split('__')
+                    # Used only 2 fields separated with '__'
+                    if len(foreign_fields) >= 2:
+                        if hasattr(value, foreign_fields[0]):
+                            value = getattr(value, foreign_fields[0])
+                        foreignkey_field = foreign_fields[1]
+                    else:
+                        foreignkey_field = foreign_fields[0]
+                    if hasattr(value, foreignkey_field):
+                        value_out = getattr(value, foreignkey_field, '')
+                    else:
+                        value_out = ''
+                else:
+                    value_out = value
+
+                if isinstance(value_out, int):
+                    value_out = str(value_out)
+                if isinstance(value_out, float):
+                    value_out = str(value_out)
+                if isinstance(value_out, Model):
+                    value_out = "Fout in mapping: wijst naar compleet item i.p.v. veld"
+                if value_out is None:
+                    value_out = ''
+                row.append(value_out)
+            # Add values for extra fields
+            for extra_field_value in extra_field_values:
+                row.append(extra_field_value)
+            yield row

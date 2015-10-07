@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 import logging
+import os
 
 from celery import shared_task
 from django.core.mail import send_mail
@@ -8,14 +9,69 @@ from django.conf import settings
 
 from lizard_efcis import validation
 from lizard_efcis.import_data import DataImport
-from lizard_efcis.models import FTPLocation
+from lizard_efcis.models import FTPLocation, Opname
+from lizard_efcis import export_data
 
 logger = logging.getLogger(__name__)
+
+
+EXPORT_DIR = "task_export/"
 
 
 @shared_task
 def add(x, y):
     return x + y
+
+
+@shared_task
+def export_opnames_to_csv(to_email, query, filename, import_mapping, domain):
+    """
+    Argument query of django.db.models.sql.query.Query
+
+    contains filters, ordering, etc.
+    """
+    body = ""
+    export_dir = os.path.join(settings.MEDIA_ROOT, EXPORT_DIR)
+    queryset = Opname.objects.all()
+    queryset.query = query
+    queryset = queryset.prefetch_related(
+            'locatie',
+            'locatie__watertype',
+            'wns',
+            'activiteit',
+            'detect',
+            'wns__parameter',
+            'wns__eenheid',
+            'wns__hoedanigheid',
+            'wns__compartiment',
+            'locatie__waterlichaam',
+    )
+    if not os.path.isdir(export_dir):
+        body = "'%s' is geen export directory."
+        send_mail('EFCIS: Fout bij csv-export',
+                  body,
+                  settings.DEFAULT_FROM_EMAIL,
+                  [to_email])
+        return
+    filepath = os.path.join(export_dir, filename)
+    with open(filepath, 'wb') as csv_file:
+        writer = export_data.UnicodeWriter(
+            csv_file,
+            dialect='excel',
+            delimiter=str(import_mapping.scheiding_teken))
+        for row in export_data.get_csv_context(
+                queryset, import_mapping):
+            writer.writerow(row)
+        url = ''.join([domain,
+                       settings.MEDIA_URL,
+                       EXPORT_DIR,
+                       filename])
+        body = "CSV-export is klaar en kan opgehaald worden via deze link "\
+               "<a href='%s'>%s</a>." % (url, url)
+        send_mail('EFCIS: CSV-export',
+                  body,
+                  settings.DEFAULT_FROM_EMAIL,
+                  [to_email])
 
 
 @shared_task

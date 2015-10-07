@@ -30,6 +30,7 @@ import numpy as np
 from lizard_efcis import export_data
 from lizard_efcis import models
 from lizard_efcis import serializers
+from lizard_efcis import tasks
 from lizard_efcis.manager import UNRELIABLE
 from lizard_efcis.manager import VALIDATED
 from lizard_efcis.manager import VALIDATION_CHOICES
@@ -911,24 +912,7 @@ class ExportFormatsAPI(APIView):
 
 
 class ExportCSVView(FilteredOpnamesAPIView):
-
-    def rows(self, import_mapping):
-        """Return rows as list of lists."""
-        opnames = self.filtered_opnames.prefetch_related(
-            'locatie',
-            'locatie__watertype',
-            'wns',
-            'activiteit',
-            'detect',
-            'wns__parameter',
-            'wns__eenheid',
-            'wns__hoedanigheid',
-            'wns__compartiment',
-            'locatie__waterlichaam',
-        )
-        opnames = opnames.order_by()  # Switch off sorting.
-        context = export_data.get_csv_context(opnames, import_mapping)
-        return context
+    """Export through celery."""
 
     def get(self, request, import_mapping_id=None, format=None):
         import_mapping = models.ImportMapping.objects.get(
@@ -936,15 +920,16 @@ class ExportCSVView(FilteredOpnamesAPIView):
         filename = "%s-%s.csv" % (
             slugify(import_mapping.code),
             datetime.now().strftime("%Y-%m-%d_%H%M"))
-        response = HttpResponse(content_type='text/csv')
-        response[
-            'Content-Disposition'] = 'attachment; filename="%s"' % filename
-        writer = export_data.UnicodeWriter(
-            response,
-            dialect='excel',
-            delimiter=str(import_mapping.scheiding_teken))
-        for row in self.rows(import_mapping):
-            writer.writerow(row)
+        tasks.export_opnames_to_csv.delay(
+            request.user.email,
+            self.filtered_opnames.query,
+            filename,
+            import_mapping,
+            self.request.get_host()
+        )
+        response = Response(
+            {"message": "Export is gestart, u krijgt een email als het klaar is.",
+             "email": request.user.email})
         return response
 
 
