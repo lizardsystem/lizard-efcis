@@ -898,6 +898,13 @@ class MappingField(models.Model):
     def __unicode__(self):
         return '{0}-{1}'.format(self.db_field, self.file_field)
 
+    @property
+    def values_field(self):
+        if self.db_field and self.foreignkey_field:
+            return '__'.join((self.db_field, self.foreignkey_field))
+        else:
+            return self.db_field
+    
     class Meta:
         ordering = ['db_field']
         verbose_name = "mappingveld"

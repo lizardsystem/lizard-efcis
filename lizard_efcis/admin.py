@@ -132,9 +132,9 @@ def download_csv(modeladmin, request, queryset):
     writer = export_data.UnicodeWriter(
         response,
         delimiter=str(import_mapping.scheiding_teken))
-    rows = export_data.get_csv_context(queryset, import_mapping)
-    for row in rows:
-        writer.writerow(row)
+    for row in export_data.get_csv_context(
+                queryset, import_mapping):
+            writer.writerow(row)
     return response
 download_csv.short_description = "Download CSV"
 
