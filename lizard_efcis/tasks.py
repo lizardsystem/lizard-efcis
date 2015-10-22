@@ -66,12 +66,13 @@ def export_opnames_to_csv(to_email, query, filename, import_mapping, domain):
                        settings.MEDIA_URL,
                        EXPORT_DIR,
                        filename])
-        body = 'CSV-export is klaar en kan opgehaald worden via deze link '\
-               '<a href="%s">%s</a>.' % (url, url)
+        body = '<html><body>CSV-export is klaar en kan opgehaald worden via deze link '\
+               '<a href="%s">%s</a>.</body></html>' % (url, url)
         send_mail('EFCIS: CSV-export',
-                  body,
                   settings.DEFAULT_FROM_EMAIL,
-                  [to_email])
+                  [to_email],
+                  html_message=body
+        )
 
 
 @shared_task
