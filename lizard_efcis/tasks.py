@@ -24,6 +24,43 @@ def add(x, y):
 
 
 @shared_task
+def export_to_csv(to_email, query, filename, import_mapping, domain):
+    """Create csv through admin action"""
+    body = ""
+    export_dir = os.path.join(settings.MEDIA_ROOT, EXPORT_DIR)
+    queryset = query.model.objects.all()
+    queryset.query = query
+
+    if not os.path.isdir(export_dir):
+        body = "'%s' is geen export directory."
+        send_mail('EFCIS: Fout bij csv-export',
+                  body,
+                  settings.DEFAULT_FROM_EMAIL,
+                  [to_email])
+        return
+    filepath = os.path.join(export_dir, filename)
+    with open(filepath, 'wb') as csv_file:
+        writer = export_data.UnicodeWriter(
+            csv_file,
+            dialect='excel',
+            delimiter=str(import_mapping.scheiding_teken))
+        for row in export_data.get_csv_context(
+                queryset, import_mapping):
+            writer.writerow(row)
+        url = ''.join([domain,
+                       settings.MEDIA_URL,
+                       EXPORT_DIR,
+                       filename])
+        body = '<html><body>CSV-export is klaar en kan opgehaald worden via deze link '\
+               '<a href="%s">%s</a>.</body></html>' % (url, url)
+        send_mail('EFCIS: CSV-export',
+                  '',
+                  settings.DEFAULT_FROM_EMAIL,
+                  [to_email],
+                  html_message=body)
+
+
+@shared_task
 def export_opnames_to_csv(to_email, query, filename, import_mapping, domain):
     """
     Argument query of django.db.models.sql.query.Query
@@ -72,8 +109,7 @@ def export_opnames_to_csv(to_email, query, filename, import_mapping, domain):
                   '',
                   settings.DEFAULT_FROM_EMAIL,
                   [to_email],
-                  html_message=body
-        )
+                  html_message=body)
 
 
 @shared_task
