@@ -11,7 +11,6 @@ from django.contrib import messages
 from django.http import HttpResponse
 from django.utils.text import slugify
 
-from lizard_efcis import export_data
 from lizard_efcis import ftp_access
 from lizard_efcis import models
 from lizard_efcis import tasks
@@ -126,16 +125,20 @@ def download_csv(modeladmin, request, queryset):
     filename = "%s-%s.csv" % (
         slugify(import_mapping.code),
         datetime.now().strftime("%Y-%m-%d_%H%M"))
-    response = HttpResponse(content_type='text/csv')
-    response[
-        'Content-Disposition'] = 'attachment; filename="%s"' % filename
-    writer = export_data.UnicodeWriter(
-        response,
-        delimiter=str(import_mapping.scheiding_teken))
-    for row in export_data.get_csv_context(
-                queryset, import_mapping):
-            writer.writerow(row)
-    return response
+    tasks.export_to_csv.delay(
+        request.user.email,
+        queryset.query,
+        filename,
+        import_mapping,
+        request.get_host()
+    )
+    messages.success(
+        request,
+        "Exporteren is gestart "
+        "U ontvangt een e-mail (adres: %s) met een downloadlink "
+        "als de export gereed is. Deze link blijft geldig tot "
+        "middernacht" % request.user.email
+    )
 download_csv.short_description = "Download CSV"
 
 
