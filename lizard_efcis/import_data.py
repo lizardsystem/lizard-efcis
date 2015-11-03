@@ -771,6 +771,8 @@ class DataImport(object):
             # read headers
             headers = reader.next()
             for row in reader:
+                updated = False
+                created = False
                 counter += 1
                 inst = django_models.get_model('lizard_efcis',
                                                mapping.tabel_naam)()
@@ -788,13 +790,19 @@ class DataImport(object):
                             fields_to_update = mapping_fields.exclude(
                                 db_field='id').values_list('db_field', flat=True)
                         inst.save(force_update=True, update_fields=fields_to_update)
-                        count_updates += 1
+                        updated = True
                     else:
                         inst.save()
+                        created = True
+                    if isinstance(inst, models.Locatie) and mapping_fields.filter(db_field='meetnet').exists():
+                        location = models.Locatie.objects.get(pk=inst.pk)
+                        location.meetnet.clear()
+                        # add meetnetten to location
+                        self.set_many2many_data(location, mapping_fields, row, headers)
+                    if created:
                         count_imports += 1
-                    if isinstance(inst, models.Locatie):
-                        self.set_many2many_data(inst, mapping_fields, row, headers)
-                        inst.save()
+                    if updated:
+                        count_updates += 1
                 except IntegrityError as ex:
                     count_errors += 1
                     if ignore_duplicate_key:
