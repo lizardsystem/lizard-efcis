@@ -794,9 +794,10 @@ class DataImport(object):
                     else:
                         inst.save()
                         created = True
-                    if isinstance(inst, models.Locatie):
+                    if isinstance(inst, models.Locatie) and mapping_fields.filter(db_field='meetnet').exists():
                         location = models.Locatie.objects.get(pk=inst.pk)
                         location.meetnet.clear()
+                        # add meetnetten to location
                         self.set_many2many_data(location, mapping_fields, row, headers)
                     if created:
                         count_imports += 1
