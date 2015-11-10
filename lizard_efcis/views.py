@@ -15,7 +15,6 @@ from django.db.models import Count
 from django.db.models import Max
 from django.db.models import Min
 from django.db.models import Q
-from django.http import HttpResponse
 from django.utils.functional import cached_property
 from django.utils.text import slugify
 from rest_framework import generics
