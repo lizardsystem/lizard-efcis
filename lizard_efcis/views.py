@@ -716,8 +716,7 @@ class LineAPI(FilteredOpnamesAPIView):
 
         points = list(points)
         if not points:
-            logger.warn("Weird. No opnames found in LineAPI for key %s.",
-                        key)
+            # Incorrect dates, probably.
             return Response({})
         first = points[0]
         data = [{'datetime': '%sT%s.000Z' % (point['datum'],
@@ -751,6 +750,9 @@ class BoxplotAPI(FilteredOpnamesAPIView):
             'waarde_n')
 
         points = list(points)
+        if not points:
+            # Incorrect dates, probably.
+            return Response({})
         first = points[0]
         values = [possibly_halved_or_krw_value(point)
                   for point in points]
@@ -791,6 +793,9 @@ class ScatterplotSecondAxisAPI(FilteredOpnamesAPIView):
             'datum',
             'tijd')
         points = list(points)
+        if not points:
+            # Incorrect dates, probably.
+            return Response({})
         first = points[0]
 
         dates = [point['datum'] for point in points]
