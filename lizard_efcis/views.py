@@ -15,7 +15,6 @@ from django.db.models import Count
 from django.db.models import Max
 from django.db.models import Min
 from django.db.models import Q
-from django.http import HttpResponse
 from django.utils.functional import cached_property
 from django.utils.text import slugify
 from rest_framework import generics
@@ -223,7 +222,7 @@ class FilteredOpnamesAPIView(APIView):
                 opnames = opnames.filter(datum__gte=start_datetime)
         if end_date:
             end_datetime = str_to_datetime(end_date)
-            if end_datetime:
+            if end_datetime and end_datetime > start_datetime:
                 opnames = opnames.filter(datum__lte=end_datetime)
 
         # Locations: parameter and parametergroep should be additive, not
@@ -717,8 +716,7 @@ class LineAPI(FilteredOpnamesAPIView):
 
         points = list(points)
         if not points:
-            logger.warn("Weird. No opnames found in LineAPI for key %s.",
-                        key)
+            # Incorrect dates, probably.
             return Response({})
         first = points[0]
         data = [{'datetime': '%sT%s.000Z' % (point['datum'],
@@ -752,6 +750,9 @@ class BoxplotAPI(FilteredOpnamesAPIView):
             'waarde_n')
 
         points = list(points)
+        if not points:
+            # Incorrect dates, probably.
+            return Response({})
         first = points[0]
         values = [possibly_halved_or_krw_value(point)
                   for point in points]
@@ -792,6 +793,9 @@ class ScatterplotSecondAxisAPI(FilteredOpnamesAPIView):
             'datum',
             'tijd')
         points = list(points)
+        if not points:
+            # Incorrect dates, probably.
+            return Response({})
         first = points[0]
 
         dates = [point['datum'] for point in points]

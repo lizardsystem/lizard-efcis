@@ -40,7 +40,7 @@ class FilteredOpnamesManager(Manager):
     use_for_related_fields = True
 
     def get_queryset(self):
-        """Return base queryset, filtered through lizard-security's mechanism.
+        """Return base queryset, but filtered for validation state.
         """
         queryset = super(FilteredOpnamesManager, self).get_queryset()
         if should_filter_opnames():

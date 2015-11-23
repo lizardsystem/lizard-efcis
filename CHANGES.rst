@@ -38,6 +38,8 @@ Changelog of lizard-efcis
 
 - Using very quick count for opnames.
 
+- Added indexerror-preventing safety valves.
+
 
 0.1 (2015-03-09)
 ----------------
