@@ -894,6 +894,10 @@ class MappingField(models.Model):
         null=True,
         blank=True,
         help_text="b.v. %d-%m-%Y voor de datum.")
+    ordering = models.IntegerField(
+        default=1000,
+        verbose_name='Ordering',
+        help_text='Veldvolgorde bij export, een getaal.')
 
     def __unicode__(self):
         return '{0}-{1}'.format(self.db_field, self.file_field)
@@ -906,7 +910,7 @@ class MappingField(models.Model):
             return self.db_field
     
     class Meta:
-        ordering = ['db_field']
+        ordering = ['ordering', 'db_field']
         verbose_name = "mappingveld"
         verbose_name_plural = "mappingvelden"
 
