@@ -12,6 +12,7 @@ app.config_from_object('django.conf:settings')
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 app.conf.update(
     CELERY_RESULT_BACKEND='djcelery.backends.database:DatabaseBackend',
+    BROKER_URL='django://',
     CELERYBEAT_SCHEDULER='djcelery.schedulers.DatabaseScheduler',
     CELERY_IMPORTS=("lizard_efcis.tasks", ),
 )
