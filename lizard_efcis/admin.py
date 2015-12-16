@@ -14,6 +14,7 @@ from django.utils.text import slugify
 from lizard_efcis import ftp_access
 from lizard_efcis import models
 from lizard_efcis import tasks
+from lizard_efcis.manager import VALIDATED
 
 
 def check_file(modeladmin, request, queryset):
@@ -190,6 +191,18 @@ validate_stddev_all.short_description = (
     "Valideer t.o.v. alle waardes")
 
 
+def mark_as_validated(modeladmin, request, queryset):
+    num_updated = 0
+    for opname in queryset:
+        if opname.validation_state != VALIDATED:
+            opname.validation_state = VALIDATED
+            opname.save()
+            num_updated += 1
+    messages.success(request, "%s opnames op gevalideerd gezet" % num_updated)
+mark_as_validated.short_description = (
+    "Markeer rechtstreeks als gevalideerd")
+
+
 def ftp_connection_test(modeladmin, request, queryset):
     result = ''
     for ftp_location in queryset:
@@ -337,7 +350,8 @@ class OpnameAdmin(admin.ModelAdmin):
                validate_stddev_1year,
                validate_stddev_2year,
                validate_stddev_5year,
-               validate_stddev_all]
+               validate_stddev_all,
+               mark_as_validated]
 
 
 @admin.register(models.WNS)
