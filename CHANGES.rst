@@ -40,6 +40,8 @@ Changelog of lizard-efcis
 
 - Added indexerror-preventing safety valves.
 
+- Added admin action to set opnames to 'validated' directly.
+
 
 0.1 (2015-03-09)
 ----------------
