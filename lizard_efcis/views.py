@@ -327,7 +327,7 @@ class MapAPI(FilteredOpnamesAPIView):
         relevant_wns_ids = list(set(
             [opname['wns'] for opname in opnames]))
         color_by_fields = models.WNS.objects.filter(
-            pk__in=relevant_wns_ids).values('id', 'wns_oms')
+            pk__in=relevant_wns_ids).values('id', 'wns_oms', 'parameter__par_oms_nl')
 
         latest_values = {}  # Latest value per location.
         latest_krw_values = {}  # Latest value per location.
@@ -494,6 +494,7 @@ class OpnamesAPI(FilteredOpnamesAPIView):
         loc_id_filter = self.get_or_post_param('loc_id')
         wns_oms_filter = self.get_or_post_param('wns_oms')
         par_oms_filter = self.get_or_post_param('par_oms')
+        par_oms_nl_filter = self.get_or_post_param('par_oms_nl')
         loc_oms_filter = self.get_or_post_param('loc_oms')
         activiteit_filter = self.get_or_post_param('activiteit')
         detectiegrens_filter = self.get_or_post_param('detectiegrens')
@@ -523,6 +524,9 @@ class OpnamesAPI(FilteredOpnamesAPIView):
         if par_oms_filter:
             filtered_opnames = filtered_opnames.filter(
                 wns__parameter__par_oms__icontains=par_oms_filter)
+        if par_oms_nl_filter:
+            filtered_opnames = filtered_opnames.filter(
+                wns__parameter__par_oms_nl__icontains=par_oms_nl_filter)
         if activiteit_filter:
             filtered_opnames = filtered_opnames.filter(
                 activiteit__activiteit__icontains=activiteit_filter)

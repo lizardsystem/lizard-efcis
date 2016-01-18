@@ -21,7 +21,7 @@ class ParameterSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = models.Parameter
-        fields = ('id', 'par_oms')
+        fields = ('id', 'par_oms', 'par_oms_nl')
 
 
 class MeetnetSerializer(serializers.HyperlinkedModelSerializer):
@@ -61,6 +61,9 @@ class OpnameSerializer(serializers.HyperlinkedModelSerializer):
     par_oms = serializers.CharField(
         read_only=True,
         source='wns.parameter.par_oms')
+    par_oms_nl = serializers.CharField(
+        read_only=True,
+        source='wns.parameter.par_oms_nl')
 
     validatiestatus = serializers.SerializerMethodField()
     grondsoort = serializers.CharField(
@@ -85,7 +88,7 @@ class OpnameSerializer(serializers.HyperlinkedModelSerializer):
                   'loc_oms', 'waarde_n', 'waarde_a',
                   'detectiegrens', 'url',
                   'datum', 'tijd',
-                  'par_oms',
+                  'par_oms', 'par_oms_nl',
                   'validatiestatus',
                   'eenheid_oms', 'hoed_oms', 'comp_oms',
                   'grondsoort',
@@ -102,6 +105,9 @@ class OpnameDetailSerializer(OpnameSerializer):
     par_oms = serializers.CharField(
         read_only=True,
         source='wns.parameter.par_oms')
+    par_oms_nl = serializers.CharField(
+        read_only=True,
+        source='wns.parameter.par_oms_nl')
     x1 = serializers.CharField(
         read_only=True,
         source='locatie.x1')
@@ -195,7 +201,7 @@ class OpnameDetailSerializer(OpnameSerializer):
         fields = ('wns_oms', 'wns_code', 'activiteit', 'loc_id',
                   'loc_oms', 'waarde_n', 'waarde_a',
                   'detectiegrens', 'par_code',
-                  'par_oms',
+                  'par_oms', 'par_oms_nl',
                   'validatiestatus',
                   'datum', 'tijd', 'meetnet', 'x1', 'y1', 'x2', 'y2',
                   'waterlichaam', 'watertype', 'status_krw',

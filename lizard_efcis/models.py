@@ -408,6 +408,11 @@ class Parameter(models.Model):
         max_length=255,
         null=True,
         blank=True)
+    par_oms_nl = models.CharField(
+        verbose_name="NL-omschrijving",
+        max_length=255,
+        null=True,
+        blank=True)
     casnummer = models.CharField(
         verbose_name="CAS-nummer",
         max_length=30,

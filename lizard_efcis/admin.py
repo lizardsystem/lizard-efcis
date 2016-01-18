@@ -382,9 +382,11 @@ class ParameterGroepAdmin(admin.ModelAdmin):
 class Parameter(admin.ModelAdmin):
     search_fields = ['par_code',
                      'par_oms',
+                     'par_oms_nl',
                      'casnummer']
     list_display = ['par_code',
                     'par_oms',
+                    'par_oms_nl',
                     'casnummer',
                     'datum_status',
                     'status',
