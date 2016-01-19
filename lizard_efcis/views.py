@@ -658,7 +658,7 @@ class GraphsAPI(FilteredOpnamesAPIView):
             waarde_n=None).order_by()
         all_points = numerical_opnames.values(
             'wns__wns_code', 'wns__wns_oms', 'wns__parameter__par_code',
-            'wns__eenheid__eenheid',
+            'wns__eenheid__eenheid', 'wns__parameter__par_oms_nl',
             'locatie__loc_id', 'locatie__loc_oms')[:MAX_GRAPH_RESULTS]
 
         def _key(point):
@@ -677,6 +677,7 @@ class GraphsAPI(FilteredOpnamesAPIView):
             first = points[0]
             line = {'wns': first['wns__wns_oms'],
                     'location': first['locatie__loc_oms'],
+                    'parameter_nl': first['wns__parameter__par_oms_nl'],
                     'unit': first['wns__eenheid__eenheid'],
                     'id': key,
                     'line-url': reverse(
@@ -791,6 +792,7 @@ class ScatterplotSecondAxisAPI(FilteredOpnamesAPIView):
             'wns__wns_code',
             'wns__wns_oms',
             'wns__parameter__par_code',
+            'wns__parameter__par_oms_nl',
             'wns__eenheid__eenheid',
             'locatie__loc_oms',
             'locatie__loc_id',
@@ -808,6 +810,7 @@ class ScatterplotSecondAxisAPI(FilteredOpnamesAPIView):
         lines_with_correct_dates = opnames_with_correct_date.values(
             'wns__wns_code',
             'wns__wns_oms',
+            'wns__parameter__par_oms_nl',
             'wns__parameter__par_code',
             'wns__eenheid__eenheid',
             'locatie__loc_oms',
@@ -826,6 +829,7 @@ class ScatterplotSecondAxisAPI(FilteredOpnamesAPIView):
                               line['locatie__loc_id'])
             second_axis_lines.append(
                 {'wns': line['wns__wns_oms'],
+                 'parameter_nl': line['wns__parameter__par_oms_nl'],
                  'location': line['locatie__loc_oms'],
                  'unit': line['wns__eenheid__eenheid'],
                  'url': reverse('efcis-scatterplot-graph',
@@ -838,6 +842,7 @@ class ScatterplotSecondAxisAPI(FilteredOpnamesAPIView):
         line = {'wns': first['wns__wns_oms'],
                 'location': first['locatie__loc_oms'],
                 'unit': first['wns__eenheid__eenheid'],
+                'parameter_nl': first['wns__parameter__par_oms_nl'],
                 'second_axis_lines': second_axis_lines,
                 'id': axis1_key}
 
