@@ -105,6 +105,20 @@ class FCStatus(models.Model):
         return self.naam
 
 
+class MeetStatus(models.Model):
+
+    index = models.IntegerField(unique=True)
+    naam = models.CharField(unique=True, max_length=50)
+
+    class Meta:
+        ordering = ['naam']
+        verbose_name = "biologisch/fysisch/chemische  status"
+        verbose_name_plural = "biologisch/fysisch/chemische statussen"
+
+    def __unicode__(self):
+        return self.naam
+
+
 class BioStatus(models.Model):
 
     naam = models.CharField(unique=True, max_length=50)
