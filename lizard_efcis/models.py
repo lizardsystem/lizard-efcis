@@ -317,6 +317,12 @@ class Locatie(models.Model):
         BioStatus,
         related_name="locaties",
         verbose_name="biologische status")
+    meet_status = models.ForeignKey(
+        MeetStatus,
+        null=True,
+        blank=True,
+        related_name="locaties",
+        verbose_name="biologische fysisch/chemische status")
     landgebruik = models.CharField(
         max_length=255,
         null=True,
