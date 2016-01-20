@@ -473,3 +473,9 @@ class FTPLocationAdmin(admin.ModelAdmin):
     list_display = ['hostname', 'directory', 'username']
     actions = [ftp_connection_test,
                ftp_run_import]
+
+
+@admin.register(models.MeetStatus)
+class MeetStatusAdmin(admin.ModelAdmin):
+    list_display = ['naam', 'index']
+    search_fields = ['naam']
