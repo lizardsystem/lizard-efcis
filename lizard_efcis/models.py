@@ -311,10 +311,14 @@ class Locatie(models.Model):
         verbose_name="status watertype")
     fc_status = models.ForeignKey(
         FCStatus,
+        null=True,
+        blank=True,
         related_name="locaties",
         verbose_name="fysisch/chemische status")
     bio_status = models.ForeignKey(
         BioStatus,
+        null=True,
+        blank=True,
         related_name="locaties",
         verbose_name="biologische status")
     meet_status = models.ForeignKey(
