@@ -226,7 +226,6 @@ class FilteredOpnamesAPIView(APIView):
             # retrieve 1-day where end == start
             if end_datetime and end_datetime == start_datetime:
                 end_datetime = start_datetime + timedelta(days=1)
-                opnames = opnames.filter(datum__lte=end_datetime)
             if end_datetime and end_datetime > start_datetime:
                 opnames = opnames.filter(datum__lte=end_datetime)
         # Locations: parameter and parametergroep should be additive, not
