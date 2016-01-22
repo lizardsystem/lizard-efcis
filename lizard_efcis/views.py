@@ -3,7 +3,7 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from itertools import groupby
 import logging
 
@@ -215,16 +215,20 @@ class FilteredOpnamesAPIView(APIView):
         parametergroeps = self.get_or_post_param('parametergroeps')
         meetnets = self.get_or_post_param('meetnets')
         parameter_ids = self.get_or_post_param('parameters')
-
+        start_datetime = None
+        end_datetime = None
         if start_date:
             start_datetime = str_to_datetime(start_date)
             if start_datetime:
                 opnames = opnames.filter(datum__gte=start_datetime)
         if end_date:
             end_datetime = str_to_datetime(end_date)
+            # retrieve 1-day where end == start
+            if end_datetime and end_datetime == start_datetime:
+                end_datetime = start_datetime + timedelta(days=1)
+                opnames = opnames.filter(datum__lte=end_datetime)
             if end_datetime and end_datetime > start_datetime:
                 opnames = opnames.filter(datum__lte=end_datetime)
-
         # Locations: parameter and parametergroep should be additive, not
         # restrictive.
         parameter_filter = Q()
