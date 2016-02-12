@@ -97,7 +97,8 @@ class OpnameSerializer(serializers.HyperlinkedModelSerializer):
                   'grondsoort',
                   'landgebruik',
                   'afvoergebied',
-                  'watertype', 'meet_status',
+                  'watertype',
+                  'meet_status',
                   )
 
 

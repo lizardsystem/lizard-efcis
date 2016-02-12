@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from django.db import models, migrations
 
 
-def set_none_to_bg(apps, schema_editor):
+def set_none_to_nietbemeten(apps, schema_editor):
     """
     Set NONE values in fc_status and bio_status
     to NIET BEMETEN.
@@ -52,6 +52,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(set_none_to_bg),
+        migrations.RunPython(set_none_to_nietbemeten),
         migrations.RunPython(migrate_bio_fc_status)
     ]

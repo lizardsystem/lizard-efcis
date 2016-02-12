@@ -99,8 +99,8 @@ class MeetStatus(models.Model):
 
     class Meta:
         ordering = ['index']
-        verbose_name = "Locatiestatus"
-        verbose_name_plural = "Locatiestatus"
+        verbose_name = "locatiestatus"
+        verbose_name_plural = "locatiestatus"
 
     def __unicode__(self):
         return self.naam
