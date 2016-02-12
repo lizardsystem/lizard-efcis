@@ -92,41 +92,15 @@ class WNSStatus(models.Model):
         return self.naam
 
 
-class FCStatus(models.Model):
-
-    naam = models.CharField(unique=True, max_length=50)
-
-    class Meta:
-        ordering = ['naam']
-        verbose_name = "fysisch/chemische status"
-        verbose_name_plural = "fysisch/chemische statussen"
-
-    def __unicode__(self):
-        return self.naam
-
-
 class MeetStatus(models.Model):
 
     index = models.IntegerField(unique=True)
     naam = models.CharField(unique=True, max_length=50)
 
     class Meta:
-        ordering = ['naam']
-        verbose_name = "biologisch/fysisch/chemische  status"
-        verbose_name_plural = "biologisch/fysisch/chemische statussen"
-
-    def __unicode__(self):
-        return self.naam
-
-
-class BioStatus(models.Model):
-
-    naam = models.CharField(unique=True, max_length=50)
-
-    class Meta:
-        ordering = ['naam']
-        verbose_name = "biologische status"
-        verbose_name_plural = "biologische statussen"
+        ordering = ['index']
+        verbose_name = "Locatiestatus"
+        verbose_name_plural = "Locatiestatus"
 
     def __unicode__(self):
         return self.naam
@@ -309,24 +283,12 @@ class Locatie(models.Model):
         blank=True,
         related_name="locaties",
         verbose_name="status watertype")
-    fc_status = models.ForeignKey(
-        FCStatus,
-        null=True,
-        blank=True,
-        related_name="locaties",
-        verbose_name="fysisch/chemische status")
-    bio_status = models.ForeignKey(
-        BioStatus,
-        null=True,
-        blank=True,
-        related_name="locaties",
-        verbose_name="biologische status")
     meet_status = models.ForeignKey(
         MeetStatus,
         null=True,
         blank=True,
         related_name="locaties",
-        verbose_name="biologische fysisch/chemische status")
+        verbose_name="locatiestatus")
     landgebruik = models.CharField(
         max_length=255,
         null=True,

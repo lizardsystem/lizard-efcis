@@ -500,18 +500,6 @@ class Command(BaseCommand):
                 'foreignkey_field': 'code'
             },
             {
-                'db_field': 'fc_status',
-                'file_field': 'STATUS_FC',
-                'db_datatype': 'FCStatus',
-                'foreignkey_field': 'naam'
-            },
-            {
-                'db_field': 'bio_status',
-                'file_field': 'STATUS_BIO',
-                'db_datatype': 'BioStatus',
-                'foreignkey_field': 'naam'
-            },
-            {
                 'db_field': 'meetnet',
                 'file_field': 'Voorgedefinieerde meetpuntgroepen',
                 'db_datatype': 'Meetnet',

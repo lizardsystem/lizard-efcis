@@ -98,6 +98,10 @@ def api_root(request, format=None):
             'efcis-map',
             request=request,
             format=format),
+        'meetstatuses': reverse(
+            'efcis-meetstatuses',
+            request=request,
+            format=format),
         'KRW gebieden': reverse(
             'efcis-krw-areas',
             request=request,
@@ -264,6 +268,16 @@ class FilteredOpnamesAPIView(APIView):
                 locatie__meetnet__in=meetnetten)
         opnames = opnames.filter(location_filter).distinct()
         return opnames
+
+
+class MeetStatusAPI(generics.ListAPIView):
+
+    model = models.MeetStatus
+    serializer_class = serializers.MeetStatusSerializer
+
+    def get_queryset(self):
+        meetstatuses = models.MeetStatus.objects.all()
+        return meetstatuses
 
 
 class LocatieAPI(generics.ListAPIView):

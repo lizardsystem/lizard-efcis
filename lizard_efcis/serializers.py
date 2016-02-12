@@ -78,6 +78,9 @@ class OpnameSerializer(serializers.HyperlinkedModelSerializer):
     watertype = serializers.CharField(
         read_only=True,
         source='locatie.watertype.code')
+    meet_status = serializers.CharField(
+        read_only=True,
+        source='locatie.meet_status.naam')
 
     def get_validatiestatus(self, obj):
         return obj.get_validation_state_display()
@@ -94,7 +97,7 @@ class OpnameSerializer(serializers.HyperlinkedModelSerializer):
                   'grondsoort',
                   'landgebruik',
                   'afvoergebied',
-                  'watertype',
+                  'watertype', 'meet_status',
                   )
 
 
@@ -216,6 +219,7 @@ class OpnameDetailSerializer(OpnameSerializer):
                   'watertype',
                   'admin_link',
                   'opmerkingen', 'vis_opp_ha', 'vis_kg', 'vis_cm',
+                  'meet_status',
         )
 
 
@@ -232,14 +236,27 @@ class LocatieSerializer(gis_serializers.GeoFeatureModelSerializer):
 
     geo_punt_2 = gis_serializers.GeometryField(source='geo_punt2')
     geo_punt_1 = gis_serializers.GeometryField(source='geo_punt1')
-
+    meet_status_id = serializers.IntegerField(
+        read_only=True,
+        source='meet_status.id')
+    meet_status_naam = serializers.CharField(
+        read_only=True,
+        source='meet_status.naam')
     class Meta:
         model = models.Locatie
         fields = (
             'id', 'loc_id', 'loc_oms', 'geo_punt_2',
-            'waterlichaam', 'watertype', 'status_krw'
+            'waterlichaam', 'watertype', 'status_krw',
+            'meet_status_id', 'meet_status_naam'
         )
         geo_field = 'geo_punt_1'
+
+
+class MeetStatusSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.MeetStatus
+        fields = ('id', 'naam')
 
 
 class JsonDict(dict):

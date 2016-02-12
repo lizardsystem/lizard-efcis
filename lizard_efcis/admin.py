@@ -87,8 +87,7 @@ def download_csv(modeladmin, request, queryset):
     if queryset.model == models.Locatie:
         mapping_code = 'locaties'
         queryset = queryset.prefetch_related(
-            'bio_status',
-            'fc_status',
+            'meet_status',
             'meetnet',
             'status_krw',
             'waterlichaam',
@@ -309,8 +308,7 @@ class LocatieAdmin(admin.ModelAdmin):
     list_filter = ['waterlichaam',
                    'watertype',
                    'is_krw_area',
-                   'fc_status',
-                   'bio_status',
+                   'meet_status',
                    'landgebruik',
                    'afvoergebied',
                    'grondsoort']
@@ -454,18 +452,6 @@ class ActiviteitAdmin(admin.ModelAdmin):
 class UitvoerendeAdmin(admin.ModelAdmin):
     list_display = ['name']
     search_fields = ['name']
-
-
-@admin.register(models.BioStatus)
-class BioStatusAdmin(admin.ModelAdmin):
-    list_display = ['naam']
-    search_fields = ['naam']
-
-
-@admin.register(models.FCStatus)
-class FCStatusAdmin(admin.ModelAdmin):
-    list_display = ['naam']
-    search_fields = ['naam']
 
 
 @admin.register(models.FTPLocation)
