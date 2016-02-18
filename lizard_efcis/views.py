@@ -793,7 +793,9 @@ class BoxplotAPI(FilteredOpnamesAPIView):
                 'location': first['locatie__loc_oms'],
                 'unit': first['wns__eenheid__eenheid'],
                 'boxplot_data': boxplot_data,
-                'id': key}
+                'id': key,
+                'start_date': self.get_or_post_param("start_date"),
+                'end_date': self.get_or_post_param("end_date")}
         return Response(line)
 
 
