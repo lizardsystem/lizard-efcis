@@ -285,8 +285,6 @@ class Locatie(models.Model):
         verbose_name="status watertype")
     meet_status = models.ForeignKey(
         MeetStatus,
-        null=True,
-        blank=True,
         related_name="locaties",
         verbose_name="locatiestatus")
     landgebruik = models.CharField(
