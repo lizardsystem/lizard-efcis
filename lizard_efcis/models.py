@@ -838,6 +838,7 @@ class MappingField(models.Model):
         'Hoedanigheid',
         'Locatie',
         'Meetnet',
+        'MeetStatus',
         'Parameter',
         'ParameterGroep',
         'Status',

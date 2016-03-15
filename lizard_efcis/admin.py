@@ -235,7 +235,8 @@ class ImportRunAdmin(admin.ModelAdmin):
     search_fields = ['name',
                      'uploaded_by',
                      'attachment',
-                     'activiteit']
+                     'activiteit__activiteit'
+    ]
     raw_id_fields = ['activiteit']
     actions = [check_file, import_file]
     readonly_fields = ['validated', 'imported']
