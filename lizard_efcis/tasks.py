@@ -52,7 +52,7 @@ def export_to_csv(to_email, query, filename, import_mapping, domain):
                        EXPORT_DIR,
                        filename])
         body = '<html><body>CSV-export is klaar en kan opgehaald worden via deze link '\
-               '<a href="%s">%s</a>.</body></html>' % (url, url)
+               '<a href="%s">%s</a></body></html>' % (url, url)
         send_mail('EFCIS: CSV-export',
                   '',
                   settings.DEFAULT_FROM_EMAIL,
@@ -104,7 +104,7 @@ def export_opnames_to_csv(to_email, query, filename, import_mapping, domain):
                        EXPORT_DIR,
                        filename])
         body = '<html><body>CSV-export is klaar en kan opgehaald worden via deze link '\
-               '<a href="%s">%s</a>.</body></html>' % (url, url)
+               '<a href="%s">%s</a></body></html>' % (url, url)
         send_mail('EFCIS: CSV-export',
                   '',
                   settings.DEFAULT_FROM_EMAIL,
