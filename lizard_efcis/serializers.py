@@ -257,7 +257,7 @@ class MeetStatusSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.MeetStatus
-        fields = ('id', 'naam')
+        fields = ('id', 'naam', 'omschrijving')
 
 
 class JsonDict(dict):

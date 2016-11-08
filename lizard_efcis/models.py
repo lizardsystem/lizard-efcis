@@ -96,6 +96,10 @@ class MeetStatus(models.Model):
 
     index = models.IntegerField(unique=True)
     naam = models.CharField(unique=True, max_length=50)
+    omschrijving = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True)
 
     class Meta:
         ordering = ['index']
