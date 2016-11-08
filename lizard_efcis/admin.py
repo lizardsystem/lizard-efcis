@@ -464,5 +464,5 @@ class FTPLocationAdmin(admin.ModelAdmin):
 
 @admin.register(models.MeetStatus)
 class MeetStatusAdmin(admin.ModelAdmin):
-    list_display = ['naam', 'index']
+    list_display = ['naam', 'omschrijving', 'index']
     search_fields = ['naam']
