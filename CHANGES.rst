@@ -4,6 +4,7 @@ Changelog of lizard-efcis
 
 0.2 (unreleased)
 ----------------
+- Add 'omschrijving' field to MeetStatus, serializer.
 
 - Added API for locations, including coloring of the points per value.
 
