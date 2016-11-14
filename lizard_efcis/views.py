@@ -215,6 +215,7 @@ class FilteredOpnamesAPIView(APIView):
 
         start_date = self.get_or_post_param('start_date')
         end_date = self.get_or_post_param('end_date')
+        season = self.get_or_post_param('season')
         locations = self.get_or_post_param('locations')
         parametergroeps = self.get_or_post_param('parametergroeps')
         meetnets = self.get_or_post_param('meetnets')
@@ -232,6 +233,25 @@ class FilteredOpnamesAPIView(APIView):
                 opnames = opnames.filter(datum=start_datetime)
             if end_datetime and end_datetime > start_datetime:
                 opnames = opnames.filter(datum__lte=end_datetime)
+        if season == 'winter':
+            opnames = opnames.filter(
+                Q(datum__month=10) |
+                Q(datum__month=11) |
+                Q(datum__month=12) |
+                Q(datum__month=1) |
+                Q(datum__month=2) |
+                Q(datum__month=3)
+            )
+        if season == 'summer':
+            opnames = opnames.filter(
+                Q(datum__month=4) |
+                Q(datum__month=5) |
+                Q(datum__month=6) |
+                Q(datum__month=7) |
+                Q(datum__month=8) |
+                Q(datum__month=9)
+            )
+
         # Locations: parameter and parametergroep should be additive, not
         # restrictive.
         parameter_filter = Q()
