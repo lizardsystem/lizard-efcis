@@ -303,6 +303,11 @@ class Locatie(models.Model):
         max_length=255,
         null=True,
         blank=True)
+    krw_color = models.IntegerField(
+        null=True,
+        blank=True,
+        verbose_name='krw_color',
+        help_text='Kleur voor KRW op kaart.')
     objects = models.GeoManager()
 
     def save(self, *args, **kwargs):

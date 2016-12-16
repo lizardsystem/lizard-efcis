@@ -35,8 +35,8 @@ class Command(BaseCommand):
             area = GEOSGeometry(geojson_geometry)
             if isinstance(area, Polygon):
                 area = MultiPolygon(area)
-            name = feature['properties']['OWMNAAM']
-            loc_id = feature['properties']['OWMIDENT']
+            name = feature['properties']['LOC_OMS']
+            loc_id = feature['properties']['LOC_ID']
             logger.info("Found location %s (%s)", name, loc_id)
             locatie, created = Locatie.objects.get_or_create(loc_id=loc_id)
             locatie.loc_oms = name
