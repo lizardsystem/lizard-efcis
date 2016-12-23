@@ -307,7 +307,7 @@ class Locatie(models.Model):
         null=True,
         blank=True,
         verbose_name='krw_color',
-        help_text='Kleur voor KRW op kaart.')
+        help_text='Kleur voor KRW op kaart. Keuze = 1, 2, 3.')
     objects = models.GeoManager()
 
     def save(self, *args, **kwargs):
