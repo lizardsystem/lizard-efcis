@@ -670,6 +670,8 @@ class OpnamesAPI(FilteredOpnamesAPIView):
                 fieldname = 'detect__teken'
             elif fieldname == 'par_oms':
                 fieldname = 'wns__parameter__par_oms'
+            elif fieldname == 'par_oms_nl':
+                fieldname = 'wns__parameter__par_oms_nl'
             elif fieldname == 'hoed_oms':
                 fieldname = 'wns__hoedanigheid__hoed_oms'
             elif fieldname == 'comp_oms':
