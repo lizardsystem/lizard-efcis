@@ -804,6 +804,7 @@ class BoxplotAPI(FilteredOpnamesAPIView):
 
         lines = []
 
+        ## Some code are equal in 'if ... else ...' block below
         if split_by_year == "true":
             for year in range(first['datum'].year, last['datum'].year + 1):
                 values = [possibly_halved_or_krw_value(point)
