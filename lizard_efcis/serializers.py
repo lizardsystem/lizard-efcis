@@ -334,5 +334,5 @@ class KRWAreaSerializer(gis_serializers.GeoFeatureModelSerializer):
 
     class Meta:
         model = models.Locatie
-        fields = ('id', 'loc_id', 'loc_oms', 'area')
+        fields = ('id', 'loc_id', 'loc_oms', 'krw_color', 'area')
         geo_field = 'area'

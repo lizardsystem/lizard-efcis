@@ -670,6 +670,8 @@ class OpnamesAPI(FilteredOpnamesAPIView):
                 fieldname = 'detect__teken'
             elif fieldname == 'par_oms':
                 fieldname = 'wns__parameter__par_oms'
+            elif fieldname == 'par_oms_nl':
+                fieldname = 'wns__parameter__par_oms_nl'
             elif fieldname == 'hoed_oms':
                 fieldname = 'wns__hoedanigheid__hoed_oms'
             elif fieldname == 'comp_oms':
@@ -778,6 +780,7 @@ class BoxplotAPI(FilteredOpnamesAPIView):
     def get(self, request, key=None, format=None):
         numerical_opnames = self.filtered_opnames.exclude(waarde_n=None)
         wns_code, loc_id = key.split(GRAPH_KEY_SEPARATOR)
+        split_by_year = self.get_or_post_param('split_by_year')
         our_opnames = numerical_opnames.filter(
             wns__wns_code=wns_code, locatie__loc_id=loc_id)
         points = our_opnames.values(
@@ -795,28 +798,63 @@ class BoxplotAPI(FilteredOpnamesAPIView):
         if not points:
             # Incorrect dates, probably.
             return Response({})
+
         first = points[0]
-        values = [possibly_halved_or_krw_value(point)
-                  for point in points]
-        boxplot_data = {'mean': np.mean(values),
-                        'median': np.median(values),
-                        'min': np.min(values),
-                        'max': np.max(values),
-                        'std': np.std(values),
-                        'num_values': len(values),
-                        'q1': np.percentile(values, 25),
-                        'q3': np.percentile(values, 75),
-                        'p10': np.percentile(values, 10),
-                        'p90': np.percentile(values, 90)}
-        line = {'wns': first['wns__wns_oms'],
-                'location_id': first['locatie__loc_id'],
-                'location': first['locatie__loc_oms'],
-                'unit': first['wns__eenheid__eenheid'],
-                'boxplot_data': boxplot_data,
-                'id': key,
-                'start_date': self.get_or_post_param("start_date"),
-                'end_date': self.get_or_post_param("end_date")}
-        return Response(line)
+        last = points[len(points) - 1]
+
+        lines = []
+
+        ## Some code are equal in 'if ... else ...' block below
+        if split_by_year == "true":
+            for year in range(first['datum'].year, last['datum'].year + 1):
+                values = [possibly_halved_or_krw_value(point)
+                          for point in points if point['datum'].year == year]
+                if len(values) <= 0:
+                    continue
+
+                boxplot_data = {'mean': np.mean(values),
+                                'median': np.median(values),
+                                'min': np.min(values),
+                                'max': np.max(values),
+                                'std': np.std(values),
+                                'num_values': len(values),
+                                'q1': np.percentile(values, 25),
+                                'q3': np.percentile(values, 75),
+                                'p10': np.percentile(values, 10),
+                                'p90': np.percentile(values, 90)}
+                line = {'wns': first['wns__wns_oms'],
+                        'location_id': first['locatie__loc_id'],
+                        'location': first['locatie__loc_oms'],
+                        'unit': first['wns__eenheid__eenheid'],
+                        'boxplot_data': boxplot_data,
+                        'id': key,
+                        'start_date': "%s-%s-%s" % ("1", "1", year),
+                        'end_date': "%s-%s-%s" % ("31", "12", year)}
+                lines.append(line)
+        else:
+            values = [possibly_halved_or_krw_value(point)
+                      for point in points]
+
+            boxplot_data = {'mean': np.mean(values),
+                            'median': np.median(values),
+                            'min': np.min(values),
+                            'max': np.max(values),
+                            'std': np.std(values),
+                            'num_values': len(values),
+                            'q1': np.percentile(values, 25),
+                            'q3': np.percentile(values, 75),
+                            'p10': np.percentile(values, 10),
+                            'p90': np.percentile(values, 90)}
+            line = {'wns': first['wns__wns_oms'],
+                    'location_id': first['locatie__loc_id'],
+                    'location': first['locatie__loc_oms'],
+                    'unit': first['wns__eenheid__eenheid'],
+                    'boxplot_data': boxplot_data,
+                    'id': key,
+                    'start_date': self.get_or_post_param("start_date"),
+                    'end_date': self.get_or_post_param("end_date")}
+            lines.append(line)
+        return Response(lines)
 
 
 class ScatterplotSecondAxisAPI(FilteredOpnamesAPIView):
