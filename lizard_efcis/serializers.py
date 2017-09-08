@@ -277,6 +277,10 @@ class GeometrySerializerMethodField(serializers.SerializerMethodField):
     # it isn't in 0.8 yet.
 
     def to_representation(self, value):
+        if value is None:
+            # This probably should not happen, but None values cause
+            # tracebacks in sentry.
+            return {}
         value = super(GeometrySerializerMethodField, self).to_representation(value)
         return JsonDict(GEOSGeometry(value).geojson)
 
