@@ -45,6 +45,8 @@ Changelog of lizard-efcis
 
 - Added admin action to set opnames to 'validated' directly.
 
+- Added proper logging to ftp import task.
+
 
 0.1 (2015-03-09)
 ----------------
