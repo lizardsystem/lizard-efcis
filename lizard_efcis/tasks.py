@@ -114,6 +114,7 @@ def export_opnames_to_csv(to_email, query, filename, import_mapping, domain):
 
 @shared_task
 def ftpimport():
+    logger.info("Executing 'ftpimport' task")
     from lizard_efcis import ftp_access
     for ftp_location in FTPLocation.objects.all():
         ftp_access.handle_first_file(ftp_location)
