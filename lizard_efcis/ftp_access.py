@@ -107,6 +107,7 @@ def handle_first_file(ftp_location):
     filenames = importable_filenames(ftp_connection)
     if not filenames:
         logger.info("Niets te importeren")
+        return
 
     import_activity, created1 = Activiteit.objects.get_or_create(
         activiteit="Automatische FTP import")
