@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 from ftplib import FTP
 import StringIO
 import hashlib
+import logging
 import tempfile
 
 from django.core.files import File as DjangoFile
@@ -16,6 +17,8 @@ from lizard_efcis.models import ImportRun
 
 DIR_IMPORTED_CORRECTLY = 'VERWERKT'
 IMPORT_USER = 'automatische ftp import'
+
+logger = logging.getLogger(__name__)
 
 
 def connect(ftp_location):
@@ -99,13 +102,11 @@ def debug_info(ftp_location):
 
 
 def handle_first_file(ftp_location):
-    output = []
-    output.append("We maken een connectie met %s" % ftp_location)
+    logger.info("We maken een connectie met %s" % ftp_location)
     ftp_connection = connect(ftp_location)
     filenames = importable_filenames(ftp_connection)
     if not filenames:
-        output.append("Niets te importeren")
-        return '\n'.join(output)
+        logger.info("Niets te importeren")
 
     import_activity, created1 = Activiteit.objects.get_or_create(
         activiteit="Automatische FTP import")
@@ -114,9 +115,9 @@ def handle_first_file(ftp_location):
         activiteit=import_activity,
         name=filename)
     if created2:
-        output.append("Nieuwe import run aangemaakt: %s" % import_run)
+        logger.info("Nieuwe import run aangemaakt: %s" % import_run)
     else:
-        output.append("Bestaande import run gebruikt: %s" % import_run)
+        logger.info("Bestaande import run gebruikt: %s" % import_run)
 
     if not ftp_location.import_mapping:
         raise ValueError("Import mapping not defined on FTP location")
@@ -129,9 +130,9 @@ def handle_first_file(ftp_location):
         old_md5_hash = hashlib.md5(import_run.attachment.read()).hexdigest()
         new_md5_hash = hashlib.md5(new_attachment.read()).hexdigest()
         if old_md5_hash == new_md5_hash:
-            output.append("Attachment is niet gewijzigd.")
+            logger.info("Attachment is niet gewijzigd.")
         else:
-            output.append(
+            logger.info(
                 "Bestand op de ftp is anders dan het huidige attachment.")
             replace_attachment = True
 
@@ -140,36 +141,40 @@ def handle_first_file(ftp_location):
         import_run.validated = False
         import_run.imported = False
         import_run.save()
-        output.append("CSV van ftp als nieuw import run attachment toegevoegd.")
+        logger.info("CSV van ftp als nieuw import run attachment toegevoegd.")
 
+    logger.info("Import run info: validated=%s, imported=%s",
+                import_run.validated, import_run.imported)
     if not import_run.validated:
-        output.append("Import run is nog niet gecontroleerd, dat proberen we nu...")
+        logger.info("Import run is nog niet gecontroleerd, dat proberen we nu...")
         tasks.check_file(IMPORT_USER, importrun=import_run)
     import_run = ImportRun.objects.get(id=import_run.id)  # Reload
 
+    logger.info("Import run info: validated=%s, imported=%s",
+                import_run.validated, import_run.imported)
     if import_run.validated and not import_run.imported:
-        output.append("Import run is nog niet geimporteerd, dat proberen we nu...")
+        logger.info("Import run is nog niet geimporteerd, dat proberen we nu...")
         tasks.import_data(IMPORT_USER, importrun=import_run)
     import_run = ImportRun.objects.get(id=import_run.id)  # Reload
 
+    logger.info("Import run info: validated=%s, imported=%s",
+                import_run.validated, import_run.imported)
     log_filename = 'efcis_importlog_' + filename
     if import_run.action_log:
-        output.append("Dit is de log van het controleren/importeren:")
-        output.append(import_run.action_log_for_logfile())
+        logger.info("Dit is de log van het controleren/importeren:")
+        logger.info(import_run.action_log_for_logfile())
         write_file(ftp_connection,
                    log_filename,
                    import_run.action_log_for_logfile())
-        output.append("(Logfile is als %s naar de ftp geschreven)" % log_filename)
+        logger.info("(Logfile is als %s naar de ftp geschreven)" % log_filename)
 
     if import_run.imported:
         success_filename = '%s/%s' % (DIR_IMPORTED_CORRECTLY, filename)
-        output.append("Import is gelukt. Op de ftp verplaatsen we %s naar %s..." % (
+        logger.info("Import is gelukt. Op de ftp verplaatsen we %s naar %s..." % (
             filename, success_filename))
         move_file(ftp_connection,
                   filename,
                   success_filename)
-        output.append("Logfile %s is niet meer nodig. We verwijderen het..." % (
+        logger.info("Logfile %s is niet meer nodig. We verwijderen het..." % (
             log_filename))
         delete_file(ftp_connection, log_filename)
-
-    return '\n'.join(output)
