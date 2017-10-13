@@ -329,6 +329,7 @@ class MapSerializer(gis_serializers.GeoFeatureModelSerializer):
     class Meta:
         model = models.Locatie
         fields = ('id', 'loc_id', 'loc_oms', 'color_value', 'latest_value',
+                  'latest_display_value',
                   'latest_krw_value',
                   'abs_color_value',
                   'is_krw_score',
