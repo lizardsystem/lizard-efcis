@@ -47,6 +47,11 @@ Changelog of lizard-efcis
 
 - Added proper logging to ftp import task.
 
+- Tweak for the map. Pass an extra 'display_values' list. The display value is
+  the same as the latest value except when it is a KRW score. Then it is the
+  actual 'raw' krw value ('0.337') instead of the value of the middle of the
+  krw range ('0.3').
+
 
 0.1 (2015-03-09)
 ----------------

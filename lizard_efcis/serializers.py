@@ -290,6 +290,7 @@ class MapSerializer(gis_serializers.GeoFeatureModelSerializer):
     color_value = serializers.SerializerMethodField()
     abs_color_value = serializers.SerializerMethodField()
     latest_value = serializers.SerializerMethodField()
+    latest_display_value = serializers.SerializerMethodField()
     latest_krw_value = serializers.SerializerMethodField()
     latest_datetime = serializers.SerializerMethodField()
     boxplot_data = serializers.SerializerMethodField()
@@ -312,6 +313,9 @@ class MapSerializer(gis_serializers.GeoFeatureModelSerializer):
 
     def get_latest_value(self, obj):
         return self.context['latest_values'].get(obj.id)
+
+    def get_latest_display_value(self, obj):
+        return self.context['latest_display_values'].get(obj.id)
 
     def get_latest_krw_value(self, obj):
         return self.context['latest_krw_values'].get(obj.id)
