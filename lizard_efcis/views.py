@@ -58,6 +58,15 @@ def possibly_halved_or_krw_value(opname):
     return value
 
 
+def possibly_halved_value(opname):
+    # Similar to the method above, but with the 'raw' value instead of the
+    # 'rounded' krw value. This one is intended for displaying on the map.
+    value = opname['waarde_n']
+    if opname.get('detect__teken') == '<':
+        return value / 2.0
+    return value
+
+
 class ApproximateCountPaginator(Paginator):
 
     def _get_count(self):
@@ -367,6 +376,7 @@ class MapAPI(FilteredOpnamesAPIView):
             pk__in=relevant_wns_ids).values('id', 'wns_oms', 'parameter__par_oms_nl')
 
         latest_values = {}  # Latest value per location.
+        latest_display_values = {}  # Same, but with 'raw' krw value.
         latest_krw_values = {}  # Latest value per location.
         color_values = {}  # Latest value converted to 0-100 scale.
         abs_color_values = {}  # Same, but scaled to all values.
@@ -438,6 +448,9 @@ class MapAPI(FilteredOpnamesAPIView):
                 values = [
                     possibly_halved_or_krw_value(opname)
                     for opname in opnames_per_locatie]
+                display_values = [
+                    possibly_halved_value(opname)
+                    for opname in opnames_per_locatie]
                 summer_values = [
                     possibly_halved_or_krw_value(opname) for opname in opnames_per_locatie
                     if opname['datum'].month in [4, 5, 6, 7, 8, 9]]
@@ -478,6 +491,7 @@ class MapAPI(FilteredOpnamesAPIView):
                 # latest one.
                 latest_value = values[-1]
                 latest_values[locatie] = latest_value
+                latest_display_values[locatie] = display_values[-1]
                 latest_opname = opnames_per_locatie[-1]
                 latest_datetime = '%sT%s.000Z' % (latest_opname['datum'],
                                                   latest_opname['tijd'] or '00:00:00')
@@ -500,6 +514,7 @@ class MapAPI(FilteredOpnamesAPIView):
             locaties,
             many=True,
             context={'latest_values': latest_values,
+                     'latest_display_values': latest_display_values,
                      'latest_krw_values': latest_krw_values,
                      'latest_datetimes': latest_datetimes,
                      'is_krw_score': is_krw_score,
