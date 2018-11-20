@@ -734,6 +734,9 @@ class DataImport(object):
             # read headers
             headers = reader.next()
             for row in reader:
+                if not row:
+                    # Skip all empty lines, some formats have them at the end
+                    continue
                 inst = django_models.get_model('lizard_efcis',
                                                mapping.tabel_naam)()
                 if activiteit and hasattr(inst.__class__, 'activiteit'):

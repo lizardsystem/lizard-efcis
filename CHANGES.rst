@@ -4,6 +4,9 @@ Changelog of lizard-efcis
 
 0.2 (unreleased)
 ----------------
+
+- Skip empty lines in CSV imports.
+
 - Add season as filter paremeter.
 
 - Add 'omschrijving' field to MeetStatus, serializer.
