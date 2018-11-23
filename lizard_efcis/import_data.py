@@ -715,8 +715,11 @@ class DataImport(object):
                     self.save_action_log(import_run, message)
                     is_valid = False
 
-            message = "Aantal rijen %d, waarvan %d nieuwe en %d bestaande." % (
-                counter, count_imports, count_updates)
+            message = (
+                "Aantal rijen %d, waarvan %d nieuwe en %d "
+                "bestaande (en %d lege)." % (
+                    counter, count_imports, count_updates,
+                    counter - count_imports - count_updates))
             self.save_action_log(import_run, message)
         return is_valid
 
