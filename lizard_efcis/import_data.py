@@ -671,6 +671,10 @@ class DataImport(object):
             count_imports = 0
             for row in reader:
                 counter += 1
+                if len(row) == 0:
+                    # Skip empty lines
+                    continue
+
                 if len(row) != len(headers):
                     message = "regelnr.: %s, %d." % (
                         "Aantal kolommen komt niet overeen "
@@ -734,9 +738,10 @@ class DataImport(object):
             # read headers
             headers = reader.next()
             for row in reader:
-                if not row:
+                if len(row) == 0:
                     # Skip all empty lines, some formats have them at the end
                     continue
+
                 inst = django_models.get_model('lizard_efcis',
                                                mapping.tabel_naam)()
                 if activiteit and hasattr(inst.__class__, 'activiteit'):
@@ -774,6 +779,9 @@ class DataImport(object):
             # read headers
             headers = reader.next()
             for row in reader:
+                if len(row) == 0:
+                    continue
+
                 updated = False
                 created = False
                 counter += 1
