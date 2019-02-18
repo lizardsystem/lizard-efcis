@@ -706,6 +706,7 @@ class DataImport(object):
                         reader.line_num,
                         ", ".join(["%s: %s" % (k, ", ".join(v)) for k, v in e.message_dict.iteritems()])
                     )
+                    logger.exception(message)
                     self.save_action_log(import_run, message)
                     is_valid = False
                 except Exception as e:
@@ -858,6 +859,7 @@ class DataImport(object):
             umaquo_parser.parse()
         except XMLSyntaxError as ex:
             message = "Foutmeldingen - %s" % ex.message
+            logger.exception(message)
             self.save_action_log(import_run, message)
             return False
 
@@ -894,6 +896,7 @@ class DataImport(object):
                     waardereekstijd.sourceline,
                     ", ".join(["%s: %s" % (k, ", ".join(v)) for k, v in e.message_dict.iteritems()])
                 )
+                logger.exception(message)
                 self.save_action_log(import_run, message)
                 is_valid = False
             except ValueError as e:
@@ -901,6 +904,7 @@ class DataImport(object):
                     waardereekstijd.sourceline,
                     e.message
                 )
+                logger.exception(message)
                 self.save_action_log(import_run, message)
                 is_valid = False
 
